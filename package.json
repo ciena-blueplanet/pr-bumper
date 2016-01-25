@@ -1,0 +1,25 @@
+{
+  "name": "github-pr-bump",
+  "version": "0.0.1",
+  "description": "Bump the version of a package based on a GitHub Pull Request",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:ciena-blueplanet/github-pr-bump.git"
+  },
+  "keywords": [
+    "github",
+    "pullrequest",
+    "version",
+    "bump"
+  ],
+  "author": "Adam Meadows [https://github.com/job13er]",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ciena-blueplanet/github-pr-bump/issues"
+  },
+  "homepage": "https://github.com/ciena-blueplanet/github-pr-bump#readme"
+}
