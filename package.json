@@ -4,7 +4,9 @@
   "description": "Bump the version of a package based on a GitHub Pull Request",
   "main": "lib/index.js",
   "scripts": {
-    "test": "mocha --timeout 15000 tests"
+    "lint": "eslint .",
+    "test": "npm run-script lint && npm run-script utest",
+    "utest": "mocha --timeout 15000 tests"
   },
   "repository": {
     "type": "git",
@@ -32,6 +34,7 @@
   },
   "devDependencies": {
     "chai": "^3.4.1",
+    "eslint": "^1.10.3",
     "mocha": "^2.3.4"
   }
 }

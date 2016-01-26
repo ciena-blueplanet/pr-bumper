@@ -5,25 +5,30 @@ const lib = require('../lib')
 
 describe('lib', () => {
   describe('integration', () => {
-    let myPr
+    let myScope, myError
     beforeEach((done) => {
       lib.getSha()
         .then((sha) => {
-          console.log(`sha [${sha}]`)
           return lib.getPrForSha('ciena-blueplanet', 'github-pr-bump', sha)
         })
-        .then((pr) => {
-          myPr = pr
+        .then(lib.getScopeForPr)
+        .then((scope) => {
+          myScope = scope
           done()
         })
         .catch((e) => {
-          console.log(`Error: ${e}`)
+          myError = e
+          console.log(`${e}`)
           done()
         })
     })
 
+    it('does not error', () => {
+      expect(myError).to.be.null
+    })
+
     it('fetches the right pr', () => {
-      expect(pr.body).to.be.equal('foo-bar')
+      expect(myScope).to.be.equal('patch')
     })
   })
 
