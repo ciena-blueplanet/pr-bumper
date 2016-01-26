@@ -4,7 +4,7 @@
   "description": "Bump the version of a package based on a GitHub Pull Request",
   "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --timeout 15000 tests"
   },
   "repository": {
     "type": "git",
@@ -29,5 +29,9 @@
     "github-basic": "^6.0.0",
     "lodash": "^4.0.1",
     "promise": "^7.1.1"
+  },
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "mocha": "^2.3.4"
   }
 }
