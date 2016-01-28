@@ -2,7 +2,7 @@
 
 'use strict'
 
-require('./lib/typedefs')
+require('../lib/typedefs')
 const program = require('commander')
 const pkgJson = require('../package.json')
 const lib = require('../lib')
