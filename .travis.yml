@@ -1,0 +1,41 @@
+language: node_js
+sudo: false
+node_js:
+  - '5.3'
+
+branches:
+  except:
+    - /^v[0-9\.]+/
+
+before_install:
+  - npm install -g coveralls
+
+after_success:
+  - cat coverage/lcov.info | coveralls
+  - ./bin/cli.js check --owner=ciena-blueplanet --repo=pr-bumper
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
+
+env:
+  matrix:
+    - CXX=g++-4.8
+  global:
+    secure: gAOGpIhPsY4gXNtzYlzxu4KDpghbVPBL0sAjy8wB3b1pBbk5Zm7w2VKO6CW2I0YWMH2w1CrHSGM86vJHlia1HACtkcWj+pOEHj8PhpNdNdO1FmCQNdfrbd7PvDysn+2NWcjqOkMpLWWSxN9McL1d/CW9cOzhbcVnfCRAu/oU1C+72UWSBGmC6kPPaFgMq1xETwn6+kyrhRgHCaUV48fnnZLxVvaM3/HUPeA9g4RhdKObqBjqmALG1eXlTxi8oFbg1MR+co+J7jswnX04Qo8MMnRO23j334rGSuBZDJ0KbzPDD3Ftbkr/Vmdk7SinHiiGNyJSvdO9GLXzls5VcvuSUxPNdH3eFYxH7nD6++wmJSfqaAa2AhTFcPjokFxzAbu06ud+XGsVlPyr/BM9h+JXx8m1ssBMfDigKBkTgX+S8o30I35Yp32ViHXatjgcHR7xHU5sEmMoLfTDjlqPxnbWme/m2DKY6UJJbb7fqXCXjGTxuazfhGZVGiYrmWeErfNRadB+vjPl5s1p0OYdOrlQBO3KtGb8WewcVu+47SA3OIliE+Rl0E5L+qDkyaN5qipWQH4d4sH4p6Phni6Nr7WRlwijbJbdwZIjcyBmaQjBI8cwjuj04uVOoGt4aQdyRSGGwLS/4OrKWFmZ3SUu2l+Za/daVRAz0uJ7oCJeLGZTRjM=
+
+before_deploy:
+  - ./bin/cli.js bump --owner=ciena-blueplanet --repo=pr-bumper
+  - ./scripts/git-tag.sh
+
+deploy:
+  provider: npm
+  email: adam.meadows@gmail.com
+  api_key:
+    secure: DEKICcVOPZvjQBwb5pc0WNejKN+28jzIyMjmeReSEXYi6KsDRsH65mHqpuBhiBGapw9ADUrFWPBKIyxMq+zIcimuUTfLNeTK7OUCvSHF5zxPijZHQh9ZHhV7g/VR4cwtCILKN8nLd8d6R4g7zhwMk8ztZOOdEDxnFz9g0+L5uv+df7BN+wvP/sGgstQ+NFezmLc/T0+2J7/gKPNxLB694isWfmj56ozOHI3Cx40BuDITNO0prloZ4eOb4a6cJVDFrGkh1f4yt+3ylYtP7JK7YaGdfbWvvREooyqd5WoguXhEFXDjR4ooODh9XnpJeOxlFs9nvpdX4elFMTn33P3DFg3Vd3u+ud8Ey0uMno9537iTfq5CjEuJZ40rbf0+Ox3cz83DScaWlb4bZyWGi+4RhdqwyEBWck1fohP3zSdYu72yrnab33nso9CIVM4TT4RC/aCkufpzj26wuLi3qYfR1uBthbu+0kJCGquA3wRfAoxUKykD68WnCBaJvIEQ/XRFDnuTasPww2Kp/coCuhKnlAwctyeMCgbNdzNTvajfTtwv8CicSmdR52d5mhj4CJPAeTBAUR9XcvRensnTR0a02wVvTaYlYQnBIOR0bxfg/483J/zAKC+7Hzc/15nCV6I6vYXzp/WgtWZriu+CEYZxH/K2DdM44kunFNr9zSoZCx8=
+  on:
+    branch: master
+    tags: false
