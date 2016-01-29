@@ -26,7 +26,7 @@ program
 
 program.parse(process.argv)
 
-const config = utils.getConfig()
+const config = lib.utils.getConfig()
 
 const vcs = new lib.GitHub(config.owner, config.repo)
 const bumper = new lib.Bumper(vcs, config)
