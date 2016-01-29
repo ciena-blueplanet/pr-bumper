@@ -30,7 +30,9 @@ env:
     secure: gAOGpIhPsY4gXNtzYlzxu4KDpghbVPBL0sAjy8wB3b1pBbk5Zm7w2VKO6CW2I0YWMH2w1CrHSGM86vJHlia1HACtkcWj+pOEHj8PhpNdNdO1FmCQNdfrbd7PvDysn+2NWcjqOkMpLWWSxN9McL1d/CW9cOzhbcVnfCRAu/oU1C+72UWSBGmC6kPPaFgMq1xETwn6+kyrhRgHCaUV48fnnZLxVvaM3/HUPeA9g4RhdKObqBjqmALG1eXlTxi8oFbg1MR+co+J7jswnX04Qo8MMnRO23j334rGSuBZDJ0KbzPDD3Ftbkr/Vmdk7SinHiiGNyJSvdO9GLXzls5VcvuSUxPNdH3eFYxH7nD6++wmJSfqaAa2AhTFcPjokFxzAbu06ud+XGsVlPyr/BM9h+JXx8m1ssBMfDigKBkTgX+S8o30I35Yp32ViHXatjgcHR7xHU5sEmMoLfTDjlqPxnbWme/m2DKY6UJJbb7fqXCXjGTxuazfhGZVGiYrmWeErfNRadB+vjPl5s1p0OYdOrlQBO3KtGb8WewcVu+47SA3OIliE+Rl0E5L+qDkyaN5qipWQH4d4sH4p6Phni6Nr7WRlwijbJbdwZIjcyBmaQjBI8cwjuj04uVOoGt4aQdyRSGGwLS/4OrKWFmZ3SUu2l+Za/daVRAz0uJ7oCJeLGZTRjM=
 
 before_deploy:
+  - git log -3 --format=oneline
   - ./bin/cli.js bump
+  - git log -3 --format=oneline
 
 deploy:
   provider: npm
