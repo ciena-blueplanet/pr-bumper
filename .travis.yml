@@ -22,17 +22,14 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - g++-4.8
-
 env:
   matrix:
     - CXX=g++-4.8
   global:
-    secure: gAOGpIhPsY4gXNtzYlzxu4KDpghbVPBL0sAjy8wB3b1pBbk5Zm7w2VKO6CW2I0YWMH2w1CrHSGM86vJHlia1HACtkcWj+pOEHj8PhpNdNdO1FmCQNdfrbd7PvDysn+2NWcjqOkMpLWWSxN9McL1d/CW9cOzhbcVnfCRAu/oU1C+72UWSBGmC6kPPaFgMq1xETwn6+kyrhRgHCaUV48fnnZLxVvaM3/HUPeA9g4RhdKObqBjqmALG1eXlTxi8oFbg1MR+co+J7jswnX04Qo8MMnRO23j334rGSuBZDJ0KbzPDD3Ftbkr/Vmdk7SinHiiGNyJSvdO9GLXzls5VcvuSUxPNdH3eFYxH7nD6++wmJSfqaAa2AhTFcPjokFxzAbu06ud+XGsVlPyr/BM9h+JXx8m1ssBMfDigKBkTgX+S8o30I35Yp32ViHXatjgcHR7xHU5sEmMoLfTDjlqPxnbWme/m2DKY6UJJbb7fqXCXjGTxuazfhGZVGiYrmWeErfNRadB+vjPl5s1p0OYdOrlQBO3KtGb8WewcVu+47SA3OIliE+Rl0E5L+qDkyaN5qipWQH4d4sH4p6Phni6Nr7WRlwijbJbdwZIjcyBmaQjBI8cwjuj04uVOoGt4aQdyRSGGwLS/4OrKWFmZ3SUu2l+Za/daVRAz0uJ7oCJeLGZTRjM=
+    secure: ZTDXSYSds+zcbbtY9HFRXiZIuS2uHRIuNjYXMTD3YTThLgZ/cs2pBn8ku1zjE0kQXUn1e6iZ0AQBVmwo892TH8X+QHD+qwpMRjeggD2cWpiFxWN2Cqizhjmhj1fFJInNtxZQtp56H6eXSYkoyJJnvTehq56hiPnGvJLbZim6p9kNPq2j/fnmQLGvrhV3hxv6hf0L2r5n7KgDiyXOp53hhW39hdsQNlzuGiz9R6U3BHeXskYQyEpF6qE3qnX4l7VWMUt8L+7588nSQenvb/Yt5lnfPCGGCkpuUJq70bQjyhZMNwnkiiA5olvBmNermjZuoczKRd3R0GYGkqpfH/+xWoFXunQPeqgKtx0qd6e+3MFq9cCVPajS3XQf4zbg2RXrKVInYSDFBViKkUfChsQjyI05SUitkFEkAo60FGXmivixSysCSJVBctA2FdfMEu6u2YsOEHIaD/l9VuYXXs0TDtuCOqzpvSZjOYAuXU23aIZSzErpyzqUbQ75U+xWt+bgzX6etowkcX1LEC78vwMCUEbjP0mlTi107fZGB5HPSSZW1N3BQi/UZyZR7ZoPkDel6MxJRaiDZxaYZ1Umo8xkdLWY3mnTLqiZ2EGgwa6hsgoB2qEQeLbmbOWHNB2Rz3Zqs8WcZII5ih7/1adQb/+MxM1kp1SUfTMeNFgFzcQahjI=
 
 before_deploy:
-  - git log -3 --format=oneline
   - ./bin/cli.js bump
-  - git log -3 --format=oneline
 
 deploy:
   provider: npm
@@ -43,7 +40,6 @@ deploy:
   on:
     branch: master
     tags: false
-
 notifications:
   slack:
     secure: mUroABVyHA24GnPKx1jMSpcG92R0EAjrv0JPSqLHtc5NVkg+8gs4Vf0FY+hyKj7t9SQ08V/MLtmBXCZbe/VeMvYFbv/AW+gIzuBX2YboP6t/FzFU9JnV3Qz33gsP/UEK0Rnl00Zjibt4A0d3uwsvCy4tjccibnYuXOW2KfVkGmn7I9oUTlN1HSTs6h70HfP/IZvmpzXwKNmmBDPVUhyx0FO/4hms0SColLv71C8xwEoF4E2gOoKSJRLph58H5rOWxqi/HPZBzTwFpxCRGtTTR1XgeXUdQs5+2XVTXIpz5Kin4YTgKzEb9TmsdwpNeQx3vi3RVHnEOJhSfZ5IFDb7NSE/tUhtnrd5vQbbcN+0EwLHbcWL0gi5/IOAvhT5APZB3yPM1p+hEx7KKrdLyPsRNqfAtDgFDZ84ECvrBeRMwXzF7HhKgJasxmEuMXn0dKSHMShwlV1Vo057hoImEkv3DZN5yBUqOgSTBxtk2STgyUPwWEuhQM5flHc3EEe/KK4K98RgWsqlgU1+S5ZvsgLNQrOUNr9cV706ubKu2e+nY/PQadFuModrsjN+ZTOImZFke18XBXxASY5+EFyfHk8SWR+r6cDCaBVodTnHrT0p1/jqXEboobJm1wqWBRNM75P4PhHcCCisQ0cc9jCE6VJcdhmtLzwSM/NvIvwQXMvQVCA=

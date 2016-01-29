@@ -50,4 +50,27 @@ npm install pr-bumper
 ```
 
 ## Usage
+`pr-bumper` is optimized to work with Travis CI.
 
+Add the following snippets to your `.travis.yml` file to integrate `pr-bumper`
+
+```yaml
+branches:
+  except:
+    - /^v[0-9\.]+/
+
+before_install:
+  - npm install -g pr-bumper
+
+before_script:
+  - pr-bumper check
+
+before_deploy:
+  - pr-bumper bump
+```
+
+This will allow `pr-bumper` to be installed for your build, allow it to check for the existence of version-bump
+comments on your PRs, as well as allow it to automatically version-bump and git tag your releases before you deploy
+them.
+
+The `branches` section tells travis to skip the `v#.#.#` branches (or tags)
