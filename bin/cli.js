@@ -44,20 +44,16 @@ const bumper = new lib.Bumper(vcs)
 
 switch (cmd) {
   case 'bump':
-    bumper.getMergedPrScope()
-      .then((scope) => {
-        console.log(`Applying a ${scope} bump (except it's not implemente yet)`)
-      })
+    bumper
+      .bump()
       .catch((error) => {
         console.log(error.message)
         process.exit(1)
       })
     break
   case 'check':
-    bumper.getOpenPrScope()
-      .then((scope) => {
-        console.log(`Found a ${scope} bump for the current PR`)
-      })
+    bumper
+      .check()
       .catch((error) => {
         console.log(error.message)
         process.exit(1)
