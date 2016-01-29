@@ -28,7 +28,7 @@ program.parse(process.argv)
 
 const config = lib.utils.getConfig()
 
-const vcs = new lib.GitHub(config.owner, config.repo)
+const vcs = new lib.GitHub(config)
 const bumper = new lib.Bumper(vcs, config)
 
 switch (cmd) {
