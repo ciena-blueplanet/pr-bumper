@@ -43,6 +43,9 @@ We also support the aliases of `BREAKING`, `FEATURE`, and `FIX`.
 `pr-bumper` currently only supports pull requets on [GitHub](github.com),
 but support is also planned for [Bitbucket Server](https://bitbucket.org/product/server).
 
+It is also optimized to work with [Travis CI](https://travis-ci.org) out-of-the box, but support is also
+planned for [TeamCity](https://www.jetbrains.com/teamcity/)
+
 ## Installation
 
 ```
@@ -50,7 +53,20 @@ npm install pr-bumper
 ```
 
 ## Usage
-`pr-bumper` is optimized to work with Travis CI.
+You can check for the existence of a valid directive in the current (open) pr (during the pr build) by using
+
+```
+pr-bumper check
+```
+
+You can perform the automated bump in the merge build by using:
+
+```
+pr-bumper bump
+```
+
+## Travis CI
+`pr-bumper` is optimized to work with Travis CI and by defaults uses Travis CI environment variables for configuration.
 
 Add the following snippets to your `.travis.yml` file to integrate `pr-bumper`
 
@@ -74,3 +90,19 @@ comments on your PRs, as well as allow it to automatically version-bump and git 
 them.
 
 The `branches` section tells travis to skip the `v#.#.#` branches (or tags)
+
+Before `pr-bumper` can push commits and tags back to your repository however, you need to set up authentication.
+
+You'll need a [Personal Access Token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/)
+to let Travis push commits to GitHub. Granting `public_repo` access is sufficient for the token you need to use.
+The `GITHUB_TOKEN` environment variable needs to be set with your token.
+Since you're token should be kept secret, you'll want to encrypt it.
+
+You can do so by using the [Travis Client](https://github.com/travis-ci/travis.rb) to `travis encrypt` your token.
+
+First, you'll need to authenticate with `travis` (you can use the same token for that)
+
+```
+travis login --github-token your-token-goes-here
+travis encrypt GITHUB_TOKEN=your-token-goes-here --add
+```

@@ -11,8 +11,6 @@ let cmd = ''
 
 program
   .version(pkgJson.version)
-  .option('-o, --owner [value]', 'The repository owner/project')
-  .option('-r, --repo [value]', 'The repository name')
 
 program
   .command('bump')
@@ -28,19 +26,10 @@ program
 
 program.parse(process.argv)
 
-let travisOwner
-let travisRepo
-if (process.env.TRAVIS_REPO_SLUG) {
-  const parts = process.env.TRAVIS_REPO_SLUG.split('/')
-  travisOwner = parts[0]
-  travisRepo = parts[1]
-}
+const config = utils.getConfig()
 
-const owner = program.owner || travisOwner
-const repo = program.repo || travisRepo
-
-const vcs = new lib.GitHub(owner, repo)
-const bumper = new lib.Bumper(vcs)
+const vcs = new lib.GitHub(config.owner, config.repo)
+const bumper = new lib.Bumper(vcs, config)
 
 switch (cmd) {
   case 'bump':
