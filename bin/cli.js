@@ -30,8 +30,8 @@ program.parse(process.argv)
 
 let travisOwner
 let travisRepo
-if (process.env.TRAVIS_SLUG) {
-  const parts = process.env.TRAVIS_SLUG.split('/')
+if (process.env.TRAVIS_REPO_SLUG) {
+  const parts = process.env.TRAVIS_REPO_SLUG.split('/')
   travisOwner = parts[0]
   travisRepo = parts[1]
 }
