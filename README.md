@@ -19,13 +19,13 @@ Use text from a pull request description to automatically bump the version numbe
 
 Pull requests must include a directive indicating the
 scope of the change being made (`MAJOR`/`MINOR`/`PATCH`). Directives are **case insensitive** and wrapped in `#` to
-allow them to be used in descriptions. For instance, we wouldn't want a description that says
+avoid a description such as
 
 ```
 Fixing a major bug in the code
 ```
 
-To be considered a `MAJOR` change.
+being considered a `MAJOR` change.
 
 We also support the aliases of `BREAKING`, `FEATURE`, and `FIX`.
 
