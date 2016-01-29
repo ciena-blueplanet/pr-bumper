@@ -77,8 +77,6 @@ branches:
 
 before_install:
   - npm install -g pr-bumper
-
-before_script:
   - pr-bumper check
 
 before_deploy:
