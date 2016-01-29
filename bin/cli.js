@@ -7,17 +7,7 @@ const program = require('commander')
 const pkgJson = require('../package.json')
 const lib = require('../lib')
 
-/**
- * Get the bumper instance from the options
- * @param {Object} options - the options
- * @param {String} options.owner - the repository owner/org/project
- * @param {String} options.repo - the repository name
- * @returns {Bumper} the bumper instance
- */
-function getBumper (options) {
-  const vcs = new lib.GitHub(options.owner, options.repo)
-  return new lib.Bumper(vcs)
-}
+let cmd = ''
 
 program
   .version(pkgJson.version)
@@ -26,22 +16,54 @@ program
 
 program
   .command('bump')
-  .action((options) => {
-    const bumper = getBumper(options)
-    bumper.getMergedPrScope()
-      .then((scope) => {
-        console.log(`Applying a ${scope} bump (except it's not implemente yet)`)
-      })
+  .action(() => {
+    cmd = 'bump'
   })
 
 program
   .command('check')
-  .action((options) => {
-    const bumper = getBumper(options)
+  .action(() => {
+    cmd = 'check'
+  })
+
+program.parse(process.argv)
+
+let travisOwner
+let travisRepo
+if (process.env.TRAVIS_SLUG) {
+  const parts = process.env.TRAVIS_SLUG.split('/')
+  travisOwner = parts[0]
+  travisRepo = parts[1]
+}
+
+const owner = program.owner || travisOwner
+const repo = program.repo || travisRepo
+
+const vcs = new lib.GitHub(owner, repo)
+const bumper = new lib.Bumper(vcs)
+
+switch (cmd) {
+  case 'bump':
+    bumper.getMergedPrScope()
+      .then((scope) => {
+        console.log(`Applying a ${scope} bump (except it's not implemente yet)`)
+      })
+      .catch((error) => {
+        console.log(error.message)
+        process.exit(1)
+      })
+    break
+  case 'check':
     bumper.getOpenPrScope()
       .then((scope) => {
         console.log(`Found a ${scope} bump for the current PR`)
       })
-  })
-
-program.parse(process.argv)
+      .catch((error) => {
+        console.log(error.message)
+        process.exit(1)
+      })
+    break
+  default:
+    program.help()
+    break
+}
