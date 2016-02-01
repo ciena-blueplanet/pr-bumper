@@ -102,5 +102,8 @@ First, you'll need to authenticate with `travis` (you can use the same token for
 
 ```
 travis login --github-token your-token-goes-here
-travis encrypt GITHUB_TOKEN=your-token-goes-here --add
+travis encrypt GITHUB_TOKEN=your-token-goes-here --add -r owner/repo
 ```
+
+If you do not use a fork workflow and your `origin` is the main repository, you can skip the `-r owner/repo` part.
+Otherwise, replace the `owner/repo` with the organization and repo of your `upstream` repository.
