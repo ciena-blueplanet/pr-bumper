@@ -36,7 +36,8 @@ switch (cmd) {
     bumper
       .bump()
       .catch((error) => {
-        console.log(error.message)
+        const msg = (error.message) ? error.message : error
+        console.log(msg)
         process.exit(1)
       })
     break
@@ -44,7 +45,8 @@ switch (cmd) {
     bumper
       .check()
       .catch((error) => {
-        console.log(error.message)
+        const msg = (error.message) ? error.message : error
+        console.log(msg)
         process.exit(1)
       })
     break
