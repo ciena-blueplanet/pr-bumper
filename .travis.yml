@@ -12,7 +12,7 @@ before_install:
   - npm install -g coveralls
 
 before_script:
-  - ./bin/cli.js check
+  - VERBOSE=1 ./bin/cli.js check
 
 after_success:
   - cat coverage/lcov.info | coveralls
@@ -31,7 +31,7 @@ env:
     secure: ZTDXSYSds+zcbbtY9HFRXiZIuS2uHRIuNjYXMTD3YTThLgZ/cs2pBn8ku1zjE0kQXUn1e6iZ0AQBVmwo892TH8X+QHD+qwpMRjeggD2cWpiFxWN2Cqizhjmhj1fFJInNtxZQtp56H6eXSYkoyJJnvTehq56hiPnGvJLbZim6p9kNPq2j/fnmQLGvrhV3hxv6hf0L2r5n7KgDiyXOp53hhW39hdsQNlzuGiz9R6U3BHeXskYQyEpF6qE3qnX4l7VWMUt8L+7588nSQenvb/Yt5lnfPCGGCkpuUJq70bQjyhZMNwnkiiA5olvBmNermjZuoczKRd3R0GYGkqpfH/+xWoFXunQPeqgKtx0qd6e+3MFq9cCVPajS3XQf4zbg2RXrKVInYSDFBViKkUfChsQjyI05SUitkFEkAo60FGXmivixSysCSJVBctA2FdfMEu6u2YsOEHIaD/l9VuYXXs0TDtuCOqzpvSZjOYAuXU23aIZSzErpyzqUbQ75U+xWt+bgzX6etowkcX1LEC78vwMCUEbjP0mlTi107fZGB5HPSSZW1N3BQi/UZyZR7ZoPkDel6MxJRaiDZxaYZ1Umo8xkdLWY3mnTLqiZ2EGgwa6hsgoB2qEQeLbmbOWHNB2Rz3Zqs8WcZII5ih7/1adQb/+MxM1kp1SUfTMeNFgFzcQahjI=
 
 before_deploy:
-  - ./bin/cli.js bump
+  - VERBOSE=1 ./bin/cli.js bump
 
 deploy:
   provider: npm
