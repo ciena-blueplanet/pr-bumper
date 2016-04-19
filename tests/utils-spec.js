@@ -62,20 +62,16 @@ describe('utils', () => {
     })
 
     describe('with .pr-bumper.json present', () => {
-      beforeEach((done) => {
+      beforeEach(() => {
         let original = path.join(__dirname, '.pr-bumper.json')
-        exec(`cp ${original} .pr-bumper.json`)
+        return exec(`cp ${original} .pr-bumper.json`)
           .then(() => {
             options = utils.getOptions()
-            done()
           })
       })
 
-      afterEach((done) => {
-        exec(`rm -f .pr-bumper.json`)
-          .then(() => {
-            done()
-          })
+      afterEach(() => {
+        return exec(`rm -f .pr-bumper.json`)
       })
 
       it('uses the options from the config file', () => {
@@ -188,16 +184,14 @@ describe('utils', () => {
     })
 
     describe('when everything works', () => {
-      beforeEach((done) => {
+      beforeEach(() => {
         sandbox.stub(vcs, 'getPr').returns(Promise.resolve({mergeCommitSha: 'my-sha'}))
-        utils.getSha(config, vcs)
+        return utils.getSha(config, vcs)
           .then((res) => {
             resolution = res
-            done()
           })
           .catch((err) => {
             rejection = err
-            done()
           })
       })
 
@@ -211,16 +205,14 @@ describe('utils', () => {
     })
 
     describe('when getPr fails', () => {
-      beforeEach((done) => {
+      beforeEach(() => {
         sandbox.stub(vcs, 'getPr').returns(Promise.reject('my-error'))
-        utils.getSha(config, vcs)
+        return utils.getSha(config, vcs)
           .then((res) => {
             resolution = res
-            done()
           })
           .catch((err) => {
             rejection = err
-            done()
           })
       })
 
@@ -360,33 +352,23 @@ describe('utils', () => {
 
   describe('.bumpVersion()', () => {
     let newVersion, logStub
-    beforeEach((done) => {
+    beforeEach(() => {
       let original = path.join(__dirname, '_package.json')
-      exec(`cp ${original} _package.json`)
-        .then(() => {
-          done()
-        })
+      return exec(`cp ${original} _package.json`)
     })
 
-    afterEach((done) => {
-      exec(`rm -f _package.json`)
-        .then(() => {
-          done()
-        })
+    afterEach(() => {
+      return exec(`rm -f _package.json`)
     })
 
     describe('a fix', () => {
-      beforeEach((done) => {
+      beforeEach(() => {
         logStub = sinon.stub(console, 'log')
         utils.bumpVersion('patch', '_package.json')
         logStub.restore()
-        exec(`${getVersionCmd}`)
+        return exec(`${getVersionCmd}`)
           .then((stdout) => {
             newVersion = stdout.replace('\n', '')
-            done()
-          })
-          .catch(() => {
-            done()
           })
       })
 
@@ -396,17 +378,13 @@ describe('utils', () => {
     })
 
     describe('a feature', () => {
-      beforeEach((done) => {
+      beforeEach(() => {
         logStub = sinon.stub(console, 'log')
         utils.bumpVersion('minor', '_package.json')
         logStub.restore()
-        exec(`${getVersionCmd}`)
+        return exec(`${getVersionCmd}`)
           .then((stdout) => {
             newVersion = stdout.replace('\n', '')
-            done()
-          })
-          .catch(() => {
-            done()
           })
       })
 
@@ -416,17 +394,13 @@ describe('utils', () => {
     })
 
     describe('a beaking change', () => {
-      beforeEach((done) => {
+      beforeEach(() => {
         logStub = sinon.stub(console, 'log')
         utils.bumpVersion('major', '_package.json')
         logStub.restore()
-        exec(`${getVersionCmd}`)
+        return exec(`${getVersionCmd}`)
           .then((stdout) => {
             newVersion = stdout.replace('\n', '')
-            done()
-          })
-          .catch(() => {
-            done()
           })
       })
 
@@ -447,7 +421,7 @@ describe('utils', () => {
 
   describe('.commitChanges()', () => {
     let config
-    beforeEach((done) => {
+    beforeEach(() => {
       config = {buildNumber: '13'}
 
       // we want exec() to return a simple resolved Promise most of the time, but when it gets the node call
@@ -455,14 +429,7 @@ describe('utils', () => {
       execStub.withArgs(`node -e "console.log(require('./package.json').version)"`).returns(Promise.resolve('1.2.3\n'))
       execStub.returns(Promise.resolve())
 
-      utils.commitChanges(config)
-        .then(() => {
-          done()
-        })
-        .catch((err) => {
-          console.log(err)
-          done()
-        })
+      return utils.commitChanges(config)
     })
 
     it('sets the git user.email first', () => {

@@ -26,10 +26,8 @@ describe('Bumper', () => {
     })
 
     describe('when not a PR build', () => {
-      beforeEach((done) => {
-        bumper.check().then(() => {
-          done()
-        })
+      beforeEach(() => {
+        return bumper.check()
       })
 
       it('notifies user that it is skipping the check', () => {
@@ -42,11 +40,9 @@ describe('Bumper', () => {
     })
 
     describe('when it is a PR build', () => {
-      beforeEach((done) => {
+      beforeEach(() => {
         bumper.config.isPr = true
-        bumper.check().then(() => {
-          done()
-        })
+        return bumper.check()
       })
 
       it('looks for open pr scope', () => {
@@ -61,16 +57,17 @@ describe('Bumper', () => {
 
   describe('.bump()', () => {
     let result
-    beforeEach((done) => {
+    beforeEach(() => {
       bumper.config = {foo: 'bar'}
       bumper.vcs = {push: function () {}}
+
       sandbox.stub(bumper.vcs, 'push').returns(Promise.resolve('pushed'))
       sandbox.stub(bumper, 'getMergedPrScope').returns(Promise.resolve('minor'))
       sandbox.stub(utils, 'bumpVersion').returns(Promise.resolve())
       sandbox.stub(utils, 'commitChanges').returns(Promise.resolve())
-      bumper.bump().then((res) => {
+
+      return bumper.bump().then((res) => {
         result = res
-        done()
       })
     })
 
@@ -93,15 +90,16 @@ describe('Bumper', () => {
 
   describe('.getOpenPrScope()', () => {
     let result
-    beforeEach((done) => {
+    beforeEach(() => {
       bumper.config = {foo: 'bar'}
       bumper.vcs = {getOpenPrForSha: function () {}}
+
       sandbox.stub(utils, 'getSha').returns(Promise.resolve('my-sha'))
       sandbox.stub(bumper.vcs, 'getOpenPrForSha').returns(Promise.resolve('the-pr'))
       sandbox.stub(utils, 'getScopeForPr').returns(Promise.resolve('patch'))
-      bumper.getOpenPrScope().then((res) => {
+
+      return bumper.getOpenPrScope().then((res) => {
         result = res
-        done()
       })
     })
 
@@ -124,14 +122,15 @@ describe('Bumper', () => {
 
   describe('.getMergedPrScope()', () => {
     let result
-    beforeEach((done) => {
+    beforeEach(() => {
       bumper.config = {foo: 'bar'}
       bumper.vcs = {bar: 'baz'}
+
       sandbox.stub(utils, 'getLastPr').returns(Promise.resolve('the-pr'))
       sandbox.stub(utils, 'getScopeForPr').returns(Promise.resolve('major'))
-      bumper.getMergedPrScope().then((res) => {
+
+      return bumper.getMergedPrScope().then((res) => {
         result = res
-        done()
       })
     })
 
