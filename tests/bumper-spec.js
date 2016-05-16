@@ -56,14 +56,15 @@ describe('Bumper', () => {
   })
 
   describe('.bump()', () => {
-    let result
+    let result, info
     beforeEach(() => {
       bumper.config = {foo: 'bar'}
       bumper.vcs = {push: function () {}}
-
+      info = {scope: 'minor', changelog: '', version: '1.2.0'}
       sandbox.stub(bumper.vcs, 'push').returns(Promise.resolve('pushed'))
-      sandbox.stub(bumper, 'getMergedPrScope').returns(Promise.resolve('minor'))
-      sandbox.stub(utils, 'bumpVersion').returns(Promise.resolve())
+      sandbox.stub(bumper, 'getMergedPrInfo').returns(Promise.resolve(info))
+      sandbox.stub(utils, 'bumpVersion').returns(Promise.resolve(info))
+      sandbox.stub(utils, 'prependChangelog').returns(Promise.resolve())
       sandbox.stub(utils, 'commitChanges').returns(Promise.resolve())
 
       return bumper.bump().then((res) => {
@@ -71,12 +72,16 @@ describe('Bumper', () => {
       })
     })
 
-    it('gets the merged pr scope', () => {
-      expect(bumper.getMergedPrScope.calledOnce).to.be.ok
+    it('gets the merged pr info', () => {
+      expect(bumper.getMergedPrInfo.calledOnce).to.be.ok
     })
 
     it('bumps the version', () => {
-      expect(utils.bumpVersion.lastCall.args).to.eql(['minor', 'package.json'])
+      expect(utils.bumpVersion.lastCall.args).to.eql([info, 'package.json'])
+    })
+
+    it('prepends the changelog', () => {
+      expect(utils.prependChangelog.lastCall.args).to.eql([info, 'CHANGELOG.md'])
     })
 
     it('commits the change', () => {
@@ -120,16 +125,17 @@ describe('Bumper', () => {
     })
   })
 
-  describe('.getMergedPrScope()', () => {
+  describe('.getMergedPrInfo()', () => {
     let result
     beforeEach(() => {
       bumper.config = {foo: 'bar'}
       bumper.vcs = {bar: 'baz'}
 
       sandbox.stub(utils, 'getLastPr').returns(Promise.resolve('the-pr'))
-      sandbox.stub(utils, 'getScopeForPr').returns(Promise.resolve('major'))
+      sandbox.stub(utils, 'getScopeForPr').returns('major')
+      sandbox.stub(utils, 'getChangelogForPr').returns('my-changelog')
 
-      return bumper.getMergedPrScope().then((res) => {
+      return bumper.getMergedPrInfo().then((res) => {
         result = res
       })
     })
@@ -142,8 +148,12 @@ describe('Bumper', () => {
       expect(utils.getScopeForPr.lastCall.args).to.be.eql(['the-pr'])
     })
 
-    it('resolves with the scope', () => {
-      expect(result).to.be.eql('major')
+    it('gets the changelog for the given pr', () => {
+      expect(utils.getChangelogForPr.lastCall.args).to.be.eql(['the-pr'])
+    })
+
+    it('resolves with the info', () => {
+      expect(result).to.be.eql({scope: 'major', changelog: 'my-changelog'})
     })
   })
 })
