@@ -1,4 +1,6 @@
-# 0.4.0
+# 0.4.1
+ * Fixes issue where `\r` characters in the pr description weren't properly handled. Who knew GitHub was built on Windows? ;) 
+ * Fixes issue where users had to be extremely specific with their `# CHANGELOG` section heading. The following are now all valid as well: `#CHANGELOG`, `# CHANGELOG  `, `#changelog `, `# changelog`# 0.4.0
 Added ability to maintain a `CHANGELOG.md` file automatically via Pull Requests. Whenever `pr-bumper` runs on a merge build, it now not only bumps `package.json`, but also prepends some content into `CHANGELOG.md` at the root of the repository. If that file doesn't exist, it's created.
 
 ## What is added to `CHANGELOG.md`?
