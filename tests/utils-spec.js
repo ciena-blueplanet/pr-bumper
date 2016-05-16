@@ -373,9 +373,33 @@ describe('utils', () => {
       })
     })
 
+    describe('when multiple changelog sections are present', () => {
+      beforeEach(() => {
+        pr.description = '#CHANGELOG\n## Fixes\nFoo, Bar, Baz\n#changelog\n## Features\nFizz, Bang'
+        changelog = utils.getChangelogForPr(pr)
+      })
+
+      it('uses default message with error message', () => {
+        expect(changelog).to.be.eql('No CHANGELOG section found in Pull Request description.\n' +
+          'Use a `# CHANGELOG` section in your Pull Request description to auto-populate the `CHANGELOG.md`\n' +
+          'Multiple changelog sections found. Line 1 and line 4.')
+      })
+    })
+
     describe('when changelog section is present', () => {
       beforeEach(() => {
-        pr.description = '# CHANGELOG\n## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang'
+        pr.description = '#changelog\r\n## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang'
+        changelog = utils.getChangelogForPr(pr)
+      })
+
+      it('grabs the changelog text', () => {
+        expect(changelog).to.be.eql('## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang')
+      })
+    })
+
+    describe('when changelog section has extra space at the end', () => {
+      beforeEach(() => {
+        pr.description = '# CHANGELOG    \n## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang'
         changelog = utils.getChangelogForPr(pr)
       })
 
