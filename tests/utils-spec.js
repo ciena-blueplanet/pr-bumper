@@ -12,7 +12,8 @@ const logger = require('../lib/logger')
 const utils = rewire('../lib/utils')
 
 const exec = Promise.denodeify(cpExec)
-const getVersionCmd = `node -e "console.log(require('./_package.json').version)"`
+const getVersionCmd = 'node -e "console.log(require(\'./_package.json\').version)"'
+const realGetVersionCmd = 'node -e "console.log(require(\'./package.json\').version)"'
 
 /**
  * Wait until the promise is either resolved or rejected and then call done
@@ -71,7 +72,7 @@ describe('utils', () => {
       })
 
       afterEach(() => {
-        return exec(`rm -f .pr-bumper.json`)
+        return exec('rm -f .pr-bumper.json')
       })
 
       it('uses the options from the config file', () => {
@@ -350,21 +351,55 @@ describe('utils', () => {
     })
   })
 
+  describe('.getChangelogForPr()', () => {
+    let pr, changelog
+    beforeEach(() => {
+      pr = {
+        description: '',
+        number: '12345',
+        url: 'my-pr-url'
+      }
+    })
+
+    describe('when no changelog present', () => {
+      beforeEach(() => {
+        pr.description = 'My super-cool new feature'
+        changelog = utils.getChangelogForPr(pr)
+      })
+
+      it('uses default message', () => {
+        expect(changelog).to.be.eql('No CHANGELOG section found in Pull Request description.\n' +
+          'Use a `# CHANGELOG` section in your Pull Request description to auto-populate the `CHANGELOG.md`')
+      })
+    })
+
+    describe('when changelog section is present', () => {
+      beforeEach(() => {
+        pr.description = '# CHANGELOG\n## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang'
+        changelog = utils.getChangelogForPr(pr)
+      })
+
+      it('grabs the changelog text', () => {
+        expect(changelog).to.be.eql('## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang')
+      })
+    })
+  })
+
   describe('.bumpVersion()', () => {
-    let newVersion, logStub
+    let newVersion, logStub, info
     beforeEach(() => {
       let original = path.join(__dirname, '_package.json')
       return exec(`cp ${original} _package.json`)
     })
 
     afterEach(() => {
-      return exec(`rm -f _package.json`)
+      return exec('rm -f _package.json')
     })
 
     describe('a fix', () => {
       beforeEach(() => {
         logStub = sinon.stub(console, 'log')
-        utils.bumpVersion('patch', '_package.json')
+        info = utils.bumpVersion({scope: 'patch'}, '_package.json')
         logStub.restore()
         return exec(`${getVersionCmd}`)
           .then((stdout) => {
@@ -375,12 +410,16 @@ describe('utils', () => {
       it('creates the correct version', () => {
         expect(newVersion).to.be.equal('1.2.4')
       })
+
+      it('returns the correct version', () => {
+        expect(info.version).to.be.equal('1.2.4')
+      })
     })
 
     describe('a feature', () => {
       beforeEach(() => {
         logStub = sinon.stub(console, 'log')
-        utils.bumpVersion('minor', '_package.json')
+        info = utils.bumpVersion({scope: 'minor'}, '_package.json')
         logStub.restore()
         return exec(`${getVersionCmd}`)
           .then((stdout) => {
@@ -391,12 +430,16 @@ describe('utils', () => {
       it('creates the correct version', () => {
         expect(newVersion).to.be.equal('1.3.0')
       })
+
+      it('returns the correct version', () => {
+        expect(info.version).to.be.equal('1.3.0')
+      })
     })
 
     describe('a beaking change', () => {
       beforeEach(() => {
         logStub = sinon.stub(console, 'log')
-        utils.bumpVersion('major', '_package.json')
+        info = utils.bumpVersion({scope: 'major'}, '_package.json')
         logStub.restore()
         return exec(`${getVersionCmd}`)
           .then((stdout) => {
@@ -407,12 +450,16 @@ describe('utils', () => {
       it('creates the correct version', () => {
         expect(newVersion).to.be.equal('2.0.0')
       })
+
+      it('returns the correct version', () => {
+        expect(info.version).to.be.equal('2.0.0')
+      })
     })
 
     describe('an invalid scope', () => {
       it('throws an Error', () => {
         const fn = () => {
-          utils.bumpVersion('foo', '_package.json')
+          utils.bumpVersion({scope: 'foo'}, '_package.json')
         }
         expect(fn).to.throw('bumpVersion: Invalid scope [foo]')
       })
@@ -426,7 +473,7 @@ describe('utils', () => {
 
       // we want exec() to return a simple resolved Promise most of the time, but when it gets the node call
       // it needs to return a version number
-      execStub.withArgs(`node -e "console.log(require('./package.json').version)"`).returns(Promise.resolve('1.2.3\n'))
+      execStub.withArgs(realGetVersionCmd).returns(Promise.resolve('1.2.3\n'))
       execStub.returns(Promise.resolve())
 
       return utils.commitChanges(config)
@@ -445,7 +492,7 @@ describe('utils', () => {
     })
 
     it('adds the package.json fourth', () => {
-      expect(execStub.getCall(3).args).to.be.eql(['git add package.json'])
+      expect(execStub.getCall(3).args).to.be.eql(['git add package.json CHANGELOG.md'])
     })
 
     it('makes the commit fifth', () => {
@@ -455,7 +502,7 @@ describe('utils', () => {
     })
 
     it('fetches the new version sixth', () => {
-      expect(execStub.getCall(5).args).to.be.eql([`node -e "console.log(require('./package.json').version)"`])
+      expect(execStub.getCall(5).args).to.be.eql([realGetVersionCmd])
     })
 
     it('creates the tag seventh', () => {
