@@ -1,3 +1,6 @@
+# 0.4.2
+Format the `CHANGELOG.md` file properly by adding some newlines after the prepended entry.
+
 # 0.4.1
  * Fixes issue where `\r` characters in the pr description weren't properly handled. Who knew GitHub was built on Windows? ;) 
  * Fixes issue where users had to be extremely specific with their `# CHANGELOG` section heading. The following are now all valid as well: `#CHANGELOG`, `# CHANGELOG  `, `#changelog `, `# changelog`

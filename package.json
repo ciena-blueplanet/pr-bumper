@@ -1,6 +1,6 @@
 {
   "name": "pr-bumper",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Bump the version of a package based on a GitHub Pull Request",
   "main": "lib/index.js",
   "scripts": {
