@@ -96,11 +96,10 @@ describe('Bumper', () => {
   describe('.getOpenPrScope()', () => {
     let result
     beforeEach(() => {
-      bumper.config = {foo: 'bar'}
-      bumper.vcs = {getOpenPrForSha: function () {}}
+      bumper.config = {foo: 'bar', prNumber: '123'}
+      bumper.vcs = {getPr: function () {}}
 
-      sandbox.stub(utils, 'getSha').returns(Promise.resolve('my-sha'))
-      sandbox.stub(bumper.vcs, 'getOpenPrForSha').returns(Promise.resolve('the-pr'))
+      sandbox.stub(bumper.vcs, 'getPr').returns(Promise.resolve('the-pr'))
       sandbox.stub(utils, 'getScopeForPr').returns(Promise.resolve('patch'))
 
       return bumper.getOpenPrScope().then((res) => {
@@ -108,12 +107,8 @@ describe('Bumper', () => {
       })
     })
 
-    it('gets the sha', () => {
-      expect(utils.getSha.lastCall.args).to.be.eql([bumper.config, bumper.vcs])
-    })
-
-    it('fetches the open PR for the sha', () => {
-      expect(bumper.vcs.getOpenPrForSha.lastCall.args).to.be.eql(['my-sha'])
+    it('fetches the PR', () => {
+      expect(bumper.vcs.getPr.lastCall.args).to.be.eql(['123'])
     })
 
     it('gets the scope for the given pr', () => {

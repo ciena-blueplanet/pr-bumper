@@ -1,13 +1,14 @@
 'use strict'
 
+/*
 const rewire = require('rewire')
 const sinon = require('sinon')
 const expect = require('chai').expect
 const logger = require('../lib/logger')
-const GitHub = rewire('../lib/github')
+const BitbucketServer = rewire('../lib/bitbucket-server')
 
-describe('GitHub', () => {
-  let env, sandbox, github, execStub, fetchStub, revertFetchRewire, revertExecRewire
+describe('BitbucketServer', () => {
+  let env, sandbox, bitbucket, execStub, fetchStub, revertFetchRewire, revertExecRewire
   beforeEach(() => {
     sandbox = sinon.sandbox.create()
 
@@ -16,11 +17,11 @@ describe('GitHub', () => {
 
     // stub out the top-level 'fetch'
     fetchStub = sandbox.stub()
-    revertFetchRewire = GitHub.__set__('fetch', fetchStub)
+    revertFetchRewire = BitbucketServer.__set__('fetch', fetchStub)
 
     // stub out the top-level 'exec'
     execStub = sandbox.stub()
-    revertExecRewire = GitHub.__set__('exec', execStub)
+    revertExecRewire = BitbucketServer.__set__('exec', execStub)
 
     // save the current env variables
     env = {
@@ -33,7 +34,7 @@ describe('GitHub', () => {
     process.env.VERBOSE = '1'
     process.env.GITHUB_TOKEN = 'my-gh-token'
 
-    github = new GitHub({owner: 'me', repo: 'my-repo'})
+    bitbucket = new BitbucketServer({owner: 'me', repo: 'my-repo'})
   })
 
   afterEach(() => {
@@ -51,7 +52,7 @@ describe('GitHub', () => {
   })
 
   it('saves the config', () => {
-    expect(github.config).to.be.eql({owner: 'me', repo: 'my-repo'})
+    expect(bitbucket.config).to.be.eql({owner: 'me', repo: 'my-repo'})
   })
 
   describe('.getPr()', () => {
@@ -65,7 +66,7 @@ describe('GitHub', () => {
 
       fetchStub.returns(fetchPromise)
 
-      promise = github.getPr('5')
+      promise = bitbucket.getPr('5')
         .then((resp) => {
           resolution = resp
           return resolution
@@ -138,7 +139,7 @@ describe('GitHub', () => {
   describe('.push()', () => {
     beforeEach((done) => {
       execStub.returns(Promise.resolve())
-      github.push().then(() => {
+      bitbucket.push().then(() => {
         done()
       })
     })
@@ -153,3 +154,4 @@ describe('GitHub', () => {
     })
   })
 })
+*/
