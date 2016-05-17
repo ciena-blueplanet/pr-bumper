@@ -1,28 +1,82 @@
 'use strict'
 
+const __ = require('lodash')
 const expect = require('chai').expect
+const path = require('path')
 const Promise = require('promise')
 const sinon = require('sinon')
+const cpExec = require('child_process').exec
+const rewire = require('rewire')
 
 const utils = require('../lib/utils')
 const logger = require('../lib/logger')
-const Bumper = require('../lib/bumper')
+const Bumper = rewire('../lib/bumper')
+
+const exec = Promise.denodeify(cpExec)
+const getVersionCmd = 'node -e "console.log(require(\'./_package.json\').version)"'
+const realGetVersionCmd = 'node -e "console.log(require(\'./package.json\').version)"'
+
+/**
+ * Helper for performing repetative tasks in setting up _bumpVersion tests
+ * Since versiony doesn't let you tell it to be quiet, we need to stub out
+ * console.log() but only while _bumpVersion runs, or we won't get mocha output
+ * while running our tests
+ *
+ * @param {Object} ctx - the context object so the function can pass some info back to the tests for validation
+ * @param {String} scope - the scope to bump
+ * @param {String} expectedVersion - the expected version after the bump
+ */
+function testBumpVersion (ctx, scope, expectedVersion) {
+  describe(`a ${scope}`, () => {
+    let bumper, logStub, info, newVersion
+    beforeEach(() => {
+      bumper = ctx.bumper
+
+      logStub = sinon.stub(console, 'log')
+      info = bumper._bumpVersion({scope}, '_package.json')
+      logStub.restore()
+
+      return exec(`${getVersionCmd}`)
+        .then((stdout) => {
+          newVersion = stdout.replace('\n', '')
+        })
+    })
+
+    it('creates the correct version', () => {
+      expect(newVersion).to.be.equal(expectedVersion)
+    })
+
+    it('returns the correct version', () => {
+      expect(info.version).to.be.equal(expectedVersion)
+    })
+  })
+}
 
 describe('Bumper', () => {
-  let bumper, sandbox
+  let bumper, sandbox, execStub, revertExecRewire
   beforeEach(() => {
     sandbox = sinon.sandbox.create()
     sandbox.stub(logger, 'log')
-    bumper = new Bumper({}, {})
+
+    // stub out the top-level 'exec'
+    execStub = sandbox.stub()
+    revertExecRewire = Bumper.__set__('exec', execStub)
+
+    bumper = new Bumper({
+      ci: {},
+      config: {},
+      vcs: {}
+    })
   })
 
   afterEach(() => {
     sandbox.restore()
+    revertExecRewire()
   })
 
   describe('.check()', () => {
     beforeEach(() => {
-      sandbox.stub(bumper, 'getOpenPrScope').returns(Promise.resolve('minor'))
+      sandbox.stub(bumper, '_getOpenPrScope').returns(Promise.resolve('minor'))
     })
 
     describe('when not a PR build', () => {
@@ -35,7 +89,7 @@ describe('Bumper', () => {
       })
 
       it('does not look for open pr scope', () => {
-        expect(bumper.getOpenPrScope.called).to.be.false
+        expect(bumper._getOpenPrScope.called).to.be.false
       })
     })
 
@@ -46,7 +100,7 @@ describe('Bumper', () => {
       })
 
       it('looks for open pr scope', () => {
-        expect(bumper.getOpenPrScope.calledOnce).to.be.true
+        expect(bumper._getOpenPrScope.calledOnce).to.be.true
       })
 
       it('notifies user of the scope it found', () => {
@@ -59,13 +113,15 @@ describe('Bumper', () => {
     let result, info
     beforeEach(() => {
       bumper.config = {foo: 'bar'}
-      bumper.vcs = {push: function () {}}
+      bumper.vcs = {foo: 'bar'}
+      bumper.ci = {push: function () {}}
       info = {scope: 'minor', changelog: '', version: '1.2.0'}
-      sandbox.stub(bumper.vcs, 'push').returns(Promise.resolve('pushed'))
-      sandbox.stub(bumper, 'getMergedPrInfo').returns(Promise.resolve(info))
-      sandbox.stub(utils, 'bumpVersion').returns(Promise.resolve(info))
-      sandbox.stub(utils, 'prependChangelog').returns(Promise.resolve())
-      sandbox.stub(utils, 'commitChanges').returns(Promise.resolve())
+      sandbox.stub(bumper.ci, 'push').returns(Promise.resolve('pushed'))
+      sandbox.stub(bumper, '_getMergedPrInfo').returns(Promise.resolve(info))
+      sandbox.stub(bumper, '_bumpVersion').returns(Promise.resolve(info))
+      sandbox.stub(bumper, '_prependChangelog').returns(Promise.resolve())
+      sandbox.stub(bumper, '_commitChanges').returns(Promise.resolve())
+      sandbox.stub(bumper, '_createTag').returns(Promise.resolve())
 
       return bumper.bump().then((res) => {
         result = res
@@ -73,75 +129,226 @@ describe('Bumper', () => {
     })
 
     it('gets the merged pr info', () => {
-      expect(bumper.getMergedPrInfo.calledOnce).to.be.ok
+      expect(bumper._getMergedPrInfo.calledOnce).to.be.ok
     })
 
     it('bumps the version', () => {
-      expect(utils.bumpVersion.lastCall.args).to.eql([info, 'package.json'])
+      expect(bumper._bumpVersion.lastCall.args).to.eql([info, 'package.json'])
     })
 
     it('prepends the changelog', () => {
-      expect(utils.prependChangelog.lastCall.args).to.eql([info, 'CHANGELOG.md'])
+      expect(bumper._prependChangelog.lastCall.args).to.eql([info, 'CHANGELOG.md'])
     })
 
     it('commits the change', () => {
-      expect(utils.commitChanges.lastCall.args).to.eql([{foo: 'bar'}])
+      expect(bumper._commitChanges.calledOnce).to.be.ok
     })
 
-    it('resolves with the result of the vcs.push()', () => {
+    it('creates the tag', () => {
+      expect(bumper._createTag.calledOnce).to.be.ok
+    })
+
+    it('pushs the changes', () => {
+      expect(bumper.ci.push.lastCall.args).to.be.eql([bumper.vcs])
+    })
+
+    it('resolves with the result of the ci.push()', () => {
       expect(result).to.be.eql('pushed')
     })
   })
 
-  describe('.getOpenPrScope()', () => {
+  describe('._bumpVersion()', () => {
+    let ctx = {}
+    beforeEach(() => {
+      ctx.bumper = bumper
+
+      let original = path.join(__dirname, '_package.json')
+      return exec(`cp ${original} _package.json`)
+    })
+
+    afterEach(() => {
+      return exec('rm -f _package.json')
+    })
+
+    testBumpVersion(ctx, 'patch', '1.2.4')
+    testBumpVersion(ctx, 'minor', '1.3.0')
+    testBumpVersion(ctx, 'major', '2.0.0')
+
+    describe('an invalid scope', () => {
+      it('throws an Error', () => {
+        const fn = () => {
+          bumper._bumpVersion({scope: 'foo'}, '_package.json')
+        }
+        expect(fn).to.throw('pr-bumper: Invalid scope [foo]')
+      })
+    })
+  })
+
+  describe('._commitChanges()', () => {
     let result
     beforeEach(() => {
-      bumper.config = {foo: 'bar'}
-      bumper.vcs = {getOpenPrForSha: function () {}}
+      __.set(bumper.config, 'ci.buildNumber', '12345')
+      bumper.ci = {
+        add () {},
+        commit () {},
+        setupGitEnv () {}
+      }
 
-      sandbox.stub(utils, 'getSha').returns(Promise.resolve('my-sha'))
-      sandbox.stub(bumper.vcs, 'getOpenPrForSha').returns(Promise.resolve('the-pr'))
-      sandbox.stub(utils, 'getScopeForPr').returns(Promise.resolve('patch'))
+      sandbox.stub(bumper.ci, 'add').returns(Promise.resolve('added'))
+      sandbox.stub(bumper.ci, 'commit').returns(Promise.resolve('committed'))
+      sandbox.stub(bumper.ci, 'setupGitEnv').returns(Promise.resolve('set-up'))
 
-      return bumper.getOpenPrScope().then((res) => {
+      return bumper._commitChanges().then((res) => {
         result = res
       })
     })
 
-    it('gets the sha', () => {
-      expect(utils.getSha.lastCall.args).to.be.eql([bumper.config, bumper.vcs])
+    it('sets up git env', () => {
+      expect(bumper.ci.setupGitEnv.calledOnce).to.be.ok
     })
 
-    it('fetches the open PR for the sha', () => {
-      expect(bumper.vcs.getOpenPrForSha.lastCall.args).to.be.eql(['my-sha'])
+    it('adds the files to stage', () => {
+      expect(bumper.ci.add.lastCall.args).to.be.eql([['package.json', 'CHANGELOG.md']])
     })
 
-    it('gets the scope for the given pr', () => {
-      expect(utils.getScopeForPr.lastCall.args).to.be.eql(['the-pr'])
+    it('commits the changes', () => {
+      const summary = 'Automated version bump [ci skip]'
+      const message = 'From CI build 12345'
+
+      expect(bumper.ci.commit.lastCall.args).to.be.eql([summary, message])
     })
 
-    it('resolves with the scope', () => {
-      expect(result).to.be.eql('patch')
+    it('resolves with the result of the commit', () => {
+      expect(result).to.be.equal('committed')
     })
   })
 
-  describe('.getMergedPrInfo()', () => {
+  describe('._createTag()', () => {
+    let result
+
+    beforeEach(() => {
+      __.set(bumper.config, 'ci.buildNumber', '12345')
+      bumper.ci = {
+        tag () {}
+      }
+
+      sandbox.stub(bumper.ci, 'tag').returns(Promise.resolve('tagged'))
+
+      // we want exec() to return a simple resolved Promise most of the time, but when it gets the node call
+      // it needs to return a version number
+      execStub.withArgs(realGetVersionCmd).returns(Promise.resolve('1.2.3\n'))
+      execStub.returns(Promise.resolve())
+
+      return bumper._createTag().then((res) => {
+        result = res
+      })
+    })
+
+    it('gets the version', () => {
+      expect(execStub.lastCall.args).to.be.eql([realGetVersionCmd])
+    })
+
+    it('creates a tag', () => {
+      expect(bumper.ci.tag.lastCall.args).to.be.eql(['v1.2.3', 'Generated tag from CI build 12345'])
+    })
+
+    it('resolves with the result of the tag', () => {
+      expect(result).to.be.equal('tagged')
+    })
+  })
+
+  describe('._getLastPr()', () => {
+    let getPrResolver, resolution, rejection, promise
+    beforeEach(() => {
+      bumper.vcs = {getPr: function () {}}
+
+      getPrResolver = {}
+      const getPrPromise = new Promise((resolve, reject) => {
+        getPrResolver.resolve = resolve
+        getPrResolver.reject = reject
+      })
+
+      sandbox.stub(bumper.vcs, 'getPr').returns(getPrPromise)
+
+      // actual results of git log -10 --oneline on pr-bumper repo
+      const gitLog =
+        '98a148c Added some more tests, just a few more to go\n' +
+        '1b1bd97 Added some real unit tests\n' +
+        'edf85e0 Merge pull request #30 from job13er/remove-newline\n' +
+        'fa066f2 Removed newline from parsed PR number\n' +
+        'fc416cc Merge pull request #29 from job13er/make-bumping-more-robust\n' +
+        '67db358 Fix for #26 by reading PR # from git commit\n' +
+        '4a61a20 Automated version bump [ci skip]\n' +
+        '7db44e1 Merge pull request #24 from sandersky/master\n' +
+        'f571451 add pullapprove config\n' +
+        '4398a26 address PR concerns\n'
+
+      execStub.returns(Promise.resolve(gitLog))
+      promise = bumper._getLastPr()
+        .then((pr) => {
+          resolution = pr
+          return pr
+        })
+        .catch((err) => {
+          rejection = err
+          throw err
+        })
+    })
+
+    it('calls git log', () => {
+      expect(execStub.lastCall.args).to.be.eql(['git log -10 --oneline'])
+    })
+
+    describe('when getPr succeeds', () => {
+      beforeEach(() => {
+        getPrResolver.resolve('the-pr')
+        return promise
+      })
+
+      it('parses out the PR number from the git log and passes it to vcs.getPr()', () => {
+        expect(bumper.vcs.getPr.lastCall.args).to.be.eql(['30'])
+      })
+
+      it('resolves with the pr', () => {
+        expect(resolution).to.be.equal('the-pr')
+      })
+    })
+
+    describe('when getPr fails', () => {
+      beforeEach((done) => {
+        getPrResolver.reject('the-error')
+        promise.catch(() => {
+          done()
+        })
+      })
+
+      it('parses out the PR number from the git log and passes it to vcs.getPr()', () => {
+        expect(bumper.vcs.getPr.lastCall.args).to.be.eql(['30'])
+      })
+
+      it('rejects with the error', () => {
+        expect(rejection).to.be.equal('the-error')
+      })
+    })
+  })
+
+  describe('._getMergedPrInfo()', () => {
     let result
     beforeEach(() => {
       bumper.config = {foo: 'bar'}
       bumper.vcs = {bar: 'baz'}
 
-      sandbox.stub(utils, 'getLastPr').returns(Promise.resolve('the-pr'))
+      sandbox.stub(bumper, '_getLastPr').returns(Promise.resolve('the-pr'))
       sandbox.stub(utils, 'getScopeForPr').returns('major')
       sandbox.stub(utils, 'getChangelogForPr').returns('my-changelog')
 
-      return bumper.getMergedPrInfo().then((res) => {
+      return bumper._getMergedPrInfo().then((res) => {
         result = res
       })
     })
 
     it('gets the last PR to be merged', () => {
-      expect(utils.getLastPr.lastCall.args).to.be.eql([bumper.config, bumper.vcs])
+      expect(bumper._getLastPr.calledOnce).to.be.ok
     })
 
     it('gets the scope for the given pr', () => {
@@ -153,7 +360,38 @@ describe('Bumper', () => {
     })
 
     it('resolves with the info', () => {
-      expect(result).to.be.eql({scope: 'major', changelog: 'my-changelog'})
+      expect(result).to.be.eql({changelog: 'my-changelog', scope: 'major'})
     })
+  })
+
+  describe('._getOpenPrScope()', () => {
+    let result
+    beforeEach(() => {
+      bumper.config = {foo: 'bar', prNumber: '123'}
+      bumper.vcs = {getPr: function () {}}
+
+      sandbox.stub(bumper.vcs, 'getPr').returns(Promise.resolve('the-pr'))
+      sandbox.stub(utils, 'getScopeForPr').returns(Promise.resolve('patch'))
+
+      return bumper._getOpenPrScope().then((res) => {
+        result = res
+      })
+    })
+
+    it('fetches the PR', () => {
+      expect(bumper.vcs.getPr.lastCall.args).to.be.eql(['123'])
+    })
+
+    it('gets the scope for the given pr', () => {
+      expect(utils.getScopeForPr.lastCall.args).to.be.eql(['the-pr'])
+    })
+
+    it('resolves with the scope', () => {
+      expect(result).to.be.eql('patch')
+    })
+  })
+
+  describe('._prependChangelog()', () => {
+    // TODO: add tests
   })
 })

@@ -1,5 +1,0 @@
-{
-  "repoSlugEnv": "REPO_SLUG",
-  "prEnv": "PR_NUMBER",
-  "buildNumberEnv": "BUILD_NUMBER"
-}

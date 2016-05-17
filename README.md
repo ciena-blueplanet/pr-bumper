@@ -107,3 +107,86 @@ travis encrypt GITHUB_TOKEN=your-token-goes-here --add -r owner/repo
 
 If you do not use a fork workflow and your `origin` is the main repository, you can skip the `-r owner/repo` part.
 Otherwise, replace the `owner/repo` with the organization and repo of your `upstream` repository.
+
+## Bitbucket Server / TeamCity
+You can now configure `pr-bumper` to work with something other than Travis CI and GitHub.
+The only other configuration that has been tested is TeamCity and Bitbucket Server.
+You can configure `pr-bumper` to work with TeamCity and Bitbucket Server by placing a `.pr-bumper.json`
+file in the root of your repository and filling in some information about your CI setup:
+
+
+```json
+{
+  "ci": {
+    "env": {
+      "buildNumber": "TEAMCITY_BUILD_NUMBER",
+      "pr": "TEAMCITY_PULL_REQUEST"
+    },
+    "gitUser": {
+      "email": "ci-user",
+      "name": "ci-user@my-company-domain.com"
+    },
+    "provider": "teamcity"
+  },
+  "owner": "my-bitbucket-project",
+  "repo": "my-bitbucket-repository",
+  "vcs": {
+    "domain": "bitbucket.my-company-domain.com",
+    "env": {
+      "username": "BITBUCKET_USERNAME",
+      "password": "BITBUCKET_PASSWORD"
+    },
+    "provider": "bitbucket-server"
+  }
+}
+```
+
+### `ci.env.buildNumber`
+A string that provides the environment variable that holds the TeamCity build number on the agent that runs your build.
+One way to set that variable is with the following in your Build Step:
+
+```
+export TEAMCITY_BUILD_NUMBER="%teamcity.build.id%"
+```
+
+### `ci.env.pr`
+A string that provides the environment variable that holds the PR number of the pull request
+being built (empty when a not a PR build).
+One way to fill that variable is by including the following in your Build Step:
+
+```
+stripped_branch=\$(echo "%teamcity.build.branch%" | sed -e "s/\/merge//")
+re='^[0-9]+$'
+if [[ \$stripped_branch =~ \$re ]]
+then
+    export TEAMCITY_PULL_REQUEST="\$stripped_branch"
+else
+    export TEAMCITY_PULL_REQUEST="false"
+fi
+```
+
+### `ci.gitUser`
+You can configure the `email` and `name` that will be used by the `git` user for the `commit` that bumps the
+version in `package.json` and prepends content to `CHANGELOG.md` This setting can be used even if you're using
+the `travis` provider (see below)
+
+### `ci.provider`
+Here you configure what CI system you use, the only currently supported options are `travis` (the default),
+or `teamcity`
+
+### `owner`
+The Bitbucket project where your repository resides
+
+### `repo`
+The name of your Bitbucket repository
+
+### `vcs.domain`
+The domain of your Bitbucket Server installation
+
+### `vcs.env.username` and `vcs.env.password`
+Strings that provide the environment variables which hold the credentials for a user with write permissions on the
+repository in question.
+
+### `vcs.provider`
+Here you configure what VCS system you use, the only currently supported options are `github` (the default),
+or `bitbucket-server`
