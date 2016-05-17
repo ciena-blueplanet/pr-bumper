@@ -98,11 +98,11 @@ describe('utils', () => {
       let options
       beforeEach(() => {
         options = {
+          buildNumberEnv: 'MY_BUILD_NUMBER',
           owner: 'me',
-          repo: 'my-repo',
-          repoSlugEnv: 'MY_REPO_SLUG',
           prEnv: 'MY_PULL_REQUEST',
-          buildNumberEnv: 'MY_BUILD_NUMBER'
+          repo: 'my-repo',
+          repoSlugEnv: 'MY_REPO_SLUG'
         }
 
         config = utils.getConfig(options)
@@ -114,11 +114,12 @@ describe('utils', () => {
 
       it('creates the proper config', () => {
         expect(config).to.be.eql({
-          owner: 'me',
-          repo: 'my-repo',
+          bitbucket: undefined,
+          buildNumber: '12345',
           isPr: false,
+          owner: 'me',
           prNumber: 'false',
-          buildNumber: '12345'
+          repo: 'my-repo'
         })
       })
     })
@@ -140,11 +141,12 @@ describe('utils', () => {
 
       it('returns the proper config', () => {
         expect(config).to.be.eql({
-          owner: 'jdoe',
-          repo: 'john-and-jane',
+          bitbucket: undefined,
+          buildNumber: '12345',
           isPr: true,
+          owner: 'jdoe',
           prNumber: '13',
-          buildNumber: '12345'
+          repo: 'john-and-jane'
         })
       })
     })
@@ -174,52 +176,6 @@ describe('utils', () => {
       }
 
       expect(fn).to.throw('Invalid version-bump scope [foo-bar] found for PR #12345 (my-pr-url)')
-    })
-  })
-
-  describe('.getSha()', () => {
-    let config, vcs, resolution, rejection
-    beforeEach(() => {
-      config = {prNumber: '12345'}
-      vcs = {getPr: function () {}}
-    })
-
-    describe('when everything works', () => {
-      beforeEach(() => {
-        sandbox.stub(vcs, 'getPr').returns(Promise.resolve({mergeCommitSha: 'my-sha'}))
-        return utils.getSha(config, vcs)
-          .then((res) => {
-            resolution = res
-          })
-          .catch((err) => {
-            rejection = err
-          })
-      })
-
-      it('calls getPr with the correct PR number', () => {
-        expect(vcs.getPr.lastCall.args).to.be.eql(['12345'])
-      })
-
-      it('resolves with sha', () => {
-        expect(resolution).to.be.equal('my-sha')
-      })
-    })
-
-    describe('when getPr fails', () => {
-      beforeEach(() => {
-        sandbox.stub(vcs, 'getPr').returns(Promise.reject('my-error'))
-        return utils.getSha(config, vcs)
-          .then((res) => {
-            resolution = res
-          })
-          .catch((err) => {
-            rejection = err
-          })
-      })
-
-      it('passes up the rejection', () => {
-        expect(rejection).to.be.equal('my-error')
-      })
     })
   })
 

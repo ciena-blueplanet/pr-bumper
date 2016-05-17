@@ -28,7 +28,16 @@ program.parse(process.argv)
 
 const config = lib.utils.getConfig()
 
-const vcs = new lib.GitHub(config)
+let vcs = new lib.GitHub(config)
+
+/*
+if (config.bitbucket) {
+  vcs = new lib.BitbucketServer(config)
+} else {
+  vcs = new lib.GitHub(config)
+}
+*/
+
 const bumper = new lib.Bumper(vcs, config)
 
 switch (cmd) {
