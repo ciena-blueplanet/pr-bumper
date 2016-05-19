@@ -1,150 +1,287 @@
 'use strict'
 
 const __ = require('lodash')
-const path = require('path')
-const Promise = require('promise')
-const cpExec = require('child_process').exec
-const rewire = require('rewire')
 const expect = require('chai').expect
 const sinon = require('sinon')
 
 const logger = require('../lib/logger')
-const utils = rewire('../lib/utils')
-
-const exec = Promise.denodeify(cpExec)
-const getVersionCmd = 'node -e "console.log(require(\'./_package.json\').version)"'
-const realGetVersionCmd = 'node -e "console.log(require(\'./package.json\').version)"'
+const utils = require('../lib/utils')
 
 /**
- * Wait until the promise is either resolved or rejected and then call done
- * @param {Promise} promise - the promise to wait for
- * @param {Function} done - the done function to call after resolution/rejection
+ * Save the existing environment variables into an env object
+ * @param {String[]} args - the environment variables to save
+ * @param {Object} env - the object in which to save the environment variables
  */
-function waitForPromise (promise, done) {
-  promise
-    .then(() => {
-      done()
+function saveEnv (args, env) {
+  __.forEach(args, (arg) => {
+    env[arg] = process.env[arg]
+  })
+}
+
+/**
+ * Set the environment variables based on the given env hash
+ * @param {Object} env - the object from which to set environment variables
+ */
+function setEnv (env) {
+  __.forIn(env, (value, key) => {
+    process.env[key] = value
+  })
+}
+
+/**
+ * Verifiy that getConfig filled in the proper Github/Travis defaults
+ * @param {Object} ctx - the context object for the tests
+ */
+function verifyGitHubTravisDefaults (ctx) {
+  describe('uses the right github/travis default', () => {
+    let config
+    beforeEach(() => {
+      config = ctx.config
     })
-    .catch(() => {
-      done()
+
+    it('git user', () => {
+      expect(config.ci.gitUser).to.be.eql({
+        email: 'travis.ci.ciena@gmail.com',
+        name: 'Travis CI'
+      })
     })
+
+    it('ci provider', () => {
+      expect(config.ci.provider).to.be.equal('travis')
+    })
+
+    it('owner', () => {
+      expect(config.owner).to.be.equal('jdoe')
+    })
+
+    it('repo', () => {
+      expect(config.repo).to.be.equal('john-and-jane')
+    })
+
+    it('vcs domain', () => {
+      expect(config.vcs.domain).to.be.equal('github.com')
+    })
+
+    it('vcs provider', () => {
+      expect(config.vcs.provider).to.be.equal('github')
+    })
+
+    it('vcs auth', () => {
+      expect(config.vcs.auth).to.be.eql({
+        password: undefined,
+        readToken: '12345',
+        username: undefined,
+        writeToken: '54321'
+      })
+    })
+  })
+}
+
+/**
+ * Verifiy that getConfig filled in the proper Bitbucket/TeamCity config overrides
+ * @param {Object} ctx - the context object for the tests
+ */
+function verifyBitbucketTeamcityOverrides (ctx) {
+  describe('uses the right bitbucket/teamcity overrides', () => {
+    let config
+    beforeEach(() => {
+      config = ctx.config
+    })
+
+    it('git user', () => {
+      expect(config.ci.gitUser).to.be.eql({
+        email: 'teamcity@domain.com',
+        name: 'teamcity'
+      })
+    })
+
+    it('ci provider', () => {
+      expect(config.ci.provider).to.be.equal('teamcity')
+    })
+
+    it('owner', () => {
+      expect(config.owner).to.be.equal('my-project')
+    })
+
+    it('repo', () => {
+      expect(config.repo).to.be.equal('my-repo')
+    })
+
+    it('vcs domain', () => {
+      expect(config.vcs.domain).to.be.equal('bitbucket.domain.com')
+    })
+
+    it('vcs provider', () => {
+      expect(config.vcs.provider).to.be.equal('bitbucket-server')
+    })
+
+    it('vcs auth', () => {
+      expect(config.vcs.auth).to.be.eql({
+        password: 'teamcity12345',
+        readToken: undefined,
+        username: 'teamcity',
+        writeToken: undefined
+      })
+    })
+  })
 }
 
 describe('utils', () => {
-  let sandbox, execStub, revertExecRewire
+  let sandbox
+
   beforeEach(() => {
     sandbox = sinon.sandbox.create()
     sandbox.stub(logger, 'log')
-
-    // stub out the top-level 'exec'
-    execStub = sandbox.stub()
-    revertExecRewire = utils.__set__('exec', execStub)
   })
 
   afterEach(() => {
     sandbox.restore()
-    revertExecRewire()
-  })
-
-  describe('.getOptions()', () => {
-    let options
-    describe('with .pr-bumper.json missing', () => {
-      beforeEach(() => {
-        options = utils.getOptions()
-      })
-
-      it('uses the correct defaults', () => {
-        expect(options).to.be.eql({
-          repoSlugEnv: 'TRAVIS_REPO_SLUG',
-          prEnv: 'TRAVIS_PULL_REQUEST',
-          buildNumberEnv: 'TRAVIS_BUILD_NUMBER'
-        })
-      })
-    })
-
-    describe('with .pr-bumper.json present', () => {
-      beforeEach(() => {
-        let original = path.join(__dirname, '.pr-bumper.json')
-        return exec(`cp ${original} .pr-bumper.json`)
-          .then(() => {
-            options = utils.getOptions()
-          })
-      })
-
-      afterEach(() => {
-        return exec('rm -f .pr-bumper.json')
-      })
-
-      it('uses the options from the config file', () => {
-        expect(options).to.be.eql({
-          repoSlugEnv: 'REPO_SLUG',
-          prEnv: 'PR_NUMBER',
-          buildNumberEnv: 'BUILD_NUMBER'
-        })
-      })
-    })
   })
 
   describe('.getConfig()', () => {
-    let config
+    let config, env, realEnv
+
     beforeEach(() => {
-      sandbox.stub(utils, 'getOptions')
-      process.env.MY_REPO_SLUG = 'jdoe/john-and-jane'
-      process.env.MY_PULL_REQUEST = 'false'
-      process.env.MY_BUILD_NUMBER = '12345'
+      realEnv = {}
     })
 
-    describe('when options are given which include owner/repo', () => {
-      let options
+    afterEach(() => {
+      // restore the realEnv
+      setEnv(realEnv)
+    })
+
+    describe('GitHub/Travis (default case)', () => {
+      let ctx = {}
       beforeEach(() => {
-        options = {
-          owner: 'me',
-          repo: 'my-repo',
-          repoSlugEnv: 'MY_REPO_SLUG',
-          prEnv: 'MY_PULL_REQUEST',
-          buildNumberEnv: 'MY_BUILD_NUMBER'
+        env = {
+          'TRAVIS_BUILD_NUMBER': '123',
+          'TRAVIS_REPO_SLUG': 'jdoe/john-and-jane',
+          'RO_GH_TOKEN': '12345',
+          'GITHUB_TOKEN': '54321'
+        }
+      })
+
+      describe('when doing a pull request build', () => {
+        beforeEach(() => {
+          env.TRAVIS_PULL_REQUEST = '13'
+
+          saveEnv(Object.keys(env), realEnv)
+          setEnv(env)
+
+          config = utils.getConfig()
+          ctx.config = config
+        })
+
+        verifyGitHubTravisDefaults(ctx)
+
+        it('sets isPr to true', () => {
+          expect(config.isPr).to.be.true
+        })
+
+        it('sets prNumber to the PR number', () => {
+          expect(config.prNumber).to.be.equal('13')
+        })
+      })
+
+      describe('when doing a merge build', () => {
+        beforeEach(() => {
+          env.TRAVIS_PULL_REQUEST = 'false'
+
+          saveEnv(Object.keys(env), realEnv)
+          setEnv(env)
+
+          config = utils.getConfig()
+        })
+
+        verifyGitHubTravisDefaults(ctx)
+
+        it('sets isPr to false', () => {
+          expect(config.isPr).to.be.false
+        })
+
+        it('sets prNumber to false', () => {
+          expect(config.prNumber).to.be.equal('false')
+        })
+      })
+    })
+
+    describe('Bitbucket/TeamCity', () => {
+      let ctx = {}
+      let _config
+
+      beforeEach(() => {
+        env = {
+          'TEAMCITY_BUILD_NUMBER': '123',
+          'VCS_USERNAME': 'teamcity',
+          'VCS_PASSWORD': 'teamcity12345'
         }
 
-        config = utils.getConfig(options)
-      })
-
-      it('does not call getOptions()', () => {
-        expect(utils.getOptions.called).to.be.false
-      })
-
-      it('creates the proper config', () => {
-        expect(config).to.be.eql({
-          owner: 'me',
+        // fake what comes from .pr-bumper.json
+        _config = {
+          ci: {
+            env: {
+              buildNumber: 'TEAMCITY_BUILD_NUMBER',
+              pr: 'TEAMCITY_PULL_REQUEST'
+            },
+            gitUser: {
+              email: 'teamcity@domain.com',
+              name: 'teamcity'
+            },
+            provider: 'teamcity'
+          },
+          owner: 'my-project',
           repo: 'my-repo',
-          isPr: false,
-          prNumber: 'false',
-          buildNumber: '12345'
+          vcs: {
+            domain: 'bitbucket.domain.com',
+            env: {
+              username: 'VCS_USERNAME',
+              password: 'VCS_PASSWORD'
+            },
+            provider: 'bitbucket-server'
+          }
+        }
+      })
+
+      describe('when doing a pull request build', () => {
+        beforeEach(() => {
+          env.TEAMCITY_PULL_REQUEST = '13'
+
+          saveEnv(Object.keys(env), realEnv)
+          setEnv(env)
+
+          config = utils.getConfig(_config)
+          ctx.config = config
+        })
+
+        verifyBitbucketTeamcityOverrides(ctx)
+
+        it('sets isPr to true', () => {
+          expect(config.isPr).to.be.true
+        })
+
+        it('sets prNumber to the PR number', () => {
+          expect(config.prNumber).to.be.equal('13')
         })
       })
-    })
 
-    describe('when options are calculated and lack owner/repo', () => {
-      beforeEach(() => {
-        utils.getOptions.returns({
-          repoSlugEnv: 'MY_REPO_SLUG',
-          prEnv: 'MY_PULL_REQUEST',
-          buildNumberEnv: 'MY_BUILD_NUMBER'
+      describe('when doing a merge build', () => {
+        beforeEach(() => {
+          env.TEAMCITY_PULL_REQUEST = 'false'
+
+          saveEnv(Object.keys(env), realEnv)
+          setEnv(env)
+
+          config = utils.getConfig(_config)
         })
-        process.env.MY_PULL_REQUEST = '13'
-        config = utils.getConfig()
-      })
 
-      it('calls getOptions()', () => {
-        expect(utils.getOptions.calledOnce).to.be.ok
-      })
+        verifyBitbucketTeamcityOverrides(ctx)
 
-      it('returns the proper config', () => {
-        expect(config).to.be.eql({
-          owner: 'jdoe',
-          repo: 'john-and-jane',
-          isPr: true,
-          prNumber: '13',
-          buildNumber: '12345'
+        it('sets isPr to false', () => {
+          expect(config.isPr).to.be.false
+        })
+
+        it('sets prNumber to false', () => {
+          expect(config.prNumber).to.be.equal('false')
         })
       })
     })
@@ -174,125 +311,6 @@ describe('utils', () => {
       }
 
       expect(fn).to.throw('Invalid version-bump scope [foo-bar] found for PR #12345 (my-pr-url)')
-    })
-  })
-
-  describe('.getSha()', () => {
-    let config, vcs, resolution, rejection
-    beforeEach(() => {
-      config = {prNumber: '12345'}
-      vcs = {getPr: function () {}}
-    })
-
-    describe('when everything works', () => {
-      beforeEach(() => {
-        sandbox.stub(vcs, 'getPr').returns(Promise.resolve({mergeCommitSha: 'my-sha'}))
-        return utils.getSha(config, vcs)
-          .then((res) => {
-            resolution = res
-          })
-          .catch((err) => {
-            rejection = err
-          })
-      })
-
-      it('calls getPr with the correct PR number', () => {
-        expect(vcs.getPr.lastCall.args).to.be.eql(['12345'])
-      })
-
-      it('resolves with sha', () => {
-        expect(resolution).to.be.equal('my-sha')
-      })
-    })
-
-    describe('when getPr fails', () => {
-      beforeEach(() => {
-        sandbox.stub(vcs, 'getPr').returns(Promise.reject('my-error'))
-        return utils.getSha(config, vcs)
-          .then((res) => {
-            resolution = res
-          })
-          .catch((err) => {
-            rejection = err
-          })
-      })
-
-      it('passes up the rejection', () => {
-        expect(rejection).to.be.equal('my-error')
-      })
-    })
-  })
-
-  describe('.getLastPr()', () => {
-    let config, vcs, getPrResolver, resolution, rejection, promise
-    beforeEach(() => {
-      config = {}
-      vcs = {getPr: function () {}}
-      sandbox.stub(vcs, 'getPr')
-      getPrResolver = {}
-      const getPrPromise = new Promise((resolve, reject) => {
-        getPrResolver.resolve = resolve
-        getPrResolver.reject = reject
-      })
-      vcs.getPr.returns(getPrPromise)
-
-      // actual results of git log -10 --oneline on pr-bumper repo
-      const gitLog =
-        '98a148c Added some more tests, just a few more to go\n' +
-        '1b1bd97 Added some real unit tests\n' +
-        'edf85e0 Merge pull request #30 from job13er/remove-newline\n' +
-        'fa066f2 Removed newline from parsed PR number\n' +
-        'fc416cc Merge pull request #29 from job13er/make-bumping-more-robust\n' +
-        '67db358 Fix for #26 by reading PR # from git commit\n' +
-        '4a61a20 Automated version bump [ci skip]\n' +
-        '7db44e1 Merge pull request #24 from sandersky/master\n' +
-        'f571451 add pullapprove config\n' +
-        '4398a26 address PR concerns\n'
-
-      execStub.returns(Promise.resolve(gitLog))
-      promise = utils.getLastPr(config, vcs)
-        .then((pr) => {
-          resolution = pr
-          return pr
-        })
-        .catch((err) => {
-          rejection = err
-          throw err
-        })
-    })
-
-    it('calls git log', () => {
-      expect(execStub.lastCall.args).to.be.eql(['git log -10 --oneline'])
-    })
-
-    describe('when getPr succeeds', () => {
-      beforeEach((done) => {
-        waitForPromise(promise, done)
-        getPrResolver.resolve('the-pr')
-      })
-
-      it('parses out the PR number from the git log and passes it to vcs.getPr()', () => {
-        expect(vcs.getPr.lastCall.args).to.be.eql(['30'])
-      })
-
-      it('resolves with the pr', () => {
-        expect(resolution).to.be.equal('the-pr')
-      })
-    })
-
-    describe('when getPr fails', () => {
-      beforeEach((done) => {
-        waitForPromise(promise, done)
-        getPrResolver.reject('the-error')
-      })
-
-      it('parses out the PR number from the git log and passes it to vcs.getPr()', () => {
-        expect(vcs.getPr.lastCall.args).to.be.eql(['30'])
-      })
-
-      it('rejects with the error', () => {
-        expect(rejection).to.be.equal('the-error')
-      })
     })
   })
 
@@ -406,131 +424,6 @@ describe('utils', () => {
       it('grabs the changelog text', () => {
         expect(changelog).to.be.eql('## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang')
       })
-    })
-  })
-
-  describe('.bumpVersion()', () => {
-    let newVersion, logStub, info
-    beforeEach(() => {
-      let original = path.join(__dirname, '_package.json')
-      return exec(`cp ${original} _package.json`)
-    })
-
-    afterEach(() => {
-      return exec('rm -f _package.json')
-    })
-
-    describe('a fix', () => {
-      beforeEach(() => {
-        logStub = sinon.stub(console, 'log')
-        info = utils.bumpVersion({scope: 'patch'}, '_package.json')
-        logStub.restore()
-        return exec(`${getVersionCmd}`)
-          .then((stdout) => {
-            newVersion = stdout.replace('\n', '')
-          })
-      })
-
-      it('creates the correct version', () => {
-        expect(newVersion).to.be.equal('1.2.4')
-      })
-
-      it('returns the correct version', () => {
-        expect(info.version).to.be.equal('1.2.4')
-      })
-    })
-
-    describe('a feature', () => {
-      beforeEach(() => {
-        logStub = sinon.stub(console, 'log')
-        info = utils.bumpVersion({scope: 'minor'}, '_package.json')
-        logStub.restore()
-        return exec(`${getVersionCmd}`)
-          .then((stdout) => {
-            newVersion = stdout.replace('\n', '')
-          })
-      })
-
-      it('creates the correct version', () => {
-        expect(newVersion).to.be.equal('1.3.0')
-      })
-
-      it('returns the correct version', () => {
-        expect(info.version).to.be.equal('1.3.0')
-      })
-    })
-
-    describe('a beaking change', () => {
-      beforeEach(() => {
-        logStub = sinon.stub(console, 'log')
-        info = utils.bumpVersion({scope: 'major'}, '_package.json')
-        logStub.restore()
-        return exec(`${getVersionCmd}`)
-          .then((stdout) => {
-            newVersion = stdout.replace('\n', '')
-          })
-      })
-
-      it('creates the correct version', () => {
-        expect(newVersion).to.be.equal('2.0.0')
-      })
-
-      it('returns the correct version', () => {
-        expect(info.version).to.be.equal('2.0.0')
-      })
-    })
-
-    describe('an invalid scope', () => {
-      it('throws an Error', () => {
-        const fn = () => {
-          utils.bumpVersion({scope: 'foo'}, '_package.json')
-        }
-        expect(fn).to.throw('bumpVersion: Invalid scope [foo]')
-      })
-    })
-  })
-
-  describe('.commitChanges()', () => {
-    let config
-    beforeEach(() => {
-      config = {buildNumber: '13'}
-
-      // we want exec() to return a simple resolved Promise most of the time, but when it gets the node call
-      // it needs to return a version number
-      execStub.withArgs(realGetVersionCmd).returns(Promise.resolve('1.2.3\n'))
-      execStub.returns(Promise.resolve())
-
-      return utils.commitChanges(config)
-    })
-
-    it('sets the git user.email first', () => {
-      expect(execStub.firstCall.args).to.be.eql(['git config --global user.email "travis.ci.ciena@gmail.com"'])
-    })
-
-    it('sets the git user.name second', () => {
-      expect(execStub.secondCall.args).to.be.eql(['git config --global user.name "Travis CI"'])
-    })
-
-    it('checks out a new branch third', () => {
-      expect(execStub.thirdCall.args).to.be.eql(['git checkout -b my-master'])
-    })
-
-    it('adds the package.json fourth', () => {
-      expect(execStub.getCall(3).args).to.be.eql(['git add package.json CHANGELOG.md'])
-    })
-
-    it('makes the commit fifth', () => {
-      expect(execStub.getCall(4).args).to.be.eql([
-        'git commit -m "Automated version bump [ci skip]" -m "From CI build 13"'
-      ])
-    })
-
-    it('fetches the new version sixth', () => {
-      expect(execStub.getCall(5).args).to.be.eql([realGetVersionCmd])
-    })
-
-    it('creates the tag seventh', () => {
-      expect(execStub.getCall(6).args).to.be.eql(['git tag v1.2.3 -a -m "Generated tag from CI build 13"'])
     })
   })
 })
