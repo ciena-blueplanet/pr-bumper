@@ -108,6 +108,14 @@ travis encrypt GITHUB_TOKEN=your-token-goes-here --add -r owner/repo
 If you do not use a fork workflow and your `origin` is the main repository, you can skip the `-r owner/repo` part.
 Otherwise, replace the `owner/repo` with the organization and repo of your `upstream` repository.
 
+[env-docs]: https://docs.travis-ci.com/user/environment-variables/#Encrypted-Variables
+Also, to avoid rate-limit issues on API requests to github, you should also specify a `RO_GH_TOKEN` 
+for `pr-bumper` to use when making read requests to github. This is necessary because secure environment variables are not available
+to pull request builds when coming from forks in travis for [security reasons][env-docs].
+
+> **NOTE** Since `RO_GH_TOKEN` is not secure, it is printed directly into your Travis Logs!!! 
+> So, make sure it has only read access to your repository. Hence the name `RO_GH_TOKEN` (Read Only GitHub Token)
+
 ## Bitbucket Server / TeamCity
 You can now configure `pr-bumper` to work with something other than Travis CI and GitHub.
 The only other configuration that has been tested is TeamCity and Bitbucket Server.
