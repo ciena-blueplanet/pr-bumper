@@ -1,3 +1,6 @@
+# 0.5.1
+ * **Added** documentation about `RO_GH_TOKEN` and a warning that it is printed to travis logs.
+
 # 0.5.0
 You can now configure `pr-bumper` to work with something other than Travis CI and GitHub. The only other configuration that has been tested is TeamCity and Bitbucket Server. You can configure `pr-bumper` to work with TeamCity and Bitbucket Server by placing a `.pr-bumper.json` file in the root of your repository and filling in some information about your CI setup:
 
