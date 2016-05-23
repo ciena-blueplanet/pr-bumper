@@ -116,11 +116,14 @@ to pull request builds when coming from forks in travis for [security reasons][e
 > **NOTE** Since `RO_GH_TOKEN` is not secure, it is printed directly into your Travis Logs!!! 
 > So, make sure it has only read access to your repository. Hence the name `RO_GH_TOKEN` (Read Only GitHub Token)
 
-## Bitbucket Server / TeamCity
+## .pr-bumper.json
+If using TravisCI most configuration options will not be needed, but if you have a different CI or specific requirements 
+like handling changelog generation separately, configuration can be defined by placing a `.pr-bumper.json` file in the root of your repository.
+
+### Bitbucket Server / TeamCity
 You can now configure `pr-bumper` to work with something other than Travis CI and GitHub.
 The only other configuration that has been tested is TeamCity and Bitbucket Server.
-You can configure `pr-bumper` to work with TeamCity and Bitbucket Server by placing a `.pr-bumper.json`
-file in the root of your repository and filling in some information about your CI setup:
+Example TeamCity and Bitbucket setup:
 
 
 ```json
@@ -198,3 +201,15 @@ repository in question.
 ### `vcs.provider`
 Here you configure what VCS system you use, the only currently supported options are `github` (the default),
 or `bitbucket-server`
+
+### `prependChangelog`
+Boolean whether to read the PR description to insert into CHANGELOG.md on bump. Defaults to `true`.
+
+Disable `prependChangelog` example:
+
+`.pr-bumper.json`
+```json
+{
+  "prependChangelog": false
+}
+```
