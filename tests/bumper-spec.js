@@ -53,7 +53,7 @@ function testBumpVersion (ctx, scope, expectedVersion) {
 }
 
 describe('Bumper', () => {
-  let bumper, sandbox, execStub, revertExecRewire
+  let bumper, sandbox, execStub, revertExecRewire, prependStub, revertPrepend
   beforeEach(() => {
     sandbox = sinon.sandbox.create()
     sandbox.stub(logger, 'log')
@@ -62,8 +62,12 @@ describe('Bumper', () => {
     execStub = sandbox.stub()
     revertExecRewire = Bumper.__set__('exec', execStub)
 
+    // stub out the top-level 'prepend'
+    prependStub = sandbox.stub()
+    revertPrepend = Bumper.__set__('prepend', prependStub)
+
     bumper = new Bumper({
-      ci: {},
+      ci: [],
       config: {},
       vcs: {}
     })
@@ -72,6 +76,7 @@ describe('Bumper', () => {
   afterEach(() => {
     sandbox.restore()
     revertExecRewire()
+    revertPrepend()
   })
 
   describe('.check()', () => {
@@ -112,7 +117,7 @@ describe('Bumper', () => {
   describe('.bump()', () => {
     let result, info
     beforeEach(() => {
-      bumper.config = {foo: 'bar'}
+      bumper.config = {foo: 'bar', prependChangelog: true}
       bumper.vcs = {foo: 'bar'}
       bumper.ci = {push: function () {}}
       info = {scope: 'minor', changelog: '', version: '1.2.0'}
@@ -154,6 +159,19 @@ describe('Bumper', () => {
 
     it('resolves with the result of the ci.push()', () => {
       expect(result).to.be.eql('pushed')
+    })
+
+    describe('skip bump when not a merge build', () => {
+      beforeEach(() => {
+        bumper.config.isPr = true
+        bumper._getMergedPrInfo.reset()
+        return bumper.bump()
+      })
+
+      it('should log that non merge builds are skipped', () => {
+        expect(logger.log.lastCall.args).to.eql(['pr-bumper: Not a merge build, skipping bump'])
+        expect(bumper._getMergedPrInfo.callCount).to.eql(0)
+      })
     })
   })
 
@@ -392,6 +410,41 @@ describe('Bumper', () => {
   })
 
   describe('._prependChangelog()', () => {
-    // TODO: add tests
+    let changelogContent = '- Example change'
+    let info = {scope: 'minor', changelog: changelogContent, version: '1.2.0'}
+    beforeEach(() => {
+      sandbox.stub(bumper, '_bumpVersion').returns(Promise.resolve(info))
+      sandbox.stub(bumper, '_getMergedPrInfo').returns(Promise.resolve(info))
+      sandbox.stub(bumper, '_commitChanges').returns(Promise.resolve())
+      sandbox.stub(bumper, '_createTag').returns(Promise.resolve())
+      prependStub.withArgs('CHANGELOG.md', changelogContent).returns(Promise.resolve())
+
+      bumper.config.prependChangelog = true
+
+      return bumper.bump()
+    })
+
+    describe('configuration on', () => {
+      beforeEach(() => {
+        bumper.config.prependChangelog = true
+        return bumper.bump()
+      })
+
+      it('prepends to the CHANGELOG.md', () => {
+        expect(prependStub.lastCall.args).to.be.eql(['CHANGELOG.md', `# 1.2.0\n${info.changelog}\n\n`])
+      })
+    })
+
+    describe('configuration off', () => {
+      beforeEach(() => {
+        prependStub.reset()
+        bumper.config.prependChangelog = false
+        return bumper.bump()
+      })
+
+      it('does not prepend to the CHANGELOG.md', () => {
+        expect(prependStub.called).to.be.false
+      })
+    })
   })
 })

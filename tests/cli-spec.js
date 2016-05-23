@@ -14,6 +14,8 @@ const Travis = require('../lib/ci/travis')
 const BitbucketServer = require('../lib/vcs/bitbucket-server')
 const GitHub = require('../lib/vcs/github')
 
+const Bumper = require('../lib/bumper')
+
 describe('Cli', () => {
   let cli, sandbox
   beforeEach(() => {
@@ -25,6 +27,18 @@ describe('Cli', () => {
 
   afterEach(() => {
     sandbox.restore()
+  })
+
+  describe('_getBumper', () => {
+    it('returns an instance of bumper given params', () => {
+      const bumper = cli._getBumper({
+        ci: {id: 'ci'},
+        vcs: {id: 'vcs'},
+        config: {id: 'config'}
+      })
+
+      expect(bumper).to.be.an.instanceOf(Bumper)
+    })
   })
 
   describe('.run()', () => {
