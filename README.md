@@ -38,6 +38,17 @@ We also support the aliases of `BREAKING`, `FEATURE`, and `FIX`.
 | 1.2.3            | `#MAJOR#`    | 2.0.0          |
 | 1.2.3            | `#BREAKING#` | 2.0.0          |
 
+### GFM Checklist support
+You may also specify a list of possible scopes in a [GFM checklist](https://github.com/blog/1375-task-lists-in-gfm-issues-pulls-comments)
+ Example:
+ 
+ ### Check the scope of this pr:
+ - [ ] #patch# - bugfix, dependency update
+ - [ ] #minor# - new feature, backwards compatible
+ - [x] #major# - major feature, probably breaking API
+ - [ ] #breaking# - any change that breaks the API
+ 
+Combined with [Pull Request Templates](https://github.com/blog/2111-issue-and-pull-request-templates), contributors who are unfamiliar with pr-bumper will know exactly what to do before the build fails
 
 ## Integrations
 `pr-bumper` currently only supports pull requets on [GitHub](github.com),
