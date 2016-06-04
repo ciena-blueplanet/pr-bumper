@@ -367,6 +367,41 @@ describe('utils', () => {
         expect(scope).to.be.equal('the-validated-scope')
       })
     })
+
+    describe('when GFM checkbox sytax is present with one scope checked', () => {
+      beforeEach(() => {
+        pr.description = `
+### Check the scope of this pr:
+- [ ] #patch# - bugfix, dependency update
+- [x] #minor# - new feature, backwards compatible
+- [ ] #major# - major feature, probably breaking API
+- [ ] #breaking# - any change that breaks the API`
+        scope = utils.getScopeForPr(pr)
+      })
+
+      it('calls .getValidatedScope() with proper arguments', () => {
+        expect(utils.getValidatedScope.lastCall.args).to.be.eql(['minor', '12345', 'my-pr-url'])
+      })
+    })
+
+    describe('when GFM checkbox sytax is present with multiple scopes checked', () => {
+      beforeEach(() => {
+        pr.description = `
+### Check the scope of this pr:
+- [x] #patch# - bugfix, dependency update
+- [ ] #minor# - new feature, backwards compatible
+- [x] #major# - major feature, probably breaking API
+- [ ] #breaking# - any change that breaks the API`
+      })
+
+      it('throws an error', () => {
+        const fn = () => {
+          utils.getScopeForPr(pr)
+        }
+
+        expect(fn).to.throw('Too many version-bump scopes found for PR #12345 (my-pr-url)')
+      })
+    })
   })
 
   describe('.getChangelogForPr()', () => {
