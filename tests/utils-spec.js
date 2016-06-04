@@ -368,7 +368,7 @@ describe('utils', () => {
       })
     })
 
-    describe('when GFM checkbox sytax is present with one scope checked', () => {
+    describe('when GFM checkbox syntax is present with one scope checked', () => {
       beforeEach(() => {
         pr.description = `
 ### Check the scope of this pr:
@@ -384,7 +384,7 @@ describe('utils', () => {
       })
     })
 
-    describe('when GFM checkbox sytax is present with multiple scopes checked', () => {
+    describe('when GFM checkbox syntax is present with multiple scopes checked', () => {
       beforeEach(() => {
         pr.description = `
 ### Check the scope of this pr:
@@ -400,6 +400,25 @@ describe('utils', () => {
         }
 
         expect(fn).to.throw('Too many version-bump scopes found for PR #12345 (my-pr-url)')
+      })
+    })
+
+    describe('when GFM checkbox syntax is present with one scope checked and other scopes mentioned', () => {
+      beforeEach(() => {
+        pr.description = `
+### Check the scope of this pr:
+- [ ] #patch# - bugfix, dependency update
+- [x] #minor# - new feature, backwards compatible
+- [ ] #major# - major feature, probably breaking API
+- [ ] #breaking# - any change that breaks the API
+
+Thought this might be #breaking# but on second thought it is a minor change
+`
+        scope = utils.getScopeForPr(pr)
+      })
+
+      it('calls .getValidatedScope() with proper arguments', () => {
+        expect(utils.getValidatedScope.lastCall.args).to.be.eql(['minor', '12345', 'my-pr-url'])
       })
     })
   })
