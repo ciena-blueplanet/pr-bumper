@@ -25,6 +25,11 @@
     "bump"
   ],
   "author": "Adam Meadows [https://github.com/job13er]",
+  "contributors": [
+    "Matthew Dahl [https://github.com/sandersky]",
+    "Steven Glanzer [https://github.com/sglanzer]",
+    "Zak Henry [https://github.com/zakhenry]"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ciena-blueplanet/pr-bumper/issues"
