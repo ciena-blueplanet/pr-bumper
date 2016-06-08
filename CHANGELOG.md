@@ -1,3 +1,7 @@
+# 0.6.0
+ * **Added** support for using GFM Checkboxes to choose scope
+ * **Added** a `PULL_REQUEST_TEMPLATE` for the `pr-bumper` repository itself
+
 # 0.5.2
 - Adds config to suppress changelog generation
 
