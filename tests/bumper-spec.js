@@ -127,6 +127,7 @@ describe('Bumper', () => {
       sandbox.stub(bumper, '_prependChangelog').returns(Promise.resolve())
       sandbox.stub(bumper, '_commitChanges').returns(Promise.resolve())
       sandbox.stub(bumper, '_createTag').returns(Promise.resolve())
+      sandbox.stub(bumper, '_blackduck').returns(Promise.resolve())
 
       return bumper.bump().then((res) => {
         result = res
@@ -151,6 +152,10 @@ describe('Bumper', () => {
 
     it('creates the tag', () => {
       expect(bumper._createTag.calledOnce).to.be.ok
+    })
+
+    it('runs the blackduck', () => {
+      expect(bumper._blackduck.calledOnce).to.be.ok
     })
 
     it('pushs the changes', () => {

@@ -11,9 +11,14 @@ const cli = new Cli()
 program
   .version(pkgJson.version)
   .arguments('<cmd>')
-  .action((cmd) => {
+  .option(
+    '-b, --blackduck <directory>',
+    'create files for black-duck auditing in <directory>',
+    ''
+  )
+  .action((cmd, options) => {
     cli
-      .run(cmd)
+      .run(cmd, options)
       .catch((error) => {
         const msg = (error.message) ? error.message : error
         console.log(msg)
