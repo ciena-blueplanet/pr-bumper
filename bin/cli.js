@@ -11,11 +11,6 @@ const cli = new Cli()
 program
   .version(pkgJson.version)
   .arguments('<cmd>')
-  .option(
-    '-b, --blackduck <directory>',
-    'create files for black-duck auditing in <directory>',
-    ''
-  )
   .action((cmd, options) => {
     cli
       .run(cmd, options)
