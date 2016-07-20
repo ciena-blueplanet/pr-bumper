@@ -53,7 +53,7 @@ function testBumpVersion (ctx, scope, expectedVersion) {
 }
 
 describe('Bumper', () => {
-  let bumper, sandbox, execStub, revertExecRewire, prependStub, revertPrepend
+  let bumper, sandbox, execStub, revertExecRewire, prependStub, revertPrepend, depStub, revertDeps
   beforeEach(() => {
     sandbox = sinon.sandbox.create()
     sandbox.stub(logger, 'log')
@@ -66,6 +66,12 @@ describe('Bumper', () => {
     prependStub = sandbox.stub()
     revertPrepend = Bumper.__set__('prepend', prependStub)
 
+    // stub out dependency reporter
+    depStub = {
+      run: sandbox.stub().returns(Promise.resolve())
+    }
+    revertDeps = Bumper.__set__('dependencies', depStub)
+
     bumper = new Bumper({
       ci: [],
       config: {},
@@ -77,6 +83,7 @@ describe('Bumper', () => {
     sandbox.restore()
     revertExecRewire()
     revertPrepend()
+    revertDeps()
   })
 
   describe('.check()', () => {
@@ -283,7 +290,7 @@ describe('Bumper', () => {
   })
 
   describe('._dependencies()', () => {
-    it('returns a promise resolving to nothing when an out dir is configured', function (done) {
+    it('returns a promise resolving to nothing when an out dir is configured', function () {
       const outputConfig = {
         directory: 'blackduck/',
         requirementsFile: 'js-requirements.json',
@@ -291,16 +298,15 @@ describe('Bumper', () => {
         ignoreFile: 'ignore'
       }
       __.set(bumper.config, 'dependencies.output', outputConfig)
-      bumper._dependencies().then((result) => {
-        expect(result).to.equal(undefined)
-        done()
+
+      return bumper._dependencies().then((result) => {
+        expect(result).not.to.be.ok
       })
     })
 
-    it('returns a promise resolving to \'skipping dependencies\' if no dir is configured', function (done) {
-      bumper._dependencies().then((result) => {
-        expect(result).to.equal('skipping dependencies')
-        done()
+    it('returns a promise when no dir is configured', function () {
+      return bumper._dependencies().then((result) => {
+        expect(true).to.be.ok
       })
     })
   })
