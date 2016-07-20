@@ -53,7 +53,7 @@ function testBumpVersion (ctx, scope, expectedVersion) {
 }
 
 describe('Bumper', () => {
-  let bumper, sandbox, execStub, revertExecRewire, prependStub, revertPrepend
+  let bumper, sandbox, execStub, revertExecRewire, prependStub, revertPrepend, depStub, revertDeps
   beforeEach(() => {
     sandbox = sinon.sandbox.create()
     sandbox.stub(logger, 'log')
@@ -66,6 +66,12 @@ describe('Bumper', () => {
     prependStub = sandbox.stub()
     revertPrepend = Bumper.__set__('prepend', prependStub)
 
+    // stub out dependency reporter
+    depStub = {
+      run: sandbox.stub().returns(Promise.resolve())
+    }
+    revertDeps = Bumper.__set__('dependencies', depStub)
+
     bumper = new Bumper({
       ci: [],
       config: {},
@@ -77,6 +83,7 @@ describe('Bumper', () => {
     sandbox.restore()
     revertExecRewire()
     revertPrepend()
+    revertDeps()
   })
 
   describe('.check()', () => {
@@ -127,6 +134,7 @@ describe('Bumper', () => {
       sandbox.stub(bumper, '_prependChangelog').returns(Promise.resolve())
       sandbox.stub(bumper, '_commitChanges').returns(Promise.resolve())
       sandbox.stub(bumper, '_createTag').returns(Promise.resolve())
+      sandbox.stub(bumper, '_dependencies').returns(Promise.resolve())
 
       return bumper.bump().then((res) => {
         result = res
@@ -151,6 +159,10 @@ describe('Bumper', () => {
 
     it('creates the tag', () => {
       expect(bumper._createTag.calledOnce).to.be.ok
+    })
+
+    it('runs the dependencies', () => {
+      expect(bumper._dependencies.calledOnce).to.be.ok
     })
 
     it('pushs the changes', () => {
@@ -206,6 +218,8 @@ describe('Bumper', () => {
     let result
     beforeEach(() => {
       __.set(bumper.config, 'ci.buildNumber', '12345')
+      __.set(bumper.config, 'dependencies.output.directory', 'some-dir')
+
       bumper.ci = {
         add () {},
         commit () {},
@@ -226,7 +240,7 @@ describe('Bumper', () => {
     })
 
     it('adds the files to stage', () => {
-      expect(bumper.ci.add.lastCall.args).to.be.eql([['package.json', 'CHANGELOG.md']])
+      expect(bumper.ci.add.lastCall.args).to.be.eql([['package.json', 'CHANGELOG.md', 'some-dir/']])
     })
 
     it('commits the changes', () => {
@@ -272,6 +286,28 @@ describe('Bumper', () => {
 
     it('resolves with the result of the tag', () => {
       expect(result).to.be.equal('tagged')
+    })
+  })
+
+  describe('._dependencies()', () => {
+    it('returns a promise resolving to nothing when an out dir is configured', function () {
+      const outputConfig = {
+        directory: 'blackduck/',
+        requirementsFile: 'js-requirements.json',
+        reposFile: 'repos',
+        ignoreFile: 'ignore'
+      }
+      __.set(bumper.config, 'dependencies.output', outputConfig)
+
+      return bumper._dependencies().then((result) => {
+        expect(result).not.to.be.ok
+      })
+    })
+
+    it('returns a promise when no dir is configured', function () {
+      return bumper._dependencies().then((result) => {
+        expect(true).to.be.ok
+      })
     })
   })
 
@@ -420,8 +456,11 @@ describe('Bumper', () => {
       prependStub.withArgs('CHANGELOG.md', changelogContent).returns(Promise.resolve())
 
       bumper.config.prependChangelog = true
-
       return bumper.bump()
+    })
+
+    it('does nothing', function () {
+      expect(1).to.eql(1)
     })
 
     describe('configuration on', () => {
