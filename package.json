@@ -1,11 +1,11 @@
 {
   "name": "pr-bumper",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Bump the version of a package based on a GitHub Pull Request",
   "scripts": {
     "lint": "eslint *.js bin lib tests",
     "test": "npm run-script lint && npm run-script utest",
-    "utest": "istanbul cover _mocha tests tests/ci tests/vcs"
+    "utest": "istanbul cover _mocha tests tests/ci tests/vcs tests/compliance"
   },
   "bin": {
     "pr-bumper": "./bin/cli.js"
@@ -38,9 +38,11 @@
   "dependencies": {
     "commander": "^2.9.0",
     "lodash": "^4.0.1",
+    "nlf": "^1.4.1",
     "node-fetch": "^1.3.3",
     "prepend-file": "^1.3.0",
     "promise": "^7.1.1",
+    "q": "^1.4.1",
     "versiony": "^1.3.0"
   },
   "devDependencies": {

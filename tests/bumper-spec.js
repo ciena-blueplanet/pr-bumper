@@ -127,6 +127,7 @@ describe('Bumper', () => {
       sandbox.stub(bumper, '_prependChangelog').returns(Promise.resolve())
       sandbox.stub(bumper, '_commitChanges').returns(Promise.resolve())
       sandbox.stub(bumper, '_createTag').returns(Promise.resolve())
+      sandbox.stub(bumper, '_dependencies').returns(Promise.resolve())
 
       return bumper.bump().then((res) => {
         result = res
@@ -151,6 +152,10 @@ describe('Bumper', () => {
 
     it('creates the tag', () => {
       expect(bumper._createTag.calledOnce).to.be.ok
+    })
+
+    it('runs the dependencies', () => {
+      expect(bumper._dependencies.calledOnce).to.be.ok
     })
 
     it('pushs the changes', () => {
@@ -206,6 +211,8 @@ describe('Bumper', () => {
     let result
     beforeEach(() => {
       __.set(bumper.config, 'ci.buildNumber', '12345')
+      __.set(bumper.config, 'dependencies.output.directory', 'some-dir')
+
       bumper.ci = {
         add () {},
         commit () {},
@@ -226,7 +233,7 @@ describe('Bumper', () => {
     })
 
     it('adds the files to stage', () => {
-      expect(bumper.ci.add.lastCall.args).to.be.eql([['package.json', 'CHANGELOG.md']])
+      expect(bumper.ci.add.lastCall.args).to.be.eql([['package.json', 'CHANGELOG.md', 'some-dir/']])
     })
 
     it('commits the changes', () => {
@@ -272,6 +279,29 @@ describe('Bumper', () => {
 
     it('resolves with the result of the tag', () => {
       expect(result).to.be.equal('tagged')
+    })
+  })
+
+  describe('._dependencies()', () => {
+    it('returns a promise resolving to nothing when an out dir is configured', function (done) {
+      const outputConfig = {
+        directory: 'blackduck/',
+        requirementsFile: 'js-requirements.json',
+        reposFile: 'repos',
+        ignoreFile: 'ignore'
+      }
+      __.set(bumper.config, 'dependencies.output', outputConfig)
+      bumper._dependencies().then((result) => {
+        expect(result).to.equal(undefined)
+        done()
+      })
+    })
+
+    it('returns a promise resolving to \'skipping dependencies\' if no dir is configured', function (done) {
+      bumper._dependencies().then((result) => {
+        expect(result).to.equal('skipping dependencies')
+        done()
+      })
     })
   })
 
@@ -420,8 +450,11 @@ describe('Bumper', () => {
       prependStub.withArgs('CHANGELOG.md', changelogContent).returns(Promise.resolve())
 
       bumper.config.prependChangelog = true
-
       return bumper.bump()
+    })
+
+    it('does nothing', function () {
+      expect(1).to.eql(1)
     })
 
     describe('configuration on', () => {

@@ -5,7 +5,7 @@
 # 0.5.2
 - Adds config to suppress changelog generation
 
-Closes #43 
+Closes #43
 
 # 0.5.1
  * **Added** documentation about `RO_GH_TOKEN` and a warning that it is printed to travis logs.
