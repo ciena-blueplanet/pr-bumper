@@ -1,3 +1,35 @@
+# 0.7.0
+`.pr-bumper.json` app configs now take new options:
+```
+...
+"dependencies": {
+    "output": {
+      "directory": "somedir",
+      "requirementsFile": "requirements.json",
+      "reposFile": "repos",
+      "ignoreFile": "ignore"
+    },
+    production: false, 
+    "additionalRepos": [
+          {
+            "pattern": "\\s+\"(ember\\-frost\\-\\S+)\"",
+            "url": "https://github.com/ciena-frost/${REPO_NAME}.git"
+          },
+          {
+            "pattern": "\\s+\"(frost\\-\\S+)\"",
+            "url": "https://bitbucket.ciena.com/scm/bp_frost/${REPO_NAME}.git"
+          }
+        ]
+  },
+...
+```
+
+If this option block is present, it triggers running the dependency reporting routine, which generates a list of all required deps in the `requirementsFile`, a list of additional repos in the `reposFile` and a list of pertinent ignores in the `ignoreFile`.  These files land in the `directory` in the root of the reporting project.
+
+The `additionalRepos` block is an array of hashes that indicate a RegEx pattern to search `package.json` entries for, and each corresponding url will be used to give an absolute path to the matched repo.  This is useful for coming up with lists of repo locations needed by the auditing party.
+
+The `production` property will cause the tool to only search `dependencies` in your `package.json`.  If it's left `false` (the default) or omitted, the reporter will search both `dependencies` and `devDependencies`.
+
 # 0.6.0
  * **Added** support for using GFM Checkboxes to choose scope
  * **Added** a `PULL_REQUEST_TEMPLATE` for the `pr-bumper` repository itself
