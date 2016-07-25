@@ -8,8 +8,10 @@ branches:
 before_install:
 - npm install -g coveralls
 before_script:
+- export FOO_BAR='foo bar'
 - VERBOSE=1 ./bin/cli.js check
 after_success:
+- echo "FOO_BAR = [${FOO_BAR}]"
 - cat coverage/lcov.info | coveralls
 addons:
   apt:
