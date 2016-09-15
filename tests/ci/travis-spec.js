@@ -96,8 +96,8 @@ describe('Travis', () => {
       expect(CiBase.prototype.setupGitEnv.calledOnce).to.be.true
     })
 
-    it('creates and checks out my-master branch', () => {
-      expect(execStub.lastCall.args).to.be.eql(['git checkout -b my-master'])
+    it('creates and checks out ci-my-branch branch', () => {
+      expect(execStub.lastCall.args).to.be.eql(['git checkout -b ci-my-branch'])
     })
 
     it('resolves with the result of the git checkout', () => {
