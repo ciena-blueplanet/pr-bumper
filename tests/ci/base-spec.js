@@ -18,7 +18,7 @@ describe('CiBase', () => {
     execStub = sandbox.stub()
     revertExecRewire = CiBase.__set__('exec', execStub)
 
-    base = new CiBase({id: 'config'}, {id: 'vcs'})
+    base = new CiBase({id: 'config', branch: 'my-branch'}, {id: 'vcs'})
   })
 
   afterEach(() => {
@@ -30,7 +30,7 @@ describe('CiBase', () => {
   })
 
   it('saves the config', () => {
-    expect(base.config).to.be.eql({id: 'config'})
+    expect(base.config).to.be.eql({id: 'config', branch: 'my-branch'})
   })
 
   it('saves the vcs', () => {
@@ -83,11 +83,11 @@ describe('CiBase', () => {
     })
 
     it('logs that it is about to push', () => {
-      expect(logger.log.lastCall.args).to.be.eql(['Pushing master to origin'])
+      expect(logger.log.lastCall.args).to.be.eql(['Pushing my-branch to origin'])
     })
 
     it('pushes origin to master with --tags', () => {
-      expect(execStub.lastCall.args).to.be.eql(['git push origin master --tags'])
+      expect(execStub.lastCall.args).to.be.eql(['git push origin my-branch --tags'])
     })
 
     it('resolves with the result of the git command', () => {

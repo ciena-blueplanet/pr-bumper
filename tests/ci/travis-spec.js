@@ -23,7 +23,7 @@ describe('Travis', () => {
     execStub = sandbox.stub()
     revertExecRewire = Travis.__set__('exec', execStub)
 
-    travis = new Travis({id: 'config'}, {id: 'vcs'})
+    travis = new Travis({id: 'config', branch: 'my-branch'}, {id: 'vcs'})
 
     ctx.ci = travis
     ctx.sandbox = sandbox
@@ -38,7 +38,7 @@ describe('Travis', () => {
   })
 
   it('saves the config', () => {
-    expect(travis.config).to.be.eql({id: 'config'})
+    expect(travis.config).to.be.eql({id: 'config', branch: 'my-branch'})
   })
 
   it('saves the vcs', () => {
@@ -56,7 +56,7 @@ describe('Travis', () => {
     let result
     beforeEach(() => {
       travis.vcs = {addRemoteForPush () {}}
-      sandbox.stub(travis.vcs, 'addRemoteForPush').returns(Promise.resolve('my-remote'))
+      sandbox.stub(travis.vcs, 'addRemoteForPush').returns(Promise.resolve('ci-origin'))
       execStub.returns(Promise.resolve('pushed'))
 
       return travis.push().then((res) => {
@@ -69,11 +69,11 @@ describe('Travis', () => {
     })
 
     it('logs that it is about to push my-master to the new remote', () => {
-      expect(logger.log.lastCall.args).to.be.eql(['Pushing my-master to my-remote'])
+      expect(logger.log.lastCall.args).to.be.eql(['Pushing ci-my-branch to ci-origin'])
     })
 
-    it('pushes the my-master branch to new remote', () => {
-      expect(execStub.lastCall.args).to.be.eql(['git push my-remote my-master:refs/heads/master --tags'])
+    it('pushes the ci-my-branch branch to new remote', () => {
+      expect(execStub.lastCall.args).to.be.eql(['git push ci-origin ci-my-branch:refs/heads/my-branch --tags'])
     })
 
     it('resolves with result of the git push', () => {

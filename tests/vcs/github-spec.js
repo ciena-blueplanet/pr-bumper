@@ -32,6 +32,7 @@ describe('GitHub', () => {
       },
       owner: 'me',
       repo: 'my-repo',
+      branch: 'my-branch',
       vcs: {
         auth: {
           readToken: 'my-ro-gh-token',
@@ -147,11 +148,11 @@ describe('GitHub', () => {
 
     it('makes the proper git remote command', () => {
       const url = 'https://my-gh-token@github.com/me/my-repo'
-      expect(execStub.firstCall.args).to.be.eql([`git remote add my-origin ${url}`])
+      expect(execStub.firstCall.args).to.be.eql([`git remote add ci-origin ${url}`])
     })
 
     it('resolves with the proper remote name', () => {
-      expect(remoteName).to.be.equal('my-origin')
+      expect(remoteName).to.be.equal('ci-origin')
     })
   })
 })

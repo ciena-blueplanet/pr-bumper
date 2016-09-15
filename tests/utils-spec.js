@@ -54,6 +54,10 @@ function verifyGitHubTravisDefaults (ctx) {
       expect(config.owner).to.be.equal('jdoe')
     })
 
+    it('branch', () => {
+      expect(config.branch).to.be.equal('my-branch')
+    })
+
     it('repo', () => {
       expect(config.repo).to.be.equal('john-and-jane')
     })
@@ -107,6 +111,10 @@ function verifyBitbucketTeamcityOverrides (ctx) {
       expect(config.repo).to.be.equal('my-repo')
     })
 
+    it('branch', () => {
+      expect(config.branch).to.be.equal('my-branch')
+    })
+
     it('vcs domain', () => {
       expect(config.vcs.domain).to.be.equal('bitbucket.domain.com')
     })
@@ -154,6 +162,7 @@ describe('utils', () => {
       let ctx = {}
       beforeEach(() => {
         env = {
+          'TRAVIS_BRANCH': 'my-branch',
           'TRAVIS_BUILD_NUMBER': '123',
           'TRAVIS_REPO_SLUG': 'jdoe/john-and-jane',
           'RO_GH_TOKEN': '12345',
@@ -211,6 +220,7 @@ describe('utils', () => {
 
       beforeEach(() => {
         env = {
+          'TEAMCITY_BRANCH': 'my-branch',
           'TEAMCITY_BUILD_NUMBER': '123',
           'VCS_USERNAME': 'teamcity',
           'VCS_PASSWORD': 'teamcity12345'
@@ -220,6 +230,7 @@ describe('utils', () => {
         _config = {
           ci: {
             env: {
+              branch: 'TEAMCITY_BRANCH',
               buildNumber: 'TEAMCITY_BUILD_NUMBER',
               pr: 'TEAMCITY_PULL_REQUEST'
             },
