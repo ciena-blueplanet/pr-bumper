@@ -1,3 +1,7 @@
+# 0.7.2
+ * **Restored** default behavior of using `master` branch if no `ci.env.branch` config is specified.
+
+
 # 0.7.1
 * **Fixed** #55 
 
