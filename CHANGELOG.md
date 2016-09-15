@@ -1,3 +1,8 @@
+# 0.7.1
+* **Fixed** #55 
+
+
+
 # 0.7.0
 `.pr-bumper.json` app configs now take new options:
 ```
