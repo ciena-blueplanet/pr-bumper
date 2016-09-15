@@ -295,6 +295,21 @@ describe('utils', () => {
           expect(config.prNumber).to.be.equal('false')
         })
       })
+
+      describe('when no branch env is given', () => {
+        beforeEach(() => {
+          delete _config.ci.env.branch
+
+          saveEnv(Object.keys(env), realEnv)
+          setEnv(env)
+
+          config = utils.getConfig(_config)
+        })
+
+        it('should default to master branch', () => {
+          expect(config.branch).to.be.equal('master')
+        })
+      })
     })
   })
 
