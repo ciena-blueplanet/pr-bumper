@@ -149,6 +149,7 @@ Example TeamCity and Bitbucket setup:
 {
   "ci": {
     "env": {
+      "branch": "TEAMCITY_BRANCH",
       "buildNumber": "TEAMCITY_BUILD_NUMBER",
       "pr": "TEAMCITY_PULL_REQUEST"
     },
@@ -170,6 +171,14 @@ Example TeamCity and Bitbucket setup:
   }
 }
 ```
+
+### `ci.env.branch`
+A string that provides the environment variable that holds the TeamCity branch on the agent that runs your build.
+One way to set that variable is with the following in your Build Step:
+
+  ```
+  export TEAMCITY_BRANCH="%teamcity.build.branch%"
+  ```
 
 ### `ci.env.buildNumber`
 A string that provides the environment variable that holds the TeamCity build number on the agent that runs your build.
@@ -232,4 +241,3 @@ Disable `prependChangelog` example:
     "prependChangelog": false
   }
   ```
-
