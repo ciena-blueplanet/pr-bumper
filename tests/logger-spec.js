@@ -15,4 +15,13 @@ describe('logger', () => {
       stub.restore()
     })
   })
+
+  describe('.error()', () => {
+    it('logs to console', () => {
+      stub = sinon.stub(console, 'error')
+      logger.error('foo bar baz')
+      expect(console.error.lastCall.args).to.be.eql(['foo bar baz'])
+      stub.restore()
+    })
+  })
 })
