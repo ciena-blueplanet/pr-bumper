@@ -5,12 +5,10 @@ node_js:
 branches:
   except:
   - /^v[0-9\.]+/
-before_install:
-- npm install -g coveralls
 before_script:
 - VERBOSE=1 ./bin/cli.js check
 after_success:
-- cat coverage/lcov.info | coveralls
+- bash <(curl -s https://codecov.io/bash)
 addons:
   apt:
     sources:
