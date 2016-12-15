@@ -1,3 +1,6 @@
+# 0.7.4
+* **Addedd** another test to try out codecov.io reporting. 
+
 # 0.7.3
 * **Attempted** to switch from [coveralls.io](http://coveralls.io) to [codecov.io](http://codecov.io)
 
