@@ -1,3 +1,7 @@
+# 0.7.3
+* **Attempted** to switch from [coveralls.io](http://coveralls.io) to [codecov.io](http://codecov.io)
+
+
 # 0.7.2
  * **Restored** default behavior of using `master` branch if no `ci.env.branch` config is specified.
 
