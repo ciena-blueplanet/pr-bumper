@@ -5,12 +5,10 @@ node_js:
 branches:
   except:
   - /^v[0-9\.]+/
-before_install:
-- npm install -g codecov
 before_script:
 - VERBOSE=1 ./bin/cli.js check
 after_success:
-- codecov
+- bash <(curl -s https://codecov.io/bash) -f coverage/coverage.json
 addons:
   apt:
     sources:
