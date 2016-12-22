@@ -58,6 +58,7 @@ will know exactly what to do before the build fails.
 [bitbucket-url]: https://bitbucket.org/product/server
 [travis-url]: https://travis-ci.org
 [teamcity-url]: https://www.jetbrains.com/teamcity/
+
 ## Integrations
 `pr-bumper` currently supports pull requests on [GitHub][github-url], and [Bitbucket Server][bitbucket-url]
 
@@ -213,8 +214,42 @@ the `travis` provider (see below)
 Here you configure what CI system you use, the only currently supported options are `travis` (the default),
 or `teamcity`
 
+### `dependencySnapshotFile`
+`pr-bumper` will automatically use `npm shrinkwrap` to output a `dependency-snapshot.json` file for every release.
+This lets you see exactly what versions of all your dependencies were in use when that version was built. You can use
+the `dependencySnapshotFile` property in your `.pr-bumper.json` file to customize the name of the file generated, or
+by setting it to an empty string, you can disable that feature of `pr-bumper` completely.
+
+Customize dependency snapshot example:
+`.pr-bumper.json`
+```json
+{
+  "dependencySnapshotFile": "my-deps.json"
+}
+```
+
+Disable dependency snapshot example:
+`.pr-bumper.json`
+```json
+{
+  "dependencySnapshotFile": ""
+}
+```
+
 ### `owner`
 The Bitbucket project where your repository resides
+
+### `prependChangelog`
+Boolean whether to read the PR description to insert into CHANGELOG.md on bump. Defaults to `true`.
+
+Disable `prependChangelog` example:
+
+`.pr-bumper.json`
+  ```json
+  {
+    "prependChangelog": false
+  }
+  ```
 
 ### `repo`
 The name of your Bitbucket repository
@@ -229,15 +264,3 @@ repository in question.
 ### `vcs.provider`
 Here you configure what VCS system you use, the only currently supported options are `github` (the default),
 or `bitbucket-server`
-
-### `prependChangelog`
-Boolean whether to read the PR description to insert into CHANGELOG.md on bump. Defaults to `true`.
-
-Disable `prependChangelog` example:
-
-`.pr-bumper.json`
-  ```json
-  {
-    "prependChangelog": false
-  }
-  ```
