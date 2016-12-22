@@ -1,13 +1,18 @@
 'use strict'
 
+const chai = require('chai')
+const sinonChai = require('sinon-chai')
+const expect = chai.expect
+chai.use(sinonChai)
+
 const CiBase = require('../../lib/ci/base')
-const expect = require('chai').expect
 
 module.exports = {
   ensureCiBaseMethodIsUsed (ctx, methodName) {
-    describe(`.${methodName}()`, () => {
+    describe(`.${methodName}()`, function () {
       let ci, result
-      beforeEach(() => {
+
+      beforeEach(function () {
         ci = ctx.ci
         ctx.sandbox.stub(CiBase.prototype, methodName).returns(Promise.resolve(`${methodName}-finished`))
 
@@ -16,11 +21,11 @@ module.exports = {
         })
       })
 
-      it(`calls the base ${methodName}()`, () => {
-        expect(CiBase.prototype[methodName].lastCall.args).to.be.eql(['some-args'])
+      it(`should call the base ${methodName}()`, function () {
+        expect(CiBase.prototype[methodName]).to.have.been.calledWith('some-args')
       })
 
-      it(`resolves with the result of the base ${methodName}()`, () => {
+      it(`should resolve with the result of the base ${methodName}()`, function () {
         expect(result).to.be.equal(`${methodName}-finished`)
       })
     })

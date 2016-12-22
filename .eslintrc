@@ -1,3 +1,8 @@
 {
-  "extends": ["frost-standard"]
+  "extends": ["frost-standard"],
+  "plugins": ["mocha"],
+  "rules": {
+    "mocha/no-mocha-arrows": 2,
+    "mocha/valid-test-description": 2
+  }
 }

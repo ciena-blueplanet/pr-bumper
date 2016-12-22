@@ -1,19 +1,23 @@
 'use strict'
 
+const chai = require('chai')
 const rewire = require('rewire')
 const sinon = require('sinon')
-const expect = require('chai').expect
+const sinonChai = require('sinon-chai')
+const expect = chai.expect
+chai.use(sinonChai)
+
 const logger = require('../../lib/logger')
 const CiBase = require('../../lib/ci/base')
 const Travis = rewire('../../lib/ci/travis')
 const testUtils = require('./utils')
 const ensureCiBaseMethodIsUsed = testUtils.ensureCiBaseMethodIsUsed
 
-describe('Travis', () => {
+describe('Travis', function () {
+  const ctx = {}
   let execStub, revertExecRewire, travis, sandbox
-  let ctx = {}
 
-  beforeEach(() => {
+  beforeEach(function () {
     sandbox = sinon.sandbox.create()
 
     // get rid of all logging messages in the tests (and let us test for them if we want)
@@ -29,32 +33,32 @@ describe('Travis', () => {
     ctx.sandbox = sandbox
   })
 
-  afterEach(() => {
+  afterEach(function () {
     // undo the rewiring
     revertExecRewire()
 
-    // remove all stubs/spies
     sandbox.restore()
   })
 
-  it('saves the config', () => {
+  it('should save the config', function () {
     expect(travis.config).to.be.eql({id: 'config', branch: 'my-branch'})
   })
 
-  it('saves the vcs', () => {
+  it('should save the vcs', function () {
     expect(travis.vcs).to.be.eql({id: 'vcs'})
   })
 
-  it('should extend CiBase', () => {
+  it('should extend CiBase', function () {
     expect(travis).to.be.an.instanceof(CiBase)
   })
 
   ensureCiBaseMethodIsUsed(ctx, 'add')
   ensureCiBaseMethodIsUsed(ctx, 'commit')
 
-  describe('.push()', () => {
+  describe('.push()', function () {
     let result
-    beforeEach(() => {
+
+    beforeEach(function () {
       travis.vcs = {addRemoteForPush () {}}
       sandbox.stub(travis.vcs, 'addRemoteForPush').returns(Promise.resolve('ci-origin'))
       execStub.returns(Promise.resolve('pushed'))
@@ -64,26 +68,27 @@ describe('Travis', () => {
       })
     })
 
-    it('adds the push remote via the vcs', () => {
-      expect(travis.vcs.addRemoteForPush.calledOnce).to.be.true
+    it('should add the push remote via the vcs', function () {
+      expect(travis.vcs.addRemoteForPush).to.have.callCount(1)
     })
 
-    it('logs that it is about to push my-master to the new remote', () => {
-      expect(logger.log.lastCall.args).to.be.eql(['Pushing ci-my-branch to ci-origin'])
+    it('should log that it is about to push my-master to the new remote', function () {
+      expect(logger.log).to.have.been.calledWith('Pushing ci-my-branch to ci-origin')
     })
 
-    it('pushes the ci-my-branch branch to new remote', () => {
-      expect(execStub.lastCall.args).to.be.eql(['git push ci-origin ci-my-branch:refs/heads/my-branch --tags'])
+    it('should push the ci-my-branch branch to new remote', function () {
+      expect(execStub).to.have.been.calledWith('git push ci-origin ci-my-branch:refs/heads/my-branch --tags')
     })
 
-    it('resolves with result of the git push', () => {
+    it('should resolve with result of the git push', function () {
       expect(result).to.be.equal('pushed')
     })
   })
 
-  describe('.setupGitEnv()', () => {
+  describe('.setupGitEnv()', function () {
     let result
-    beforeEach(() => {
+
+    beforeEach(function () {
       sandbox.stub(CiBase.prototype, 'setupGitEnv').returns(Promise.resolve())
       execStub.returns(Promise.resolve('checked-out'))
 
@@ -92,15 +97,15 @@ describe('Travis', () => {
       })
     })
 
-    it('calls the base .setupGitEnv()', () => {
-      expect(CiBase.prototype.setupGitEnv.calledOnce).to.be.true
+    it('should call the base .setupGitEnv()', function () {
+      expect(CiBase.prototype.setupGitEnv).to.have.callCount(1)
     })
 
-    it('creates and checks out ci-my-branch branch', () => {
-      expect(execStub.lastCall.args).to.be.eql(['git checkout -b ci-my-branch'])
+    it('should create and check out ci-my-branch branch', function () {
+      expect(execStub).to.have.been.calledWith('git checkout -b ci-my-branch')
     })
 
-    it('resolves with the result of the git checkout', () => {
+    it('should resolve with the result of the git checkout', function () {
       expect(result).to.be.equal('checked-out')
     })
   })

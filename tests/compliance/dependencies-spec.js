@@ -2,17 +2,21 @@
 
 /* eslint no-useless-escape: 0 */
 
+const chai = require('chai')
+const Promise = require('promise')
 const rewire = require('rewire')
 const sinon = require('sinon')
-const expect = require('chai').expect
-const Promise = require('promise')
+const sinonChai = require('sinon-chai')
+const expect = chai.expect
+chai.use(sinonChai)
+
 const logger = require('../../lib/logger')
 const dependencies = rewire('../../lib/compliance/dependencies')
 
 describe('dependencies', function () {
   let sandbox
   let config
-  beforeEach(() => {
+  beforeEach(function () {
     sandbox = sinon.sandbox.create()
     sandbox.stub(logger, 'error')
     config = {
@@ -40,77 +44,118 @@ describe('dependencies', function () {
   })
 
   afterEach(function () {
-    // remove all stubs/spies
     sandbox.restore()
   })
 
-  describe('parses a license', function () {
-    it('for MIT', function () {
-      const licenseObject = {
-        text: 'MIT blah blah blah',
-        filePath: '../some/MIT/path'
-      }
-      expect(dependencies._parseLicense(licenseObject)).to.eql('MIT')
+  describe('_parseLicense()', function () {
+    let licenseObject, ret
+    describe('when MIT present', function () {
+      beforeEach(function () {
+        licenseObject = {
+          text: 'MIT blah blah blah',
+          filePath: '../some/MIT/path'
+        }
+
+        ret = dependencies._parseLicense(licenseObject)
+      })
+
+      it('should detect MIT', function () {
+        expect(ret).to.equal('MIT')
+      })
     })
 
-    it('for ISC', function () {
-      const licenseObject = {
-        text: 'ISC blah blah blah',
-        filePath: '../some/ISC/path'
-      }
-      expect(dependencies._parseLicense(licenseObject)).to.eql('ISC')
+    describe('when ISC present', function () {
+      beforeEach(function () {
+        licenseObject = {
+          text: 'ISC blah blah blah',
+          filePath: '../some/ISC/path'
+        }
+
+        ret = dependencies._parseLicense(licenseObject)
+      })
+
+      it('should detect ISC', function () {
+        expect(ret).to.equal('ISC')
+      })
     })
 
-    it('for Apache', function () {
-      const licenseObject = {
-        text: 'Apache blah blah blah',
-        filePath: '../some/Apache/path'
-      }
-      expect(dependencies._parseLicense(licenseObject)).to.eql('Apache')
+    describe('when Apache present', function () {
+      beforeEach(function () {
+        licenseObject = {
+          text: 'Apache blah blah blah',
+          filePath: '../some/Apache/path'
+        }
+
+        ret = dependencies._parseLicense(licenseObject)
+      })
+
+      it('should detect Apache', function () {
+        expect(ret).to.equal('Apache')
+      })
     })
 
-    it('for unknown license', function () {
-      const licenseObject = {
-        text: 'Unknown blah blah blah',
-        filePath: '../some/unknown/path'
-      }
-      expect(dependencies._parseLicense(licenseObject)).to.eql('UNKNOWN')
+    describe('when no known license present', function () {
+      beforeEach(function () {
+        licenseObject = {
+          text: 'Uber secret license blah blah blah',
+          filePath: '../some/random/path'
+        }
+
+        ret = dependencies._parseLicense(licenseObject)
+      })
+
+      it('should detect UNKNOWN', function () {
+        expect(ret).to.equal('UNKNOWN')
+      })
     })
   })
 
-  describe('gets a license', function () {
-    it('for package sources', function () {
-      const licenseSources = {
-        package: {
-          sources: [
-            { license: 'MIT' },
-            { license: 'Apache' }
-          ]
+  describe('_getLicense()', function () {
+    let licenseSources, license
+    describe('when using package sources', function () {
+      beforeEach(function () {
+        licenseSources = {
+          package: {
+            sources: [
+              { license: 'MIT' },
+              { license: 'Apache' }
+            ]
+          }
         }
-      }
-      const expected = 'MIT, Apache'
-      expect(dependencies._getLicense(licenseSources)).to.eql(expected)
+
+        license = dependencies._getLicense(licenseSources)
+      })
+
+      it('should get all licenses', function () {
+        expect(license).to.equal('MIT, Apache')
+      })
     })
 
-    it('for license sources', function () {
-      const licenseSources = {
-        package: {
-          sources: []
-        },
-        license: {
-          sources: [
-            { text: 'MIT' },
-            { text: 'Apache' },
-            { text: 'blargh' }
-          ]
+    describe('when using license sources', function () {
+      beforeEach(function () {
+        licenseSources = {
+          package: {
+            sources: []
+          },
+          license: {
+            sources: [
+              { text: 'MIT' },
+              { text: 'Apache' },
+              { text: 'blargh' }
+            ]
+          }
         }
-      }
-      const expected = 'MIT, Apache, UNKNOWN'
-      expect(dependencies._getLicense(licenseSources)).to.eql(expected)
+
+        license = dependencies._getLicense(licenseSources)
+      })
+
+      it('should get all licenses', function () {
+        expect(license).to.equal('MIT, Apache, UNKNOWN')
+      })
     })
   })
 
-  describe('gets npm license data', function () {
+  describe('getNpmLicenseData()', function () {
     let findLicenseStub
     let writeFileStub
 
@@ -141,23 +186,25 @@ describe('dependencies', function () {
           }
         }
       ]))
+
+      sandbox.stub(logger, 'log')
       writeFileStub = sandbox.stub(dependencies, 'writeFile')
       writeFileStub.returns(Promise.resolve())
     })
 
-    it('respects the production option', function () {
+    it('should respect the production option', function () {
       return dependencies.getNpmLicenseData('/some/path', '/some/output/path', config).then(() => {
-        expect(findLicenseStub.firstCall.args[0].production).to.eql(true)
+        expect(findLicenseStub).to.have.been.calledWith(sinon.match({production: true}))
       })
     })
 
-    it('and logs if there is none', function () {
+    it('should log if there is none', function () {
       return dependencies.getNpmLicenseData('/some/path', '/some/output/path', config).then(() => {
-        expect(logger.error.firstCall.args).to.eql(['ERROR: some-id has no licenseSources?'])
+        expect(logger.error).to.have.been.calledWith('ERROR: some-id has no licenseSources?')
       })
     })
 
-    it('attempts to write file with correct data', function () {
+    it('should attempt to write file with correct data', function () {
       const expectedData = [
         {
           version: 2.0,
@@ -165,27 +212,28 @@ describe('dependencies', function () {
           license: 'MIT, Apache, UNKNOWN'
         }
       ]
+
       return dependencies.getNpmLicenseData('/some/path', '/some/output/path', config).then((value) => {
-        expect(writeFileStub.lastCall.args).to.eql([
+        expect(writeFileStub).to.have.been.calledWith(
           '/some/output/path',
           JSON.stringify({
             'schema-version': 1,
             data: expectedData
           }, null, '  ')
-        ])
+        )
       })
     })
 
-    it('returns file written message', function () {
+    it('should return file written message', function () {
       return dependencies.getNpmLicenseData('/some/path', '/some/output/path', config).then((value) => {
         expect(value).to.eql('successfully wrote /some/output/path')
       })
     })
 
-    it('logs file write error', function () {
+    it('should log file write error', function () {
       writeFileStub.returns(Promise.reject('some error'))
       return dependencies.getNpmLicenseData('/some/path', '/some/output/path', config).catch(() => {
-        expect(logger.error.lastCall.args).to.eql(['(1) ERROR: writing /some/output/path', 'some error'])
+        expect(logger.error).to.have.been.calledWith('(1) ERROR: writing /some/output/path', 'some error')
       })
     })
   })
@@ -194,11 +242,14 @@ describe('dependencies', function () {
     let readFileStub
     let repos = ['"ember-frost-1"', '"frost-1"']
     const fileData = `  ${repos.join('\n  ')}\n`
+
     beforeEach(function () {
       readFileStub = sandbox.stub(dependencies, 'readFile')
       readFileStub.returns(Promise.resolve(fileData))
+      sandbox.stub(logger, 'log')
     })
-    it('returns the correct repo paths', function () {
+
+    it('should return the correct repo paths', function () {
       const addlRepos = config.dependencies.additionalRepos
       const expectedUrl1 = addlRepos[1].url.split('${REPO_NAME}').join(repos[1].split('"').join(''))
       const expectedUrl2 = addlRepos[0].url.split('${REPO_NAME}').join(repos[0].split('"').join(''))

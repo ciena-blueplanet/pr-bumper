@@ -33,44 +33,44 @@ function setEnv (env) {
  * @param {Object} ctx - the context object for the tests
  */
 function verifyGitHubTravisDefaults (ctx) {
-  describe('uses the right github/travis default', () => {
+  describe('when using github/travis defaults', function () {
     let config
-    beforeEach(() => {
+    beforeEach(function () {
       config = ctx.config
     })
 
-    it('git user', () => {
+    it('should use the proper git user', function () {
       expect(config.ci.gitUser).to.be.eql({
         email: 'travis.ci.ciena@gmail.com',
         name: 'Travis CI'
       })
     })
 
-    it('ci provider', () => {
+    it('should use the proper ci provider', function () {
       expect(config.ci.provider).to.be.equal('travis')
     })
 
-    it('owner', () => {
+    it('should have the proper owner', function () {
       expect(config.owner).to.be.equal('jdoe')
     })
 
-    it('branch', () => {
+    it('should have the proper branch', function () {
       expect(config.branch).to.be.equal('my-branch')
     })
 
-    it('repo', () => {
+    it('should have the proper repo', function () {
       expect(config.repo).to.be.equal('john-and-jane')
     })
 
-    it('vcs domain', () => {
+    it('should have the proper vcs domain', function () {
       expect(config.vcs.domain).to.be.equal('github.com')
     })
 
-    it('vcs provider', () => {
+    it('should have the proper vcs provider', function () {
       expect(config.vcs.provider).to.be.equal('github')
     })
 
-    it('vcs auth', () => {
+    it('should have the proper vcs auth', function () {
       expect(config.vcs.auth).to.be.eql({
         password: undefined,
         readToken: '12345',
@@ -86,44 +86,44 @@ function verifyGitHubTravisDefaults (ctx) {
  * @param {Object} ctx - the context object for the tests
  */
 function verifyBitbucketTeamcityOverrides (ctx) {
-  describe('uses the right bitbucket/teamcity overrides', () => {
+  describe('when using bitbucket/teamcity overrides', function () {
     let config
-    beforeEach(() => {
+    beforeEach(function () {
       config = ctx.config
     })
 
-    it('git user', () => {
+    it('should have the proper git user', function () {
       expect(config.ci.gitUser).to.be.eql({
         email: 'teamcity@domain.com',
         name: 'teamcity'
       })
     })
 
-    it('ci provider', () => {
+    it('should have the proper ci provider', function () {
       expect(config.ci.provider).to.be.equal('teamcity')
     })
 
-    it('owner', () => {
+    it('should have the proper owner', function () {
       expect(config.owner).to.be.equal('my-project')
     })
 
-    it('repo', () => {
+    it('should have the proper repo', function () {
       expect(config.repo).to.be.equal('my-repo')
     })
 
-    it('branch', () => {
+    it('should have the proper branch', function () {
       expect(config.branch).to.be.equal('my-branch')
     })
 
-    it('vcs domain', () => {
+    it('should have the proper vcs domain', function () {
       expect(config.vcs.domain).to.be.equal('bitbucket.domain.com')
     })
 
-    it('vcs provider', () => {
+    it('should have the proper vcs provider', function () {
       expect(config.vcs.provider).to.be.equal('bitbucket-server')
     })
 
-    it('vcs auth', () => {
+    it('should have the proper vcs auth', function () {
       expect(config.vcs.auth).to.be.eql({
         password: 'teamcity12345',
         readToken: undefined,
@@ -134,33 +134,33 @@ function verifyBitbucketTeamcityOverrides (ctx) {
   })
 }
 
-describe('utils', () => {
+describe('utils', function () {
   let sandbox
 
-  beforeEach(() => {
+  beforeEach(function () {
     sandbox = sinon.sandbox.create()
     sandbox.stub(logger, 'log')
   })
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore()
   })
 
-  describe('.getConfig()', () => {
+  describe('.getConfig()', function () {
     let config, env, realEnv
 
-    beforeEach(() => {
+    beforeEach(function () {
       realEnv = {}
     })
 
-    afterEach(() => {
+    afterEach(function () {
       // restore the realEnv
       setEnv(realEnv)
     })
 
-    describe('GitHub/Travis (default case)', () => {
+    describe('GitHub/Travis (default case)', function () {
       let ctx = {}
-      beforeEach(() => {
+      beforeEach(function () {
         env = {
           'TRAVIS_BRANCH': 'my-branch',
           'TRAVIS_BUILD_NUMBER': '123',
@@ -170,8 +170,8 @@ describe('utils', () => {
         }
       })
 
-      describe('when doing a pull request build', () => {
-        beforeEach(() => {
+      describe('when doing a pull request build', function () {
+        beforeEach(function () {
           env.TRAVIS_PULL_REQUEST = '13'
 
           saveEnv(Object.keys(env), realEnv)
@@ -183,17 +183,17 @@ describe('utils', () => {
 
         verifyGitHubTravisDefaults(ctx)
 
-        it('sets isPr to true', () => {
-          expect(config.isPr).to.be.true
+        it('should set isPr to true', function () {
+          expect(config.isPr).to.equal(true)
         })
 
-        it('sets prNumber to the PR number', () => {
+        it('should set prNumber to the PR number', function () {
           expect(config.prNumber).to.be.equal('13')
         })
       })
 
-      describe('when doing a merge build', () => {
-        beforeEach(() => {
+      describe('when doing a merge build', function () {
+        beforeEach(function () {
           env.TRAVIS_PULL_REQUEST = 'false'
 
           saveEnv(Object.keys(env), realEnv)
@@ -204,21 +204,21 @@ describe('utils', () => {
 
         verifyGitHubTravisDefaults(ctx)
 
-        it('sets isPr to false', () => {
-          expect(config.isPr).to.be.false
+        it('should set isPr to false', function () {
+          expect(config.isPr).to.equal(false)
         })
 
-        it('sets prNumber to false', () => {
+        it('should set prNumber to false', function () {
           expect(config.prNumber).to.be.equal('false')
         })
       })
     })
 
-    describe('Bitbucket/TeamCity', () => {
+    describe('Bitbucket/TeamCity', function () {
       let ctx = {}
       let _config
 
-      beforeEach(() => {
+      beforeEach(function () {
         env = {
           'TEAMCITY_BRANCH': 'my-branch',
           'TEAMCITY_BUILD_NUMBER': '123',
@@ -253,8 +253,8 @@ describe('utils', () => {
         }
       })
 
-      describe('when doing a pull request build', () => {
-        beforeEach(() => {
+      describe('when doing a pull request build', function () {
+        beforeEach(function () {
           env.TEAMCITY_PULL_REQUEST = '13'
 
           saveEnv(Object.keys(env), realEnv)
@@ -266,17 +266,17 @@ describe('utils', () => {
 
         verifyBitbucketTeamcityOverrides(ctx)
 
-        it('sets isPr to true', () => {
-          expect(config.isPr).to.be.true
+        it('should set isPr to true', function () {
+          expect(config.isPr).to.equal(true)
         })
 
-        it('sets prNumber to the PR number', () => {
+        it('should set prNumber to the PR number', function () {
           expect(config.prNumber).to.be.equal('13')
         })
       })
 
-      describe('when doing a merge build', () => {
-        beforeEach(() => {
+      describe('when doing a merge build', function () {
+        beforeEach(function () {
           env.TEAMCITY_PULL_REQUEST = 'false'
 
           saveEnv(Object.keys(env), realEnv)
@@ -287,17 +287,17 @@ describe('utils', () => {
 
         verifyBitbucketTeamcityOverrides(ctx)
 
-        it('sets isPr to false', () => {
-          expect(config.isPr).to.be.false
+        it('should set isPr to false', function () {
+          expect(config.isPr).to.equal(false)
         })
 
-        it('sets prNumber to false', () => {
+        it('should set prNumber to false', function () {
           expect(config.prNumber).to.be.equal('false')
         })
       })
 
-      describe('when no branch env is given', () => {
-        beforeEach(() => {
+      describe('when no branch env is given', function () {
+        beforeEach(function () {
           delete _config.ci.env.branch
 
           saveEnv(Object.keys(env), realEnv)
@@ -306,14 +306,14 @@ describe('utils', () => {
           config = utils.getConfig(_config)
         })
 
-        it('should default to master branch', () => {
+        it('should default to master branch', function () {
           expect(config.branch).to.be.equal('master')
         })
       })
     })
   })
 
-  describe('.getValidatedScope()', () => {
+  describe('.getValidatedScope()', function () {
     const prUrl = 'my-pr-url'
     const prNum = '12345'
     const scopes = {
@@ -326,12 +326,12 @@ describe('utils', () => {
     }
 
     __.forIn(scopes, (value, key) => {
-      it(`handles ${key}`, () => {
+      it(`handles ${key}`, function () {
         expect(utils.getValidatedScope(key, prNum, prUrl)).to.be.equal(value)
       })
     })
 
-    it('throws on invalid scope', () => {
+    it('should throw on invalid scope', function () {
       const fn = () => {
         utils.getValidatedScope('foo-bar', prNum, prUrl)
       }
@@ -340,9 +340,9 @@ describe('utils', () => {
     })
   })
 
-  describe('.getScopeForPr()', () => {
+  describe('.getScopeForPr()', function () {
     let pr, scope
-    beforeEach(() => {
+    beforeEach(function () {
       pr = {
         description: '',
         number: '12345',
@@ -351,12 +351,12 @@ describe('utils', () => {
       sandbox.stub(utils, 'getValidatedScope').returns('the-validated-scope')
     })
 
-    describe('when no version-bump present', () => {
-      beforeEach(() => {
+    describe('when no version-bump present', function () {
+      beforeEach(function () {
         pr.description = 'My super-cool new feature'
       })
 
-      it('throws an error', () => {
+      it('should throw an error', function () {
         const fn = () => {
           utils.getScopeForPr(pr)
         }
@@ -365,12 +365,12 @@ describe('utils', () => {
       })
     })
 
-    describe('when multiple version-bumps are present', () => {
-      beforeEach(() => {
+    describe('when multiple version-bumps are present', function () {
+      beforeEach(function () {
         pr.description = 'This is my cool #feature# or is it a #fix#?'
       })
 
-      it('throws an error', () => {
+      it('should throw an error', function () {
         const fn = () => {
           utils.getScopeForPr(pr)
         }
@@ -379,23 +379,23 @@ describe('utils', () => {
       })
     })
 
-    describe('when a single version-bump is present', () => {
-      beforeEach(() => {
+    describe('when a single version-bump is present', function () {
+      beforeEach(function () {
         pr.description = 'This is my super-cool #feature#'
         scope = utils.getScopeForPr(pr)
       })
 
-      it('calls .getValidatedScope() with proper arguments', () => {
+      it('should call .getValidatedScope() with proper arguments', function () {
         expect(utils.getValidatedScope.lastCall.args).to.be.eql(['feature', '12345', 'my-pr-url'])
       })
 
-      it('returns the result of .getValidatedScope()', () => {
+      it('should return the result of .getValidatedScope()', function () {
         expect(scope).to.be.equal('the-validated-scope')
       })
     })
 
-    describe('when GFM checkbox syntax is present with one scope checked', () => {
-      beforeEach(() => {
+    describe('when GFM checkbox syntax is present with one scope checked', function () {
+      beforeEach(function () {
         pr.description = `
 ### Check the scope of this pr:
 - [ ] #patch# - bugfix, dependency update
@@ -405,13 +405,13 @@ describe('utils', () => {
         scope = utils.getScopeForPr(pr)
       })
 
-      it('calls .getValidatedScope() with proper arguments', () => {
+      it('should call .getValidatedScope() with proper arguments', function () {
         expect(utils.getValidatedScope.lastCall.args).to.be.eql(['minor', '12345', 'my-pr-url'])
       })
     })
 
-    describe('when GFM checkbox syntax is present with multiple scopes checked', () => {
-      beforeEach(() => {
+    describe('when GFM checkbox syntax is present with multiple scopes checked', function () {
+      beforeEach(function () {
         pr.description = `
 ### Check the scope of this pr:
 - [x] #patch# - bugfix, dependency update
@@ -420,7 +420,7 @@ describe('utils', () => {
 - [ ] #breaking# - any change that breaks the API`
       })
 
-      it('throws an error', () => {
+      it('should throw an error', function () {
         const fn = () => {
           utils.getScopeForPr(pr)
         }
@@ -429,8 +429,8 @@ describe('utils', () => {
       })
     })
 
-    describe('when GFM checkbox syntax is present with one scope checked and other scopes mentioned', () => {
-      beforeEach(() => {
+    describe('when GFM checkbox syntax is present with one scope checked and other scopes mentioned', function () {
+      beforeEach(function () {
         pr.description = `
 ### Check the scope of this pr:
 - [ ] #patch# - bugfix, dependency update
@@ -443,15 +443,19 @@ Thought this might be #breaking# but on second thought it is a minor change
         scope = utils.getScopeForPr(pr)
       })
 
-      it('calls .getValidatedScope() with proper arguments', () => {
+      it('should call .getValidatedScope() with proper arguments', function () {
         expect(utils.getValidatedScope.lastCall.args).to.be.eql(['minor', '12345', 'my-pr-url'])
       })
     })
   })
 
-  describe('.getChangelogForPr()', () => {
+  describe('.getChangelogForPr()', function () {
+    const errorMsg = 'No CHANGELOG content found in PR description.\n' +
+      'Please add a "# CHANGELOG" section to your PR description with some content describing your change'
+
     let pr, changelog
-    beforeEach(() => {
+
+    beforeEach(function () {
       pr = {
         description: '',
         number: '12345',
@@ -459,49 +463,60 @@ Thought this might be #breaking# but on second thought it is a minor change
       }
     })
 
-    describe('when no changelog present', () => {
-      beforeEach(() => {
+    describe('when no changelog present', function () {
+      beforeEach(function () {
         pr.description = 'My super-cool new feature'
-        changelog = utils.getChangelogForPr(pr)
       })
 
-      it('uses default message', () => {
-        expect(changelog).to.be.eql('No CHANGELOG section found in Pull Request description.\n' +
-          'Use a `# CHANGELOG` section in your Pull Request description to auto-populate the `CHANGELOG.md`')
+      it('should throw an error', function () {
+        expect(() => {
+          utils.getChangelogForPr(pr)
+        }).to.throw(Error, errorMsg)
       })
     })
 
-    describe('when multiple changelog sections are present', () => {
-      beforeEach(() => {
+    describe('when changelog empty', function () {
+      beforeEach(function () {
+        pr.description = 'My super-cool new feature\n #CHANGELOG'
+      })
+
+      it('should throw an error', function () {
+        expect(() => {
+          utils.getChangelogForPr(pr)
+        }).to.throw(Error, errorMsg)
+      })
+    })
+
+    describe('when multiple changelog sections are present', function () {
+      beforeEach(function () {
         pr.description = '#CHANGELOG\n## Fixes\nFoo, Bar, Baz\n#changelog\n## Features\nFizz, Bang'
-        changelog = utils.getChangelogForPr(pr)
       })
 
-      it('uses default message with error message', () => {
-        expect(changelog).to.be.eql('No CHANGELOG section found in Pull Request description.\n' +
-          'Use a `# CHANGELOG` section in your Pull Request description to auto-populate the `CHANGELOG.md`\n' +
-          'Multiple changelog sections found. Line 1 and line 4.')
+      it('should throw an error', function () {
+        expect(() => {
+          utils.getChangelogForPr(pr)
+        }).to.throw(Error, 'Multiple changelog sections found. Line 1 and line 4.')
       })
     })
 
-    describe('when changelog section is present', () => {
-      beforeEach(() => {
+    describe('when changelog section is present', function () {
+      beforeEach(function () {
         pr.description = '#changelog\r\n## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang'
         changelog = utils.getChangelogForPr(pr)
       })
 
-      it('grabs the changelog text', () => {
+      it('should grab the changelog text', function () {
         expect(changelog).to.be.eql('## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang')
       })
     })
 
-    describe('when changelog section has extra space at the end', () => {
-      beforeEach(() => {
+    describe('when changelog section has extra space at the end', function () {
+      beforeEach(function () {
         pr.description = '# CHANGELOG    \n## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang'
         changelog = utils.getChangelogForPr(pr)
       })
 
-      it('grabs the changelog text', () => {
+      it('should grab the changelog text', function () {
         expect(changelog).to.be.eql('## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang')
       })
     })

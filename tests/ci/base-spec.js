@@ -1,14 +1,18 @@
 'use strict'
 
+const chai = require('chai')
 const rewire = require('rewire')
 const sinon = require('sinon')
-const expect = require('chai').expect
+const sinonChai = require('sinon-chai')
+const expect = chai.expect
+chai.use(sinonChai)
+
 const logger = require('../../lib/logger')
 const CiBase = rewire('../../lib/ci/base')
 
-describe('CiBase', () => {
+describe('CiBase', function () {
   let execStub, revertExecRewire, base, sandbox
-  beforeEach(() => {
+  beforeEach(function () {
     sandbox = sinon.sandbox.create()
 
     // get rid of all logging messages in the tests (and let us test for them if we want)
@@ -21,7 +25,7 @@ describe('CiBase', () => {
     base = new CiBase({id: 'config', branch: 'my-branch'}, {id: 'vcs'})
   })
 
-  afterEach(() => {
+  afterEach(function () {
     // undo the rewiring
     revertExecRewire()
 
@@ -29,75 +33,75 @@ describe('CiBase', () => {
     sandbox.restore()
   })
 
-  it('saves the config', () => {
+  it('should save the config', function () {
     expect(base.config).to.be.eql({id: 'config', branch: 'my-branch'})
   })
 
-  it('saves the vcs', () => {
+  it('should save the vcs', function () {
     expect(base.vcs).to.be.eql({id: 'vcs'})
   })
 
-  describe('.add()', () => {
+  describe('.add()', function () {
     let result
-    beforeEach(() => {
+    beforeEach(function () {
       execStub.returns(Promise.resolve('added'))
       return base.add(['foo', 'bar', 'baz']).then((res) => {
         result = res
       })
     })
 
-    it('adds the files to git', () => {
-      expect(execStub.lastCall.args).to.be.eql(['git add foo bar baz'])
+    it('should add the files to git', function () {
+      expect(execStub).to.have.been.calledWith('git add foo bar baz')
     })
 
-    it('resolves with the result of the git command', () => {
+    it('should resolve with the result of the git command', function () {
       expect(result).to.be.equal('added')
     })
   })
 
-  describe('.commit()', () => {
+  describe('.commit()', function () {
     let result
-    beforeEach(() => {
+    beforeEach(function () {
       execStub.returns(Promise.resolve('committed'))
       return base.commit('my summary message', 'my detail message').then((res) => {
         result = res
       })
     })
 
-    it('commits the files to git', () => {
-      expect(execStub.lastCall.args).to.be.eql(['git commit -m "my summary message" -m "my detail message"'])
+    it('should commit the files to git', function () {
+      expect(execStub).to.have.been.calledWith('git commit -m "my summary message" -m "my detail message"')
     })
 
-    it('resolves with the result of the git command', () => {
+    it('should resolve with the result of the git command', function () {
       expect(result).to.be.equal('committed')
     })
   })
 
-  describe('.push()', () => {
+  describe('.push()', function () {
     let result
-    beforeEach(() => {
+    beforeEach(function () {
       execStub.returns(Promise.resolve('pushed'))
       return base.push().then((res) => {
         result = res
       })
     })
 
-    it('logs that it is about to push', () => {
-      expect(logger.log.lastCall.args).to.be.eql(['Pushing my-branch to origin'])
+    it('should log that it is about to push', function () {
+      expect(logger.log).to.have.been.calledWith('Pushing my-branch to origin')
     })
 
-    it('pushes origin to master with --tags', () => {
-      expect(execStub.lastCall.args).to.be.eql(['git push origin my-branch --tags'])
+    it('should push origin to master with --tags', function () {
+      expect(execStub).to.have.been.calledWith('git push origin my-branch --tags')
     })
 
-    it('resolves with the result of the git command', () => {
+    it('should resolve with the result of the git command', function () {
       expect(result).to.be.equal('pushed')
     })
   })
 
-  describe('.setupGitEnv()', () => {
+  describe('.setupGitEnv()', function () {
     let result
-    beforeEach(() => {
+    beforeEach(function () {
       base.config = {
         ci: {
           gitUser: {
@@ -113,15 +117,15 @@ describe('CiBase', () => {
       })
     })
 
-    it('configures the git user\'s email address', () => {
-      expect(execStub.firstCall.args).to.be.eql(['git config --global user.email "ci-user@domain.com"'])
+    it('should configure the git user\'s email address', function () {
+      expect(execStub).to.have.been.calledWith('git config --global user.email "ci-user@domain.com"')
     })
 
-    it('configures the git user\'s name', () => {
-      expect(execStub.secondCall.args).to.be.eql(['git config --global user.name "ci-user"'])
+    it('should configure the git user\'s name', function () {
+      expect(execStub).to.have.been.calledWith('git config --global user.name "ci-user"')
     })
 
-    it('resolves with the result of the git command', () => {
+    it('should resolve with the result of the git command', function () {
       expect(result).to.be.equal('executed')
     })
   })

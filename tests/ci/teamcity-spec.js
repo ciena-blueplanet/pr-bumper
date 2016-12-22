@@ -1,18 +1,22 @@
 'use strict'
 
+const chai = require('chai')
 const sinon = require('sinon')
-const expect = require('chai').expect
+const sinonChai = require('sinon-chai')
+const expect = chai.expect
+chai.use(sinonChai)
+
 const logger = require('../../lib/logger')
 const CiBase = require('../../lib/ci/base')
 const TeamCity = require('../../lib/ci/teamcity')
 const testUtils = require('./utils')
 const ensureCiBaseMethodIsUsed = testUtils.ensureCiBaseMethodIsUsed
 
-describe('TeamCity', () => {
+describe('TeamCity', function () {
   let teamcity, sandbox
   let ctx = {}
 
-  beforeEach(() => {
+  beforeEach(function () {
     sandbox = sinon.sandbox.create()
 
     // get rid of all logging messages in the tests (and let us test for them if we want)
@@ -23,20 +27,19 @@ describe('TeamCity', () => {
     ctx.sandbox = sandbox
   })
 
-  afterEach(() => {
-    // remove all stubs/spies
+  afterEach(function () {
     sandbox.restore()
   })
 
-  it('saves the config', () => {
+  it('should save the config', function () {
     expect(teamcity.config).to.be.eql({id: 'config'})
   })
 
-  it('saves the vcs', () => {
+  it('should save the vcs', function () {
     expect(teamcity.vcs).to.be.eql({id: 'vcs'})
   })
 
-  it('should extend CiBase', () => {
+  it('should extend CiBase', function () {
     expect(teamcity).to.be.an.instanceof(CiBase)
   })
 
