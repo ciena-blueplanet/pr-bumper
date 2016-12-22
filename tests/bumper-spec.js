@@ -129,7 +129,7 @@ describe('Bumper', function () {
     let result, info
 
     beforeEach(function () {
-      bumper.config = {foo: 'bar', prependChangelog: true}
+      bumper.config = {foo: 'bar', prependChangelog: true, dependencySnapshotFile: 'snapshot-file'}
       bumper.vcs = {foo: 'bar'}
       bumper.ci = {push: function () {}}
       info = {scope: 'minor', changelog: '', version: '1.2.0'}
@@ -137,48 +137,149 @@ describe('Bumper', function () {
       sandbox.stub(bumper, '_getMergedPrInfo').returns(Promise.resolve(info))
       sandbox.stub(bumper, '_bumpVersion').returns(Promise.resolve(info))
       sandbox.stub(bumper, '_prependChangelog').returns(Promise.resolve())
+      sandbox.stub(bumper, '_generateDependencySnapshot').returns(Promise.resolve())
       sandbox.stub(bumper, '_commitChanges').returns(Promise.resolve())
       sandbox.stub(bumper, '_createTag').returns(Promise.resolve())
       sandbox.stub(bumper, '_dependencies').returns(Promise.resolve())
+    })
 
-      return bumper.bump().then((res) => {
-        result = res
+    describe('when a merge build', function () {
+      beforeEach(function () {
+        return bumper.bump().then((res) => {
+          result = res
+        })
+      })
+
+      it('should get the merged pr info', function () {
+        expect(bumper._getMergedPrInfo).to.have.callCount(1)
+      })
+
+      it('should bump the version', function () {
+        expect(bumper._bumpVersion).to.have.been.calledWith(info, 'package.json')
+      })
+
+      it('should prepend the changelog', function () {
+        expect(bumper._prependChangelog).to.have.been.calledWith(info, 'CHANGELOG.md')
+      })
+
+      it('should generate the dependency snapshot', function () {
+        expect(bumper._generateDependencySnapshot).to.have.callCount(1)
+      })
+
+      it('should commit the change', function () {
+        expect(bumper._commitChanges).to.have.callCount(1)
+      })
+
+      it('should create the tag', function () {
+        expect(bumper._createTag).to.have.callCount(1)
+      })
+
+      it('should run the dependencies', function () {
+        expect(bumper._dependencies).to.have.callCount(1)
+      })
+
+      it('should push the changes', function () {
+        expect(bumper.ci.push).to.have.been.calledWith(bumper.vcs)
+      })
+
+      it('should resolve with the result of the ci.push()', function () {
+        expect(result).to.be.eql('pushed')
       })
     })
 
-    it('should get the merged pr info', function () {
-      expect(bumper._getMergedPrInfo).to.have.callCount(1)
+    describe('when prependChangelog is false', function () {
+      beforeEach(function () {
+        bumper.config.prependChangelog = false
+
+        return bumper.bump().then((res) => {
+          result = res
+        })
+      })
+
+      it('should get the merged pr info', function () {
+        expect(bumper._getMergedPrInfo).to.have.callCount(1)
+      })
+
+      it('should bump the version', function () {
+        expect(bumper._bumpVersion).to.have.been.calledWith(info, 'package.json')
+      })
+
+      it('should not prepend the changelog', function () {
+        expect(bumper._prependChangelog).to.have.callCount(0)
+      })
+
+      it('should generate the dependency snapshot', function () {
+        expect(bumper._generateDependencySnapshot).to.have.callCount(1)
+      })
+
+      it('should commit the change', function () {
+        expect(bumper._commitChanges).to.have.callCount(1)
+      })
+
+      it('should create the tag', function () {
+        expect(bumper._createTag).to.have.callCount(1)
+      })
+
+      it('should run the dependencies', function () {
+        expect(bumper._dependencies).to.have.callCount(1)
+      })
+
+      it('should push the changes', function () {
+        expect(bumper.ci.push).to.have.been.calledWith(bumper.vcs)
+      })
+
+      it('should resolve with the result of the ci.push()', function () {
+        expect(result).to.be.eql('pushed')
+      })
     })
 
-    it('should bump the version', function () {
-      expect(bumper._bumpVersion).to.have.been.calledWith(info, 'package.json')
+    describe('when dependencySnapshotFile is blank', function () {
+      beforeEach(function () {
+        bumper.config.dependencySnapshotFile = ''
+
+        return bumper.bump().then((res) => {
+          result = res
+        })
+      })
+
+      it('should get the merged pr info', function () {
+        expect(bumper._getMergedPrInfo).to.have.callCount(1)
+      })
+
+      it('should bump the version', function () {
+        expect(bumper._bumpVersion).to.have.been.calledWith(info, 'package.json')
+      })
+
+      it('should prepend the changelog', function () {
+        expect(bumper._prependChangelog).to.have.been.calledWith(info, 'CHANGELOG.md')
+      })
+
+      it('should not generate the dependency snapshot', function () {
+        expect(bumper._generateDependencySnapshot).to.have.callCount(0)
+      })
+
+      it('should commit the change', function () {
+        expect(bumper._commitChanges).to.have.callCount(1)
+      })
+
+      it('should create the tag', function () {
+        expect(bumper._createTag).to.have.callCount(1)
+      })
+
+      it('should run the dependencies', function () {
+        expect(bumper._dependencies).to.have.callCount(1)
+      })
+
+      it('should push the changes', function () {
+        expect(bumper.ci.push).to.have.been.calledWith(bumper.vcs)
+      })
+
+      it('should resolve with the result of the ci.push()', function () {
+        expect(result).to.be.eql('pushed')
+      })
     })
 
-    it('should prepend the changelog', function () {
-      expect(bumper._prependChangelog).to.have.been.calledWith(info, 'CHANGELOG.md')
-    })
-
-    it('should commit the change', function () {
-      expect(bumper._commitChanges).to.have.callCount(1)
-    })
-
-    it('should create the tag', function () {
-      expect(bumper._createTag).to.have.callCount(1)
-    })
-
-    it('should run the dependencies', function () {
-      expect(bumper._dependencies).to.have.callCount(1)
-    })
-
-    it('should push the changes', function () {
-      expect(bumper.ci.push).to.have.been.calledWith(bumper.vcs)
-    })
-
-    it('should resolve with the result of the ci.push()', function () {
-      expect(result).to.be.eql('pushed')
-    })
-
-    describe('skip bump when not a merge build', function () {
+    describe('when not a merge build', function () {
       beforeEach(function () {
         bumper.config.isPr = true
         bumper._getMergedPrInfo.reset()
@@ -243,29 +344,64 @@ describe('Bumper', function () {
       sandbox.stub(bumper.ci, 'add').returns(Promise.resolve('added'))
       sandbox.stub(bumper.ci, 'commit').returns(Promise.resolve('committed'))
       sandbox.stub(bumper.ci, 'setupGitEnv').returns(Promise.resolve('set-up'))
+    })
 
-      return bumper._commitChanges().then((res) => {
-        result = res
+    describe('when dependencySnapshotFile is set', function () {
+      beforeEach(function () {
+        bumper.config.dependencySnapshotFile = 'snapshot-file'
+
+        return bumper._commitChanges().then((res) => {
+          result = res
+        })
+      })
+
+      it('should set up git env', function () {
+        expect(bumper.ci.setupGitEnv).to.have.callCount(1)
+      })
+
+      it('should add the files to stage', function () {
+        expect(bumper.ci.add).to.have.been.calledWith(['package.json', 'CHANGELOG.md', 'snapshot-file', 'some-dir/'])
+      })
+
+      it('should commits the changes', function () {
+        const summary = 'Automated version bump [ci skip]'
+        const message = 'From CI build 12345'
+
+        expect(bumper.ci.commit).to.have.been.calledWith(summary, message)
+      })
+
+      it('should resolve with the result of the commit', function () {
+        expect(result).to.be.equal('committed')
       })
     })
 
-    it('should set up git env', function () {
-      expect(bumper.ci.setupGitEnv).to.have.callCount(1)
-    })
+    describe('when dependencySnapshotFile is not set', function () {
+      beforeEach(function () {
+        bumper.config.dependencySnapshotFile = ''
 
-    it('should add the files to stage', function () {
-      expect(bumper.ci.add).to.have.been.calledWith(['package.json', 'CHANGELOG.md', 'some-dir/'])
-    })
+        return bumper._commitChanges().then((res) => {
+          result = res
+        })
+      })
 
-    it('should commits the changes', function () {
-      const summary = 'Automated version bump [ci skip]'
-      const message = 'From CI build 12345'
+      it('should set up git env', function () {
+        expect(bumper.ci.setupGitEnv).to.have.callCount(1)
+      })
 
-      expect(bumper.ci.commit).to.have.been.calledWith(summary, message)
-    })
+      it('should add the files to stage', function () {
+        expect(bumper.ci.add).to.have.been.calledWith(['package.json', 'CHANGELOG.md', 'some-dir/'])
+      })
 
-    it('should resolve with the result of the commit', function () {
-      expect(result).to.be.equal('committed')
+      it('should commits the changes', function () {
+        const summary = 'Automated version bump [ci skip]'
+        const message = 'From CI build 12345'
+
+        expect(bumper.ci.commit).to.have.been.calledWith(summary, message)
+      })
+
+      it('should resolve with the result of the commit', function () {
+        expect(result).to.be.equal('committed')
+      })
     })
   })
 
@@ -334,6 +470,31 @@ describe('Bumper', function () {
       it('should return a promise resolving to nothing', function () {
         expect(result).to.equal(undefined)
       })
+    })
+  })
+
+  describe('._generateDependencySnapshot()', function () {
+    let ret
+    beforeEach(function () {
+      bumper.config.dependencySnapshotFile = 'snapshot-file'
+      execStub.withArgs('npm shrinkwrap').returns(Promise.resolve('shrinkwrap-done'))
+      execStub.returns(Promise.resolve('move-done'))
+
+      return bumper._generateDependencySnapshot().then((resp) => {
+        ret = resp
+      })
+    })
+
+    it('should generate the dependency snapshot', function () {
+      expect(execStub).to.have.been.calledWith('npm shrinkwrap')
+    })
+
+    it('should rename the dependency snapshot', function () {
+      expect(execStub).to.have.been.calledWith('mv npm-shrinkwrap.json snapshot-file')
+    })
+
+    it('should return the response from the second exec', function () {
+      expect(ret).to.equal('move-done')
     })
   })
 

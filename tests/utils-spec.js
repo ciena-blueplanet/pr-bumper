@@ -78,6 +78,10 @@ function verifyGitHubTravisDefaults (ctx) {
         writeToken: '54321'
       })
     })
+
+    it('should default dependencySnapshotFile to "dependency-snapshot.json"', function () {
+      expect(config.dependencySnapshotFile).to.equal('dependency-snapshot.json')
+    })
   })
 }
 
@@ -131,6 +135,10 @@ function verifyBitbucketTeamcityOverrides (ctx) {
         writeToken: undefined
       })
     })
+
+    it('should default dependencySnapshotFile to "dependency-snapshot.json"', function () {
+      expect(config.dependencySnapshotFile).to.equal('dependency-snapshot.json')
+    })
   })
 }
 
@@ -154,7 +162,6 @@ describe('utils', function () {
     })
 
     afterEach(function () {
-      // restore the realEnv
       setEnv(realEnv)
     })
 
