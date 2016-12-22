@@ -1,8 +1,11 @@
 'use strict'
 
-const expect = require('chai').expect
+const chai = require('chai')
 const Promise = require('promise')
 const sinon = require('sinon')
+const sinonChai = require('sinon-chai')
+const expect = chai.expect
+chai.use(sinonChai)
 
 const utils = require('../lib/utils')
 const logger = require('../lib/logger')
@@ -16,21 +19,21 @@ const GitHub = require('../lib/vcs/github')
 
 const Bumper = require('../lib/bumper')
 
-describe('Cli', () => {
+describe('Cli', function () {
   let cli, sandbox
-  beforeEach(() => {
+  beforeEach(function () {
     sandbox = sinon.sandbox.create()
     sandbox.stub(logger, 'log')
 
     cli = new Cli()
   })
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore()
   })
 
-  describe('_getBumper', () => {
-    it('returns an instance of bumper given params', () => {
+  describe('_getBumper', function () {
+    it('should return an instance of bumper given params', function () {
       const bumper = cli._getBumper({
         ci: {id: 'ci'},
         vcs: {id: 'vcs'},
@@ -41,9 +44,9 @@ describe('Cli', () => {
     })
   })
 
-  describe('.run()', () => {
+  describe('.run()', function () {
     let bumper, result, error
-    beforeEach(() => {
+    beforeEach(function () {
       bumper = {
         bump: sandbox.stub().returns(Promise.resolve('bumped')),
         check: sandbox.stub().returns(Promise.resolve('checked'))
@@ -55,8 +58,8 @@ describe('Cli', () => {
       sandbox.stub(cli, '_getBumper').returns(bumper)
     })
 
-    describe('bump', () => {
-      beforeEach(() => {
+    describe('bump', function () {
+      beforeEach(function () {
         result = ''
         error = ''
 
@@ -70,37 +73,37 @@ describe('Cli', () => {
           })
       })
 
-      it('gets the config', () => {
-        expect(utils.getConfig.calledOnce).to.be.ok
+      it('should get the config', function () {
+        expect(utils.getConfig).to.have.callCount(1)
       })
 
-      it('gets the vcs', () => {
-        expect(cli._getVcs.lastCall.args).to.be.eql([{id: 'config'}])
+      it('should gets the vcs', function () {
+        expect(cli._getVcs).to.have.been.calledWith({id: 'config'})
       })
 
-      it('gets the ci', () => {
-        expect(cli._getCi.lastCall.args).to.be.eql([{id: 'config'}, {id: 'vcs'}])
+      it('should get the ci', function () {
+        expect(cli._getCi).to.have.been.calledWith({id: 'config'}, {id: 'vcs'})
       })
 
-      it('gets the bumper', () => {
-        expect(cli._getBumper.lastCall.args).to.be.eql([{
+      it('should get the bumper', function () {
+        expect(cli._getBumper).to.have.been.calledWith({
           ci: {id: 'ci'},
           config: {id: 'config'},
           vcs: {id: 'vcs'}
-        }])
+        })
       })
 
-      it('resolves with the result of bump', () => {
+      it('should resolve with the result of bump', function () {
         expect(result).to.be.equal('bumped')
       })
 
-      it('does not error', () => {
-        expect(error).not.to.be.ok
+      it('should not error', function () {
+        expect(error).to.equal('')
       })
     })
 
-    describe('check', () => {
-      beforeEach(() => {
+    describe('check', function () {
+      beforeEach(function () {
         result = ''
         error = ''
 
@@ -114,37 +117,37 @@ describe('Cli', () => {
           })
       })
 
-      it('gets the config', () => {
-        expect(utils.getConfig.calledOnce).to.be.ok
+      it('should get the config', function () {
+        expect(utils.getConfig).to.have.callCount(1)
       })
 
-      it('gets the vcs', () => {
-        expect(cli._getVcs.lastCall.args).to.be.eql([{id: 'config'}])
+      it('should get the vcs', function () {
+        expect(cli._getVcs).to.have.been.calledWith({id: 'config'})
       })
 
-      it('gets the ci', () => {
-        expect(cli._getCi.lastCall.args).to.be.eql([{id: 'config'}, {id: 'vcs'}])
+      it('should get the ci', function () {
+        expect(cli._getCi).to.have.been.calledWith({id: 'config'}, {id: 'vcs'})
       })
 
-      it('gets the bumper', () => {
-        expect(cli._getBumper.lastCall.args).to.be.eql([{
+      it('should get the bumper', function () {
+        expect(cli._getBumper).to.have.been.calledWith({
           ci: {id: 'ci'},
           config: {id: 'config'},
           vcs: {id: 'vcs'}
-        }])
+        })
       })
 
-      it('resolves with the result of check', () => {
+      it('should resolve with the result of check', function () {
         expect(result).to.be.equal('checked')
       })
 
-      it('does not error', () => {
-        expect(error).not.to.be.ok
+      it('should not error', function () {
+        expect(error).to.equal('')
       })
     })
 
-    describe('invalid command', () => {
-      beforeEach(() => {
+    describe('invalid command', function () {
+      beforeEach(function () {
         result = ''
         error = ''
 
@@ -158,81 +161,79 @@ describe('Cli', () => {
           })
       })
 
-      it('rejects with an error', () => {
+      it('should reject with an error', function () {
         expect(error).to.be.equal('Invalid command: foo-bar')
       })
 
-      it('does not resolve', () => {
-        expect(result).not.to.be.ok
+      it('should not resolve', function () {
+        expect(result).to.equal('')
       })
     })
   })
 
-  describe('._getCi()', () => {
+  describe('._getCi()', function () {
     let config, vcs, ci
 
-    beforeEach(() => {
+    beforeEach(function () {
       config = {ci: {}}
       vcs = {id: 'vcs'}
     })
 
-    describe('with teamcity provider', () => {
-      beforeEach(() => {
+    describe('with teamcity provider', function () {
+      beforeEach(function () {
         config.ci.provider = 'teamcity'
         ci = cli._getCi(config, vcs)
       })
 
-      it('passess along config', () => {
+      it('should pass along config', function () {
         expect(ci.config).to.be.eql(config)
       })
 
-      it('passess along vcs', () => {
+      it('should pass along vcs', function () {
         expect(ci.vcs).to.be.eql(vcs)
       })
 
-      it('creates a TeamCity instance', () => {
+      it('should create a TeamCity instance', function () {
         expect(ci).to.be.an.instanceof(TeamCity)
       })
     })
 
-    describe('with travis provider', () => {
-      beforeEach(() => {
+    describe('with travis provider', function () {
+      beforeEach(function () {
         config.ci.provider = 'travis'
         ci = cli._getCi(config, vcs)
       })
 
-      it('passess along config', () => {
+      it('should pass along config', function () {
         expect(ci.config).to.be.eql(config)
       })
 
-      it('passess along vcs', () => {
+      it('should pass along vcs', function () {
         expect(ci.vcs).to.be.eql(vcs)
       })
 
-      it('creates a Travis instance', () => {
+      it('should create a Travis instance', function () {
         expect(ci).to.be.an.instanceof(Travis)
       })
     })
 
-    describe('with invalid provider', () => {
-      beforeEach(() => {
+    describe('with invalid provider', function () {
+      beforeEach(function () {
         config.ci.provider = 'unknown provider'
       })
 
-      it('throws an error', () => {
-        const fn = () => {
-          ci = cli._getCi(config, vcs)
-        }
-
-        expect(fn).to.throw('Invalid ci provider: [unknown provider]')
+      it('should throw an error', function () {
+        expect(() => {
+          cli._getCi(config, vcs)
+        }).to.throw('Invalid ci provider: [unknown provider]')
       })
     })
   })
 
-  describe('._getVcs()', () => {
+  describe('._getVcs()', function () {
     let config, vcs
 
-    beforeEach(() => {
+    beforeEach(function () {
       config = {
         vcs: {
           auth: {}
@@ -240,8 +241,8 @@ describe('Cli', () => {
       }
     })
 
-    describe('with bitbucket-server provider', () => {
-      beforeEach(() => {
+    describe('with bitbucket-server provider', function () {
+      beforeEach(function () {
         config.vcs.provider = 'bitbucket-server'
         config.vcs.auth = {
           username: 'foo',
@@ -250,42 +251,39 @@ describe('Cli', () => {
         vcs = cli._getVcs(config)
       })
 
-      it('passess along config', () => {
+      it('should pass along config', function () {
         expect(vcs.config).to.be.eql(config)
       })
 
-      it('creates a BitbucketServer instance', () => {
+      it('should create a BitbucketServer instance', function () {
         expect(vcs).to.be.an.instanceof(BitbucketServer)
       })
     })
 
-    describe('with github provider', () => {
-      beforeEach(() => {
+    describe('with github provider', function () {
+      beforeEach(function () {
         config.vcs.provider = 'github'
-        console.log('getting a github vcs')
         vcs = cli._getVcs(config)
       })
 
-      it('passess along config', () => {
+      it('should pass along config', function () {
         expect(vcs.config).to.be.eql(config)
       })
 
-      it('creates a GitHub instance', () => {
+      it('should create a GitHub instance', function () {
         expect(vcs).to.be.an.instanceof(GitHub)
       })
     })
 
-    describe('with invalid provider', () => {
-      beforeEach(() => {
+    describe('with invalid provider', function () {
+      beforeEach(function () {
         config.vcs.provider = 'unknown provider'
       })
 
-      it('throws an error', () => {
-        const fn = () => {
-          vcs = cli._getVcs(config)
-        }
-
-        expect(fn).to.throw('Invalid vcs provider: [unknown provider]')
+      it('should throw an error', function () {
+        expect(() => {
+          cli._getVcs(config)
+        }).to.throw('Invalid vcs provider: [unknown provider]')
       })
     })
   })

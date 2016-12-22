@@ -1,14 +1,18 @@
 'use strict'
 
+const chai = require('chai')
 const rewire = require('rewire')
 const sinon = require('sinon')
-const expect = require('chai').expect
+const sinonChai = require('sinon-chai')
+const expect = chai.expect
+chai.use(sinonChai)
+
 const logger = require('../../lib/logger')
 const GitHub = rewire('../../lib/vcs/github')
 
-describe('GitHub', () => {
+describe('GitHub', function () {
   let config, sandbox, github, execStub, fetchStub, revertFetchRewire, revertExecRewire
-  beforeEach(() => {
+  beforeEach(function () {
     sandbox = sinon.sandbox.create()
 
     // get rid of all logging messages in the tests (and let us test for them if we want)
@@ -45,22 +49,20 @@ describe('GitHub', () => {
     github = new GitHub(config)
   })
 
-  afterEach(() => {
-    // undo the rewiring
+  afterEach(function () {
     revertFetchRewire()
     revertExecRewire()
 
-    // remove all stubs/spies
     sandbox.restore()
   })
 
-  it('saves the config', () => {
+  it('should save the config', function () {
     expect(github.config).to.be.eql(config)
   })
 
-  describe('.getPr()', () => {
+  describe('.getPr()', function () {
     let resolution, rejection, promise, fetchResolver
-    beforeEach(() => {
+    beforeEach(function () {
       fetchResolver = {}
       let fetchPromise = new Promise((resolve, reject) => {
         fetchResolver.resolve = resolve
@@ -80,20 +82,20 @@ describe('GitHub', () => {
         })
     })
 
-    it('calls fetch with proper params', () => {
-      expect(fetchStub.lastCall.args).to.be.eql([
+    it('should call fetch with proper params', function () {
+      expect(fetchStub).to.have.been.calledWith(
         'https://api.github.com/repos/me/my-repo/pulls/5',
         {
           headers: {
             'Authorization': 'token my-ro-gh-token'
           }
         }
-      ])
+      )
     })
 
-    describe('when fetch succeeds', () => {
+    describe('when fetch succeeds', function () {
       let resp
-      beforeEach((done) => {
+      beforeEach(function (done) {
         resp = {ok: true, status: 200, json: function () {}}
         let pr = {
           number: 5,
@@ -112,7 +114,7 @@ describe('GitHub', () => {
         fetchResolver.resolve(resp)
       })
 
-      it('resolves with the correct PR', () => {
+      it('should resolve with the correct PR', function () {
         expect(resolution).to.be.eql({
           description: 'This is a #fix#',
           headSha: 'sha-1',
@@ -122,8 +124,8 @@ describe('GitHub', () => {
       })
     })
 
-    describe('when fetch errors', () => {
-      beforeEach((done) => {
+    describe('when fetch errors', function () {
+      beforeEach(function (done) {
         promise.catch(() => {
           done()
         })
@@ -131,27 +133,27 @@ describe('GitHub', () => {
         fetchResolver.reject('my-error')
       })
 
-      it('passes up the error', () => {
+      it('should pass up the error', function () {
         expect(rejection).to.be.equal('my-error')
       })
     })
   })
 
-  describe('.addRemoteForPush()', () => {
+  describe('.addRemoteForPush()', function () {
     let remoteName
-    beforeEach(() => {
+    beforeEach(function () {
       execStub.returns(Promise.resolve())
       return github.addRemoteForPush().then((name) => {
         remoteName = name
       })
     })
 
-    it('makes the proper git remote command', () => {
+    it('should makes the proper git remote command', function () {
       const url = 'https://my-gh-token@github.com/me/my-repo'
       expect(execStub.firstCall.args).to.be.eql([`git remote add ci-origin ${url}`])
     })
 
-    it('resolves with the proper remote name', () => {
+    it('should resolve with the proper remote name', function () {
       expect(remoteName).to.be.equal('ci-origin')
     })
   })

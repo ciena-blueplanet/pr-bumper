@@ -1,14 +1,19 @@
 'use strict'
 
+const chai = require('chai')
 const rewire = require('rewire')
 const sinon = require('sinon')
-const expect = require('chai').expect
+const sinonChai = require('sinon-chai')
+const expect = chai.expect
+chai.use(sinonChai)
+
 const logger = require('../../lib/logger')
 const BitbucketServer = rewire('../../lib/vcs/bitbucket-server')
 
-describe('BitbucketServer', () => {
+describe('BitbucketServer', function () {
   let sandbox, bitbucket, config, fetchStub, revertFetchRewire
-  beforeEach(() => {
+
+  beforeEach(function () {
     sandbox = sinon.sandbox.create()
 
     // get rid of all logging messages in the tests (and let us test for them if we want)
@@ -41,26 +46,23 @@ describe('BitbucketServer', () => {
     bitbucket = new BitbucketServer(config)
   })
 
-  afterEach(() => {
-    // undo the rewiring
+  afterEach(function () {
     revertFetchRewire()
-
-    // remove all stubs/spies
     sandbox.restore()
   })
 
-  it('saves the config', () => {
+  it('should save the config', function () {
     expect(bitbucket.config).to.be.eql(config)
   })
 
-  it('constructs a base URL', () => {
+  it('should construct a base URL', function () {
     const url = 'https://ci-user:ci%20user%20password@bitbucket.my-domain.com/rest/api/1.0'
     expect(bitbucket.baseUrl).to.be.equal(url)
   })
 
-  describe('.getPr()', () => {
+  describe('.getPr()', function () {
     let resolution, rejection, promise, fetchResolver
-    beforeEach(() => {
+    beforeEach(function () {
       fetchResolver = {}
       let fetchPromise = new Promise((resolve, reject) => {
         fetchResolver.resolve = resolve
@@ -80,15 +82,13 @@ describe('BitbucketServer', () => {
         })
     })
 
-    it('calls fetch with proper params', () => {
-      expect(fetchStub.lastCall.args).to.be.eql([
-        `${bitbucket.baseUrl}/projects/me/repos/my-repo/pull-requests/5`
-      ])
+    it('should call fetch with proper params', function () {
+      expect(fetchStub).to.have.been.calledWith(`${bitbucket.baseUrl}/projects/me/repos/my-repo/pull-requests/5`)
     })
 
-    describe('when fetch succeeds', () => {
+    describe('when fetch succeeds', function () {
       let resp
-      beforeEach((done) => {
+      beforeEach(function (done) {
         resp = {ok: true, status: 200, json: function () {}}
         let pr = {
           id: 5,
@@ -111,7 +111,7 @@ describe('BitbucketServer', () => {
         fetchResolver.resolve(resp)
       })
 
-      it('resolves with the correct PR', () => {
+      it('should resolve with the correct PR', function () {
         expect(resolution).to.be.eql({
           description: 'This is a #fix#',
           headSha: 'sha-1',
@@ -121,8 +121,8 @@ describe('BitbucketServer', () => {
       })
     })
 
-    describe('when fetch errors', () => {
-      beforeEach((done) => {
+    describe('when fetch errors', function () {
+      beforeEach(function (done) {
         promise.catch(() => {
           done()
         })
@@ -130,21 +130,21 @@ describe('BitbucketServer', () => {
         fetchResolver.reject('my-error')
       })
 
-      it('passes up the error', () => {
+      it('should pass up the error', function () {
         expect(rejection).to.be.equal('my-error')
       })
     })
   })
 
-  describe('.addRemoteForPush()', () => {
+  describe('.addRemoteForPush()', function () {
     let remoteName
-    beforeEach(() => {
+    beforeEach(function () {
       return bitbucket.addRemoteForPush().then((name) => {
         remoteName = name
       })
     })
 
-    it('resolves with oritin', () => {
+    it('should resolve with oritin', function () {
       expect(remoteName).to.be.equal('origin')
     })
   })
