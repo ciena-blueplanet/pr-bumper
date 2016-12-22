@@ -1,3 +1,7 @@
+# 1.1.0
+* **Added** a `dependencySnapshotFile` property to `.pr-bumper.json` which defaults to `dependency-snapshot.json` more information available [here](https://github.com/ciena-blueplanet/pr-bumper#dependencysnapshotfile)
+
+
 # 1.0.0
  * **Fixed** #44 by throwing an error when `# CHANGELOG` is missing/empty unless `prependChangelog` is set to `false`.  This is a **breaking** change as previously missing `# CHANGELOG` sections would result in a default message in the `CHANGELOG.md` file. 
 
