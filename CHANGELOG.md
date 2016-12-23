@@ -1,3 +1,6 @@
+# 1.1.1
+* Remove destructuring to avoid problem on node 5.11.1
+
 # 1.1.0
 * **Added** a `dependencySnapshotFile` property to `.pr-bumper.json` which defaults to `dependency-snapshot.json` more information available [here](https://github.com/ciena-blueplanet/pr-bumper#dependencysnapshotfile)
 
