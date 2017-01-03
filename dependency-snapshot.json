@@ -1,6 +1,6 @@
 {
   "name": "pr-bumper",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "dependencies": {
     "archy": {
       "version": "1.0.0",
@@ -123,9 +123,9 @@
       "resolved": "https://registry.npmjs.org/json-parse-helpfulerror/-/json-parse-helpfulerror-1.0.3.tgz"
     },
     "lodash": {
-      "version": "4.17.2",
+      "version": "4.17.4",
       "from": "lodash@>=4.0.1 <5.0.0",
-      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.2.tgz"
+      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.4.tgz"
     },
     "minimatch": {
       "version": "3.0.3",

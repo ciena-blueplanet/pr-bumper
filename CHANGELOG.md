@@ -1,3 +1,7 @@
+# 1.1.2
+ * **Updated** tests to run in `node@5.0.0` and `node@6.9.1` and only publish after success on `node@6.9.1`. 
+
+
 # 1.1.1
 * Remove destructuring to avoid problem on node 5.11.1
 
