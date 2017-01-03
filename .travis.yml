@@ -9,7 +9,7 @@ branches:
 before_script:
 - VERBOSE=1 ./bin/cli.js check
 after_success:
-- bash <(curl -s https://codecov.io/bash) -f coverage/coverage.json
+- .travis/publish-coverage.sh
 addons:
   apt:
     sources:
