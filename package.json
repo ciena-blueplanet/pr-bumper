@@ -15,7 +15,7 @@
     "url": "git@github.com:ciena-blueplanet/pr-bumper.git"
   },
   "engines": {
-    "node": ">= 6.0"
+    "node": ">= 5.0"
   },
   "keywords": [
     "github",

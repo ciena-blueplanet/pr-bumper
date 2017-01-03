@@ -1,6 +1,7 @@
 language: node_js
 sudo: false
 node_js:
+- '5.0.0'
 - '6.9.1'
 branches:
   except:
@@ -8,7 +9,7 @@ branches:
 before_script:
 - VERBOSE=1 ./bin/cli.js check
 after_success:
-- bash <(curl -s https://codecov.io/bash) -f coverage/coverage.json
+- .travis/publish-coverage.sh
 addons:
   apt:
     sources:
@@ -31,6 +32,7 @@ deploy:
   on:
     branch: master
     tags: false
+    node: '6.9.1'
 notifications:
   slack:
     secure: mUroABVyHA24GnPKx1jMSpcG92R0EAjrv0JPSqLHtc5NVkg+8gs4Vf0FY+hyKj7t9SQ08V/MLtmBXCZbe/VeMvYFbv/AW+gIzuBX2YboP6t/FzFU9JnV3Qz33gsP/UEK0Rnl00Zjibt4A0d3uwsvCy4tjccibnYuXOW2KfVkGmn7I9oUTlN1HSTs6h70HfP/IZvmpzXwKNmmBDPVUhyx0FO/4hms0SColLv71C8xwEoF4E2gOoKSJRLph58H5rOWxqi/HPZBzTwFpxCRGtTTR1XgeXUdQs5+2XVTXIpz5Kin4YTgKzEb9TmsdwpNeQx3vi3RVHnEOJhSfZ5IFDb7NSE/tUhtnrd5vQbbcN+0EwLHbcWL0gi5/IOAvhT5APZB3yPM1p+hEx7KKrdLyPsRNqfAtDgFDZ84ECvrBeRMwXzF7HhKgJasxmEuMXn0dKSHMShwlV1Vo057hoImEkv3DZN5yBUqOgSTBxtk2STgyUPwWEuhQM5flHc3EEe/KK4K98RgWsqlgU1+S5ZvsgLNQrOUNr9cV706ubKu2e+nY/PQadFuModrsjN+ZTOImZFke18XBXxASY5+EFyfHk8SWR+r6cDCaBVodTnHrT0p1/jqXEboobJm1wqWBRNM75P4PhHcCCisQ0cc9jCE6VJcdhmtLzwSM/NvIvwQXMvQVCA=
