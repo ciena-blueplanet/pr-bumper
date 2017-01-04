@@ -1,3 +1,7 @@
+# 1.1.3
+* **Fixed** issue where `npm shrinkwrap` was being called w/o `--dev` so not all dependencies were actually being accounted for in the snapshot. This is particularly important in things like ember apps where everything is in `devDependencies`. 
+
+
 # 1.1.2
  * **Updated** tests to run in `node@5.0.0` and `node@6.9.1` and only publish after success on `node@6.9.1`. 
 
