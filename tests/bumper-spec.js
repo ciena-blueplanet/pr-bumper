@@ -477,12 +477,17 @@ describe('Bumper', function () {
     let ret
     beforeEach(function () {
       bumper.config.dependencySnapshotFile = 'snapshot-file'
+      execStub.withArgs('npm prune').returns(Promise.resolve('prune-done'))
       execStub.withArgs('npm shrinkwrap --dev').returns(Promise.resolve('shrinkwrap-done'))
       execStub.returns(Promise.resolve('move-done'))
 
       return bumper._generateDependencySnapshot().then((resp) => {
         ret = resp
       })
+    })
+
+    it('should prune node_modules so shrinkwrap will work', function () {
+      expect(execStub).to.have.been.calledWith('npm prune')
     })
 
     it('should generate the dependency snapshot', function () {
