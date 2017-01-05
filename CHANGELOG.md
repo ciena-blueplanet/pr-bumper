@@ -1,3 +1,7 @@
+# 1.1.4
+* **Fixed** an issue with running `npm shrinkwrap` that arises when some package installs things into `node_modules` that isn't in `package.json` by doing an `npm prune` before `npm shrinkwrap`
+
+
 # 1.1.3
 * **Fixed** issue where `npm shrinkwrap` was being called w/o `--dev` so not all dependencies were actually being accounted for in the snapshot. This is particularly important in things like ember apps where everything is in `devDependencies`. 
 
