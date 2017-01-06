@@ -1,0 +1,38 @@
+codecov:
+  notify:
+    require_ci_to_pass: true
+
+comment:
+  behavior: default
+  layout: header, diff
+  require_changes: false
+
+coverage:
+  precision: 2
+  range:
+  - 70.0
+  - 100.0
+  round: down
+
+  notify:
+    slack:
+      default:
+        url: "secret:7nPkTf4F6pXCGy4tmrUGF0RIucl8fFqDjwmME8dZkFU4TG50OEZQ8PixqmotsmW6vWhduks7ohzqQbMAknOFGwjj+MzX3iIyGpYA12f87ILwAmsTY7Dn4ZAbxUSyPmaNoQivmKwg8mDpJBOE7y0XO8SOElN7zlrEMVinlCuCG28="
+
+  status:
+    changes: false
+    patch: true
+    project: true
+
+parsers:
+  gcov:
+    branch_detection:
+      conditional: true
+      loop: true
+      macro: false
+      method: false
+
+  javascript:
+    enable_partials: false
+
+
