@@ -1,3 +1,6 @@
+# 1.1.5
+* **Added** slack integration for codecov.io
+
 # 1.1.4
 * **Fixed** an issue with running `npm shrinkwrap` that arises when some package installs things into `node_modules` that isn't in `package.json` by doing an `npm prune` before `npm shrinkwrap`
 
