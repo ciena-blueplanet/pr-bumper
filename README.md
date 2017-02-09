@@ -10,9 +10,10 @@
 # pr-bumper <br /> [![Travis][ci-img]][ci-url] [![Coveralls][cov-img]][cov-url] [![NPM][npm-img]][npm-url]
 
 Use text from a pull request description to automatically bump the version number of a project upon merge.
-`pr-bumper` performs two tasks:
+`pr-bumper` performs three tasks:
  1. Checking if an open pull request has the appropriate version bump text in its description
  1. Performing the version bump when a pull request is merged.
+ 1. Maintains a CHANGELOG.md explaining changes in each release.
 
 ## Pull Requests
 `pr-bumper` uses [Semantic Versioning](http://semver.org/).
@@ -89,26 +90,34 @@ You can perform the automated bump in the merge build by using:
 ## Travis CI
 `pr-bumper` is optimized to work with Travis CI and by defaults uses Travis CI environment variables for configuration.
 
-Add the following snippets to your `.travis.yml` file to integrate `pr-bumper`
+Add the following snippet to your `.travis.yml` file to integrate `pr-bumper`
 
   ```yaml
-  branches:
-    except:
-      - /^v[0-9\.]+/
-
   before_install:
     - npm install -g pr-bumper
-    - pr-bumper check
 
-  before_deploy:
-    - pr-bumper bump
+  install:
+    - $(npm root -g)/pr-bumper/.travis/maybe-install.sh
+
+  before_script:
+    - $(npm root -g)/pr-bumper/.travis/maybe-check-scope.sh
+
+  script:
+    - $(npm root -g)/pr-bumper/.travis/maybe-test.sh
+    - $(npm root -g)/pr-bumper/.travis/maybe-bump-version.sh
+
+    deploy:
+      on:
+        all_branches: true
+        node: '6.9.1'
+        tags: true
   ```
 
 This will allow `pr-bumper` to be installed for your build, allow it to check for the existence of version-bump
 comments on your PRs, as well as allow it to automatically version-bump and git tag your releases before you deploy
 them.
 
-The `branches` section tells travis to skip the `v#.#.#` branches (or tags)
+*NOTE: If the above snippet uses the scripts from this project itself which may or may not suite your needs. If you find one of the scripts doesn't do exactly what you need the copy it directly into your project, modify it, and update the Travis config to run you modified copy instead.*
 
 Before `pr-bumper` can push commits and tags back to your repository however, you need to set up authentication.
 

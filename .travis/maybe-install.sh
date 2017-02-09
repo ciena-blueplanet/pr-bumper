@@ -9,3 +9,9 @@ then
 fi
 
 npm install
+
+# If bower configuration and bower command are present install bower dependencies
+if [ -f bower.json ] && which bower > /dev/null
+then
+  bower install
+fi
