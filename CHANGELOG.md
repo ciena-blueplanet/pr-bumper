@@ -1,3 +1,6 @@
+# 1.1.8
+* **Tried** again to fix the Travis CI build
+
 # 1.1.7
  * **Fix** publishing of non `#none#` bumps
 
