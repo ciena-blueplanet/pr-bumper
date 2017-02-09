@@ -626,7 +626,7 @@ describe('Bumper', function () {
 
       sandbox.stub(bumper.vcs, 'getPr').returns(Promise.resolve('the-pr'))
       sandbox.stub(utils, 'getScopeForPr').returns('patch')
-      sandbox.stub(utils, 'getChangelogForPr').returns(Promise.resolve('the-changelog'))
+      sandbox.stub(utils, 'getChangelogForPr').returns('the-changelog')
     })
 
     describe('when prependChangelog is set', function () {
