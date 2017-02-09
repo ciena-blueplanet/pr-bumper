@@ -1,4 +1,11 @@
 #!/bin/bash
+source .travis/is-bump-commit.sh
+
+if isBumpCommit
+then
+  echo "Skipping pr-bumper bump step for version bump commit"
+  exit 0
+fi
 
 if [ "$TRAVIS_NODE_VERSION" != "6.9.1" ]
 then

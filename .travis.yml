@@ -3,10 +3,12 @@ sudo: false
 node_js:
 - '5.0.0'
 - '6.9.1'
+install:
+- .travis/maybe-install.sh
 before_script:
-- VERBOSE=1 ./bin/cli.js check
+- .travis/maybe-check-scope.sh
 script:
-- npm test
+- .travis/maybe-test.sh
 - .travis/maybe-bump-version.sh
 after_success:
 - .travis/publish-coverage.sh
