@@ -13,10 +13,9 @@ npm install
 # If bower configuration and bower command are present install bower dependencies
 if [ -f bower.json ]
 then
-  if which bower > /dev/null
+  if ! [ which bower > /dev/null ]
   then
-    bower install
-  else
-    bash ./node_modules/.bin/bower install
+    npm install -g bower
   fi
+  bower install
 fi
