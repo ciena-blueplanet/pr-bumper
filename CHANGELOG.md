@@ -1,3 +1,7 @@
+# 1.1.13
+
+* **Fixed** bug where merge would fail when using `none` scope as it'd still expect a changelog to be present.
+
 # 1.1.12
 
 * **Updated** Travis build scripts.
