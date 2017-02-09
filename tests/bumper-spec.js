@@ -625,7 +625,7 @@ describe('Bumper', function () {
       bumper.vcs = {getPr: function () {}}
 
       sandbox.stub(bumper.vcs, 'getPr').returns(Promise.resolve('the-pr'))
-      sandbox.stub(utils, 'getScopeForPr').returns(Promise.resolve('patch'))
+      sandbox.stub(utils, 'getScopeForPr').returns('patch')
       sandbox.stub(utils, 'getChangelogForPr').returns(Promise.resolve('the-changelog'))
     })
 
