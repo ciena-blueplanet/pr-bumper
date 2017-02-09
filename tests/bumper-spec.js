@@ -132,11 +132,13 @@ describe('Bumper', function () {
   })
 
   describe('.bump()', function () {
-    let result, info
+    let result, info, error
 
     beforeEach(function () {
+      result = null
+      error = null
       bumper.config = {foo: 'bar', prependChangelog: true, dependencySnapshotFile: 'snapshot-file'}
-      bumper.vcs = {foo: 'bar'}
+      bumper.vcs = {foo: 'bar', getLastCommitMsg: sandbox.stub()}
       bumper.ci = {push: function () {}}
       info = {scope: 'minor', changelog: '', version: '1.2.0'}
       sandbox.stub(bumper.ci, 'push').returns(Promise.resolve('pushed'))
@@ -150,10 +152,18 @@ describe('Bumper', function () {
     })
 
     describe('when a merge build', function () {
-      beforeEach(function () {
-        return bumper.bump().then((res) => {
-          result = res
-        })
+      beforeEach(function (done) {
+        bumper.vcs.getLastCommitMsg.returns(Promise.resolve('foo bar'))
+        bumper.bump()
+          .then((res) => {
+            result = res
+          })
+          .catch((err) => {
+            error = err
+          })
+          .finally(() => {
+            done()
+          })
       })
 
       it('should get the merged pr info', function () {
@@ -191,15 +201,27 @@ describe('Bumper', function () {
       it('should resolve with the result of the ci.push()', function () {
         expect(result).to.be.eql('pushed')
       })
+
+      it('should not reject', function () {
+        expect(error).to.equal(null)
+      })
     })
 
     describe('when prependChangelog is false', function () {
-      beforeEach(function () {
+      beforeEach(function (done) {
+        bumper.vcs.getLastCommitMsg.returns(Promise.resolve('foo bar'))
         bumper.config.prependChangelog = false
 
-        return bumper.bump().then((res) => {
-          result = res
-        })
+        bumper.bump()
+          .then((res) => {
+            result = res
+          })
+          .catch((err) => {
+            error = err
+          })
+          .finally(() => {
+            done()
+          })
       })
 
       it('should get the merged pr info', function () {
@@ -237,15 +259,27 @@ describe('Bumper', function () {
       it('should resolve with the result of the ci.push()', function () {
         expect(result).to.be.eql('pushed')
       })
+
+      it('should not reject', function () {
+        expect(error).to.equal(null)
+      })
     })
 
     describe('when dependencySnapshotFile is blank', function () {
-      beforeEach(function () {
+      beforeEach(function (done) {
+        bumper.vcs.getLastCommitMsg.returns(Promise.resolve('foo bar'))
         bumper.config.dependencySnapshotFile = ''
 
-        return bumper.bump().then((res) => {
-          result = res
-        })
+        bumper.bump()
+          .then((res) => {
+            result = res
+          })
+          .catch((err) => {
+            error = err
+          })
+          .finally(() => {
+            done()
+          })
       })
 
       it('should get the merged pr info', function () {
@@ -283,13 +317,147 @@ describe('Bumper', function () {
       it('should resolve with the result of the ci.push()', function () {
         expect(result).to.be.eql('pushed')
       })
+
+      it('should not reject', function () {
+        expect(error).to.equal(null)
+      })
+    })
+
+    describe('when last commit was automated version bump', function () {
+      beforeEach(function (done) {
+        bumper.vcs.getLastCommitMsg.returns(Promise.resolve('Automated version bump'))
+        bumper.bump()
+          .then((res) => {
+            result = res
+          })
+          .catch((err) => {
+            error = err
+          })
+          .finally(() => {
+            done()
+          })
+      })
+
+      it('should not lookup merged PR info', function () {
+        expect(bumper._getMergedPrInfo).to.have.callCount(0)
+      })
+
+      it('should not bump version', function () {
+        expect(bumper._bumpVersion).to.have.callCount(0)
+      })
+
+      it('should not prepend changelog', function () {
+        expect(bumper._prependChangelog).to.have.callCount(0)
+      })
+
+      it('should not generate a dependency snapshot', function () {
+        expect(bumper._generateDependencySnapshot).to.have.callCount(0)
+      })
+
+      it('should not calcualte dependencies', function () {
+        expect(bumper._dependencies).to.have.callCount(0)
+      })
+
+      it('should not commit changes', function () {
+        expect(bumper._commitChanges).to.have.callCount(0)
+      })
+
+      it('should not create a tag', function () {
+        expect(bumper._createTag).to.have.callCount(0)
+      })
+
+      it('should not push commit', function () {
+        expect(bumper.ci.push).to.have.callCount(0)
+      })
+
+      it('should not resolve', function () {
+        expect(result).to.equal(null)
+      })
+
+      it('should reject with a Cancel', function () {
+        expect(error).to.be.instanceof(Bumper.Cancel)
+      })
+
+      it('should reject with proper message', function () {
+        expect(error.message).to.equal('Skipping bump on version bump commit.')
+      })
+    })
+
+    describe('when no version bump happens', function () {
+      beforeEach(function (done) {
+        bumper.vcs.getLastCommitMsg.returns(Promise.resolve('fizz bang'))
+        bumper._bumpVersion.returns(Promise.resolve({scope: 'none', changelog: ''}))
+        bumper.bump()
+          .then((res) => {
+            result = res
+          })
+          .catch((err) => {
+            error = err
+          })
+          .finally(() => {
+            done()
+          })
+      })
+
+      it('should lookup merged PR info', function () {
+        expect(bumper._getMergedPrInfo).to.have.callCount(1)
+      })
+
+      it('should call _bumpVersion()', function () {
+        expect(bumper._bumpVersion).to.have.callCount(1)
+      })
+
+      it('should not prepend changelog', function () {
+        expect(bumper._prependChangelog).to.have.callCount(0)
+      })
+
+      it('should not generate a dependency snapshot', function () {
+        expect(bumper._generateDependencySnapshot).to.have.callCount(0)
+      })
+
+      it('should not calcualte dependencies', function () {
+        expect(bumper._dependencies).to.have.callCount(0)
+      })
+
+      it('should not commit changes', function () {
+        expect(bumper._commitChanges).to.have.callCount(0)
+      })
+
+      it('should not create a tag', function () {
+        expect(bumper._createTag).to.have.callCount(0)
+      })
+
+      it('should not push commit', function () {
+        expect(bumper.ci.push).to.have.callCount(0)
+      })
+
+      it('should not resolve', function () {
+        expect(result).to.equal(null)
+      })
+
+      it('should reject with a Cancel', function () {
+        expect(error).to.be.instanceof(Bumper.Cancel)
+      })
+
+      it('should reject with proper message', function () {
+        expect(error.message).to.equal('Skipping bump commit since version did not change.')
+      })
     })
 
     describe('when not a merge build', function () {
-      beforeEach(function () {
+      beforeEach(function (done) {
         bumper.config.isPr = true
         bumper._getMergedPrInfo.reset()
-        return bumper.bump()
+        bumper.bump()
+          .then((res) => {
+            result = res
+          })
+          .catch((err) => {
+            error = err
+          })
+          .finally(() => {
+            done()
+          })
       })
 
       it('should log that non merge builds are skipped', function () {
@@ -298,6 +466,38 @@ describe('Bumper', function () {
 
       it('should not lookup merged PR info', function () {
         expect(bumper._getMergedPrInfo).to.have.callCount(0)
+      })
+
+      it('should not bump version', function () {
+        expect(bumper._bumpVersion).to.have.callCount(0)
+      })
+
+      it('should not prepend changelog', function () {
+        expect(bumper._prependChangelog).to.have.callCount(0)
+      })
+
+      it('should not generate a dependency snapshot', function () {
+        expect(bumper._generateDependencySnapshot).to.have.callCount(0)
+      })
+
+      it('should not calcualte dependencies', function () {
+        expect(bumper._dependencies).to.have.callCount(0)
+      })
+
+      it('should not commit changes', function () {
+        expect(bumper._commitChanges).to.have.callCount(0)
+      })
+
+      it('should not create a tag', function () {
+        expect(bumper._createTag).to.have.callCount(0)
+      })
+
+      it('should not push commit', function () {
+        expect(bumper.ci.push).to.have.callCount(0)
+      })
+
+      it('should not reject', function () {
+        expect(error).to.equal(null)
       })
     })
   })
@@ -371,7 +571,7 @@ describe('Bumper', function () {
       })
 
       it('should commits the changes', function () {
-        const summary = 'Automated version bump [ci skip]'
+        const summary = 'Automated version bump'
         const message = 'From CI build 12345'
 
         expect(bumper.ci.commit).to.have.been.calledWith(summary, message)
@@ -400,7 +600,7 @@ describe('Bumper', function () {
       })
 
       it('should commits the changes', function () {
-        const summary = 'Automated version bump [ci skip]'
+        const summary = 'Automated version bump'
         const message = 'From CI build 12345'
 
         expect(bumper.ci.commit).to.have.been.calledWith(summary, message)
@@ -532,7 +732,7 @@ describe('Bumper', function () {
         'fa066f2 Removed newline from parsed PR number\n' +
         'fc416cc Merge pull request #29 from job13er/make-bumping-more-robust\n' +
         '67db358 Fix for #26 by reading PR # from git commit\n' +
-        '4a61a20 Automated version bump [ci skip]\n' +
+        '4a61a20 Automated version bump\n' +
         '7db44e1 Merge pull request #24 from sandersky/master\n' +
         'f571451 add pullapprove config\n' +
         '4398a26 address PR concerns\n'
