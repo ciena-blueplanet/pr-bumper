@@ -106,11 +106,14 @@ Add the following snippet to your `.travis.yml` file to integrate `pr-bumper`
     - $(npm root -g)/pr-bumper/.travis/maybe-test.sh
     - $(npm root -g)/pr-bumper/.travis/maybe-bump-version.sh
 
-    deploy:
-      on:
-        all_branches: true
-        node: '6.9.1'
-        tags: true
+  after_success:
+    - $(npm root -g)/pr-bumper/.travis/publish-coverage.sh
+
+  deploy:
+    on:
+      all_branches: true
+      node: '6.9.1'
+      tags: true
   ```
 
 This will allow `pr-bumper` to be installed for your build, allow it to check for the existence of version-bump
