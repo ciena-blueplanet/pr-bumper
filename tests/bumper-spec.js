@@ -326,7 +326,7 @@ describe('Bumper', function () {
 
     describe('when last commit was automated version bump', function () {
       beforeEach(function (done) {
-        bumper.ci.getLastCommitMsg.returns(Promise.resolve('Automated version bump'))
+        bumper.ci.getLastCommitMsg.returns(Promise.resolve('Automated version bump [ci skip]'))
         bumper.bump()
           .then((res) => {
             result = res
@@ -572,7 +572,7 @@ describe('Bumper', function () {
       })
 
       it('should commits the changes', function () {
-        const summary = 'Automated version bump'
+        const summary = 'Automated version bump [ci skip]'
         const message = 'From CI build 12345'
 
         expect(bumper.ci.commit).to.have.been.calledWith(summary, message)
@@ -601,7 +601,7 @@ describe('Bumper', function () {
       })
 
       it('should commits the changes', function () {
-        const summary = 'Automated version bump'
+        const summary = 'Automated version bump [ci skip]'
         const message = 'From CI build 12345'
 
         expect(bumper.ci.commit).to.have.been.calledWith(summary, message)
@@ -733,7 +733,7 @@ describe('Bumper', function () {
         'fa066f2 Removed newline from parsed PR number\n' +
         'fc416cc Merge pull request #29 from job13er/make-bumping-more-robust\n' +
         '67db358 Fix for #26 by reading PR # from git commit\n' +
-        '4a61a20 Automated version bump\n' +
+        '4a61a20 Automated version bump [ci skip]\n' +
         '7db44e1 Merge pull request #24 from sandersky/master\n' +
         'f571451 add pullapprove config\n' +
         '4398a26 address PR concerns\n'
