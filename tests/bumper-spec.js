@@ -138,10 +138,11 @@ describe('Bumper', function () {
       result = null
       error = null
       bumper.config = {foo: 'bar', prependChangelog: true, dependencySnapshotFile: 'snapshot-file'}
-      bumper.vcs = {foo: 'bar', getLastCommitMsg: sandbox.stub()}
-      bumper.ci = {push: function () {}}
+      bumper.vcs = {foo: 'bar'}
+      bumper.ci = {push () {}, getLastCommitMsg () {}}
       info = {scope: 'minor', changelog: '', version: '1.2.0'}
       sandbox.stub(bumper.ci, 'push').returns(Promise.resolve('pushed'))
+      sandbox.stub(bumper.ci, 'getLastCommitMsg')
       sandbox.stub(bumper, '_getMergedPrInfo').returns(Promise.resolve(info))
       sandbox.stub(bumper, '_bumpVersion').returns(Promise.resolve(info))
       sandbox.stub(bumper, '_prependChangelog').returns(Promise.resolve())
@@ -153,7 +154,7 @@ describe('Bumper', function () {
 
     describe('when a merge build', function () {
       beforeEach(function (done) {
-        bumper.vcs.getLastCommitMsg.returns(Promise.resolve('foo bar'))
+        bumper.ci.getLastCommitMsg.returns(Promise.resolve('foo bar'))
         bumper.bump()
           .then((res) => {
             result = res
@@ -209,7 +210,7 @@ describe('Bumper', function () {
 
     describe('when prependChangelog is false', function () {
       beforeEach(function (done) {
-        bumper.vcs.getLastCommitMsg.returns(Promise.resolve('foo bar'))
+        bumper.ci.getLastCommitMsg.returns(Promise.resolve('foo bar'))
         bumper.config.prependChangelog = false
 
         bumper.bump()
@@ -267,7 +268,7 @@ describe('Bumper', function () {
 
     describe('when dependencySnapshotFile is blank', function () {
       beforeEach(function (done) {
-        bumper.vcs.getLastCommitMsg.returns(Promise.resolve('foo bar'))
+        bumper.ci.getLastCommitMsg.returns(Promise.resolve('foo bar'))
         bumper.config.dependencySnapshotFile = ''
 
         bumper.bump()
@@ -325,7 +326,7 @@ describe('Bumper', function () {
 
     describe('when last commit was automated version bump', function () {
       beforeEach(function (done) {
-        bumper.vcs.getLastCommitMsg.returns(Promise.resolve('Automated version bump'))
+        bumper.ci.getLastCommitMsg.returns(Promise.resolve('Automated version bump'))
         bumper.bump()
           .then((res) => {
             result = res
@@ -385,7 +386,7 @@ describe('Bumper', function () {
 
     describe('when no version bump happens', function () {
       beforeEach(function (done) {
-        bumper.vcs.getLastCommitMsg.returns(Promise.resolve('fizz bang'))
+        bumper.ci.getLastCommitMsg.returns(Promise.resolve('fizz bang'))
         bumper._bumpVersion.returns(Promise.resolve({scope: 'none', changelog: ''}))
         bumper.bump()
           .then((res) => {
