@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source .travis/is-bump-commit.sh
+source $(dirname $0)/is-bump-commit.sh
 
 if isBumpCommit
 then
@@ -9,3 +9,9 @@ then
 fi
 
 npm install
+
+# If bower configuration and bower command are present install bower dependencies
+if [ -f bower.json ] && which bower > /dev/null
+then
+  bower install
+fi

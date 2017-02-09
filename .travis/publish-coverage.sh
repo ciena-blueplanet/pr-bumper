@@ -6,4 +6,9 @@ then
   exit 0
 fi
 
-bash <(curl -s https://codecov.io/bash) -f coverage/coverage.json
+if which coveralls > /dev/null
+then
+  cat coverage/lcov.info | coveralls
+else
+  bash <(curl -s https://codecov.io/bash) -f coverage/coverage.json
+fi
