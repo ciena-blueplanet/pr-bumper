@@ -8,4 +8,11 @@ then
   exit 0
 fi
 
-VERBOSE=1 ./bin/cli.js check
+PACKAGE_NAME=$(node -p -e "require('./package.json').name")
+
+if [ "$PACKAGE_NAME" == "pr-bumper" ]
+then
+  VERBOSE=1 ./bin/cli.js check
+else
+  pr-bumper check
+fi
