@@ -1,3 +1,7 @@
+# 1.1.6
+* **Fixed** (or trying to at least) CI publishing
+
+
 # 1.1.5
 * **Added** slack integration for codecov.io
 
