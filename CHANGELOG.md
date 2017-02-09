@@ -1,3 +1,6 @@
+# 1.1.9
+* **Fixed** travis config (hopefully)
+
 # 1.1.8
 * **Tried** again to fix the Travis CI build
 
