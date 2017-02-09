@@ -118,9 +118,9 @@ Add the following snippet to your `.travis.yml` file to integrate `pr-bumper`
 
 This will allow `pr-bumper` to be installed for your build, allow it to check for the existence of version-bump
 comments on your PRs, as well as allow it to automatically version-bump and git tag your releases before you deploy
-them.
+them. You'll notice that in the *deploy* section we tell Travis to deploy for all branches when a tag is part of the commit. The way this works is when you merge a pull request the merge build will run the tests as well as the pr-bumper bump command. As part of this build a new commit will be pushed back to your VCS firing off two new builds, one for the branch and one for the tag. The build for the branch will be exited as soon as possible as we don't care about that build. The build for the tag is where the actual deployment to npm will occur.
 
-*NOTE: If the above snippet uses the scripts from this project itself which may or may not suite your needs. If you find one of the scripts doesn't do exactly what you need the copy it directly into your project, modify it, and update the Travis config to run you modified copy instead.*
+*NOTE: The above snippet uses the scripts from this project itself which may or may not suite your needs. If you find one of the scripts doesn't do exactly what you need, then copy it directly into your project, modify it, and update the Travis config to run you modified copy instead.*
 
 Before `pr-bumper` can push commits and tags back to your repository however, you need to set up authentication.
 
