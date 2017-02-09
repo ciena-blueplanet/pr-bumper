@@ -49,9 +49,15 @@ function testBumpVersion (ctx, scope, expectedVersion) {
       expect(newVersion).to.be.equal(expectedVersion)
     })
 
-    it('should return the correct version', function () {
-      expect(info.version).to.be.equal(expectedVersion)
-    })
+    if (scope === 'none') {
+      it('should not include the version', function () {
+        expect(info.version).to.equal(undefined)
+      })
+    } else {
+      it('should return the correct version', function () {
+        expect(info.version).to.be.equal(expectedVersion)
+      })
+    }
   })
 }
 

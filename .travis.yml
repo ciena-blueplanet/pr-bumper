@@ -31,7 +31,7 @@ deploy:
     secure: MMMrKAVIbU7ZzCTeOfgRGSUPJx0s0DBDS/zLwYcOdwMDsJZuZqLKVcm7rXj6srTHIGMpwzP5FTID9S2sHuVHtnqOfOByeJB0AvlBkHNQMgqKQvSCQxzMwbVz7FCFMaFQDkL2o3aKeQV2I5mxXfT+/xXYHTZfdDuzkFD4mI9ygaP+EPJnDIwf5ckxhhcXj0Rckpz8X/ZgS/owQLcTicKzly96378im77Nl6KBe585E+9Om79F7GHlewa+D0Hz2gLoX61RnXvsKG4HUrEZDF5TY0RIwxkvYMEQuPA6rDDjN2qnMuZAdNqVT74sSG8cGF8D/J4RVUQ9IssSltrRgBwPa+lnmfmL9+sxCwW5GY+VoKUbIh3kJkcfN1xxFCOAnTPxqj9Mmi1Zad/NRe1dniClKoMxm0IYUM7ZevXooLhOhCfkGOfXgibv+MHoQ4IyicIjS2K7xcJLLX5HSumnv8wD0iQuRCF9mpp1iyLHmVf/g0vo7HURt+PN8sSh1F8nirJ2zUCtp5NWBc21MhOQEUmPng/lC350NInMoKpO7SZHBKn+qzpKRARCoYJfiyQ4G9i/F29B9pa+fAKYnYEO1d+OfBIbR1FbTzbgwt1sHUYoDNYRaGKUzt0Q+atveZbA37mN197P0eu5/2ENA1gSVwE6+w71FQPb+pGw3Gu4bRVPJnc=
   on:
     branch: master
-    tags: false
+    tags: true
     node: '6.9.1'
 notifications:
   slack:
