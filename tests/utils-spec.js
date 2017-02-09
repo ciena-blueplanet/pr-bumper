@@ -329,7 +329,8 @@ describe('utils', function () {
       feature: 'minor',
       minor: 'minor',
       breaking: 'major',
-      major: 'major'
+      major: 'major',
+      none: 'none'
     }
 
     __.forIn(scopes, (value, key) => {
@@ -405,6 +406,7 @@ describe('utils', function () {
       beforeEach(function () {
         pr.description = `
 ### Check the scope of this pr:
+- [ ] #none# - documentation fixes and/or test additions
 - [ ] #patch# - bugfix, dependency update
 - [x] #minor# - new feature, backwards compatible
 - [ ] #major# - major feature, probably breaking API

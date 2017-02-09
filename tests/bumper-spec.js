@@ -49,9 +49,15 @@ function testBumpVersion (ctx, scope, expectedVersion) {
       expect(newVersion).to.be.equal(expectedVersion)
     })
 
-    it('should return the correct version', function () {
-      expect(info.version).to.be.equal(expectedVersion)
-    })
+    if (scope === 'none') {
+      it('should not include the version', function () {
+        expect(info.version).to.equal(undefined)
+      })
+    } else {
+      it('should return the correct version', function () {
+        expect(info.version).to.be.equal(expectedVersion)
+      })
+    }
   })
 }
 
@@ -310,6 +316,7 @@ describe('Bumper', function () {
       return exec('rm -f _package.json')
     })
 
+    testBumpVersion(ctx, 'none', '1.2.3')
     testBumpVersion(ctx, 'patch', '1.2.4')
     testBumpVersion(ctx, 'minor', '1.3.0')
     testBumpVersion(ctx, 'major', '2.0.0')
@@ -618,8 +625,8 @@ describe('Bumper', function () {
       bumper.vcs = {getPr: function () {}}
 
       sandbox.stub(bumper.vcs, 'getPr').returns(Promise.resolve('the-pr'))
-      sandbox.stub(utils, 'getScopeForPr').returns(Promise.resolve('patch'))
-      sandbox.stub(utils, 'getChangelogForPr').returns(Promise.resolve('the-changelog'))
+      sandbox.stub(utils, 'getScopeForPr').returns('patch')
+      sandbox.stub(utils, 'getChangelogForPr').returns('the-changelog')
     })
 
     describe('when prependChangelog is set', function () {

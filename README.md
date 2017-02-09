@@ -18,7 +18,7 @@ Use text from a pull request description to automatically bump the version numbe
 `pr-bumper` uses [Semantic Versioning](http://semver.org/).
 
 Pull requests must include a directive indicating the
-scope of the change being made (`major`/`minor`/`patch`). Directives are **case insensitive** and wrapped in `#` to
+scope of the change being made (`major`/`minor`/`patch`/`none`). Directives are **case insensitive** and wrapped in `#` to
 avoid a description such as
 
 ```
@@ -31,6 +31,7 @@ We also support the aliases of `breaking`, `feature`, and `fix`.
 
 | Starting Version | Directive    | Ending Version |
 | :--------------: | :----------- | :------------: |
+| 1.2.3            | `#none#`     | 1.2.3          |
 | 1.2.3            | `#patch#`    | 1.2.4          |
 | 1.2.3            | `#fix#`      | 1.2.4          |
 | 1.2.3            | `#minor#`    | 1.3.0          |
@@ -47,6 +48,7 @@ You may also specify a list of possible scopes in a [GFM checklist][gfm-checklis
  Example:
 
  ### This project uses [semver](semver.org), please check the scope of this pr:
+ - [ ] #none# - documentation fixes and/or test additions
  - [ ] #patch# - backwards-compatible bug fix
  - [ ] #minor# - adding functionality in a backwards-compatible manner
  - [x] #major# - incompatible API change
