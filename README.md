@@ -107,7 +107,7 @@ Add the following snippet to your `.travis.yml` file to integrate `pr-bumper`
     - $(npm root -g)/pr-bumper/.travis/maybe-bump-version.sh
 
   after_success:
-    - $(npm root -g)/pr-bumper/.travis/publish-coverage.sh
+    - $(npm root -g)/pr-bumper/.travis/maybe-publish-coverage.sh
 
   deploy:
     on:

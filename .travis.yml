@@ -11,7 +11,7 @@ script:
 - .travis/maybe-test.sh
 - .travis/maybe-bump-version.sh
 after_success:
-- .travis/publish-coverage.sh
+- .travis/maybe-publish-coverage.sh
 addons:
   apt:
     sources:
