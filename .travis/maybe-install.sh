@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source $(dirname $0)/.travis/is-bump-commit.sh
+source $(dirname $0)/is-bump-commit.sh
 
 if isBumpCommit
 then
