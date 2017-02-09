@@ -1,3 +1,6 @@
+# 1.1.10
+* **Stopped** adding `[ci skip]` to commit messages to try to get tags to build
+
 # 1.1.9
 * **Fixed** travis config (hopefully)
 
