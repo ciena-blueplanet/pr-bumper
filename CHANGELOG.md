@@ -1,3 +1,9 @@
+# 1.1.12
+
+* **Updated** Travis build scripts.
+
+  > NOTE: For projects already using *pr-bumper* with Travis CI, you'll want to update your *.travis.yml* file to match the updated [README](https://github.com/sandersky/pr-bumper/#travis-ci).
+
 # 1.1.11
 * **Fixed** speed of redundant builds to hopefully skip most things
 
