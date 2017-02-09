@@ -1,3 +1,7 @@
+# 1.1.7
+ * **Fix** publishing of non `#none#` bumps
+
+
 # 1.1.6
 * **Fixed** (or trying to at least) CI publishing
 
