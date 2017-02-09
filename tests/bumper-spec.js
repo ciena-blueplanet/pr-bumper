@@ -788,34 +788,132 @@ describe('Bumper', function () {
   })
 
   describe('._getMergedPrInfo()', function () {
-    let result
-    beforeEach(function () {
-      bumper.config = {foo: 'bar'}
-      bumper.vcs = {bar: 'baz'}
+    ;['major', 'minor', 'patch'].forEach(function (scope) {
+      describe(`when scope is ${scope}`, function () {
+        let result
 
-      sandbox.stub(bumper, '_getLastPr').returns(Promise.resolve('the-pr'))
-      sandbox.stub(utils, 'getScopeForPr').returns('major')
-      sandbox.stub(utils, 'getChangelogForPr').returns('my-changelog')
+        beforeEach(function () {
+          bumper.config = {foo: 'bar'}
+          bumper.vcs = {bar: 'baz'}
 
-      return bumper._getMergedPrInfo().then((res) => {
-        result = res
+          sandbox.stub(bumper, '_getLastPr').returns(Promise.resolve('the-pr'))
+          sandbox.stub(utils, 'getScopeForPr').returns(scope)
+          sandbox.stub(utils, 'getChangelogForPr').returns('my-changelog')
+        })
+
+        describe('when prependChangelog is set', function () {
+          beforeEach(function () {
+            bumper.config.prependChangelog = true
+            return bumper._getMergedPrInfo().then((res) => {
+              result = res
+            })
+          })
+
+          it('should get the last PR to be merged', function () {
+            expect(bumper._getLastPr).to.have.callCount(1)
+          })
+
+          it('should gets the scope for the given pr', function () {
+            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr')
+          })
+
+          it('should get the changelog for the given pr', function () {
+            expect(utils.getChangelogForPr).to.have.been.calledWith('the-pr')
+          })
+
+          it('should resolve with the info', function () {
+            expect(result).to.be.eql({changelog: 'my-changelog', scope})
+          })
+        })
+
+        describe('when prependChangelog is not set', function () {
+          beforeEach(function () {
+            bumper.config.prependChangelog = false
+            return bumper._getMergedPrInfo().then((res) => {
+              result = res
+            })
+          })
+
+          it('should get the last PR to be merged', function () {
+            expect(bumper._getLastPr).to.have.callCount(1)
+          })
+
+          it('should gets the scope for the given pr', function () {
+            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr')
+          })
+
+          it('should not get the changelog for the given pr', function () {
+            expect(utils.getChangelogForPr).to.have.callCount(0)
+          })
+
+          it('should resolve with the info', function () {
+            expect(result).to.be.eql({changelog: '', scope})
+          })
+        })
       })
     })
 
-    it('should get the last PR to be merged', function () {
-      expect(bumper._getLastPr).to.have.callCount(1)
-    })
+    describe('when scope is none', function () {
+      let result
 
-    it('should gets the scope for the given pr', function () {
-      expect(utils.getScopeForPr).to.have.been.calledWith('the-pr')
-    })
+      beforeEach(function () {
+        bumper.config = {foo: 'bar'}
+        bumper.vcs = {bar: 'baz'}
 
-    it('should get the changelog for the given pr', function () {
-      expect(utils.getChangelogForPr).to.have.been.calledWith('the-pr')
-    })
+        sandbox.stub(bumper, '_getLastPr').returns(Promise.resolve('the-pr'))
+        sandbox.stub(utils, 'getScopeForPr').returns('none')
+        sandbox.stub(utils, 'getChangelogForPr').returns('my-changelog')
+      })
 
-    it('should resolve with the info', function () {
-      expect(result).to.be.eql({changelog: 'my-changelog', scope: 'major'})
+      describe('when prependChangelog is set', function () {
+        beforeEach(function () {
+          bumper.config.prependChangelog = true
+          return bumper._getMergedPrInfo().then((res) => {
+            result = res
+          })
+        })
+
+        it('should get the last PR to be merged', function () {
+          expect(bumper._getLastPr).to.have.callCount(1)
+        })
+
+        it('should gets the scope for the given pr', function () {
+          expect(utils.getScopeForPr).to.have.been.calledWith('the-pr')
+        })
+
+        it('should not get the changelog for the given pr', function () {
+          expect(utils.getChangelogForPr).to.have.callCount(0)
+        })
+
+        it('should resolve with the info', function () {
+          expect(result).to.be.eql({changelog: '', scope: 'none'})
+        })
+      })
+
+      describe('when prependChangelog is not set', function () {
+        beforeEach(function () {
+          bumper.config.prependChangelog = false
+          return bumper._getMergedPrInfo().then((res) => {
+            result = res
+          })
+        })
+
+        it('should get the last PR to be merged', function () {
+          expect(bumper._getLastPr).to.have.callCount(1)
+        })
+
+        it('should gets the scope for the given pr', function () {
+          expect(utils.getScopeForPr).to.have.been.calledWith('the-pr')
+        })
+
+        it('should not get the changelog for the given pr', function () {
+          expect(utils.getChangelogForPr).to.have.callCount(0)
+        })
+
+        it('should resolve with the info', function () {
+          expect(result).to.be.eql({changelog: '', scope: 'none'})
+        })
+      })
     })
   })
 
