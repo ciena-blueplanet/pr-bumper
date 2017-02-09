@@ -45,9 +45,10 @@ describe('CiBase', function () {
     let result
     beforeEach(function () {
       execStub.returns(Promise.resolve('added'))
-      return base.add(['foo', 'bar', 'baz']).then((res) => {
-        result = res
-      })
+      return base.add(['foo', 'bar', 'baz'])
+        .then((res) => {
+          result = res
+        })
     })
 
     it('should add the files to git', function () {
@@ -63,9 +64,10 @@ describe('CiBase', function () {
     let result
     beforeEach(function () {
       execStub.returns(Promise.resolve('committed'))
-      return base.commit('my summary message', 'my detail message').then((res) => {
-        result = res
-      })
+      return base.commit('my summary message', 'my detail message')
+        .then((res) => {
+          result = res
+        })
     })
 
     it('should commit the files to git', function () {
@@ -77,13 +79,33 @@ describe('CiBase', function () {
     })
   })
 
+  describe('.getLastCommitMsg()', function () {
+    let result
+    beforeEach(function () {
+      execStub.returns(Promise.resolve('Fix all the things'))
+      return base.getLastCommitMsg()
+        .then((res) => {
+          result = res
+        })
+    })
+
+    it('should commit the files to git', function () {
+      expect(execStub).to.have.been.calledWith('git log --pretty=format:\'%s\' -1')
+    })
+
+    it('should resolve with the result of the git command', function () {
+      expect(result).to.be.equal('Fix all the things')
+    })
+  })
+
   describe('.push()', function () {
     let result
     beforeEach(function () {
       execStub.returns(Promise.resolve('pushed'))
-      return base.push().then((res) => {
-        result = res
-      })
+      return base.push()
+        .then((res) => {
+          result = res
+        })
     })
 
     it('should log that it is about to push', function () {
@@ -112,9 +134,10 @@ describe('CiBase', function () {
       }
 
       execStub.returns(Promise.resolve('executed'))
-      return base.setupGitEnv().then((res) => {
-        result = res
-      })
+      return base.setupGitEnv()
+        .then((res) => {
+          result = res
+        })
     })
 
     it('should configure the git user\'s email address', function () {
