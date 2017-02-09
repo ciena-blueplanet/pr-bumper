@@ -1,3 +1,6 @@
+# 1.1.11
+* **Fixed** speed of redundant builds to hopefully skip most things
+
 # 1.1.10
 * **Stopped** adding `[ci skip]` to commit messages to try to get tags to build
 
