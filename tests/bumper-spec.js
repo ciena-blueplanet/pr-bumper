@@ -310,6 +310,7 @@ describe('Bumper', function () {
       return exec('rm -f _package.json')
     })
 
+    testBumpVersion(ctx, 'none', '1.2.3')
     testBumpVersion(ctx, 'patch', '1.2.4')
     testBumpVersion(ctx, 'minor', '1.3.0')
     testBumpVersion(ctx, 'major', '2.0.0')
