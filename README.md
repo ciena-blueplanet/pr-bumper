@@ -94,7 +94,7 @@ Add the following snippet to your `.travis.yml` file to integrate `pr-bumper`
 
   ```yaml
   before_install:
-    - npm install -g pr-bumper
+    - npm install -g pr-bumper@^1.0.0
 
   install:
     - $(npm root -g)/pr-bumper/.travis/maybe-install.sh
