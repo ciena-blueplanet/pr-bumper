@@ -1,3 +1,12 @@
+# 1.2.0
+* **Added** ability to override the default `node` version that will be used for publishing via the `PUBLISH_NODE_VERSION` environment variable in `.travis/` scripts provided by `pr-bumper`
+  ```bash
+  PUBLISH_NODE_VERSION=stable $(npm root -g)/pr-bumper/.travis/maybe-bump-version.sh
+  ```
+
+  can be used to switch the `node` version that used for bumping from `6.9.1` to `stable`
+* **Updated** `README.md` to suggest installing `pr-bumper` with a version scope, to protect against future breaking changes
+
 # 1.1.13
 
 * **Fixed** bug where merge would fail when using `none` scope as it'd still expect a changelog to be present.
