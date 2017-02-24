@@ -1,3 +1,7 @@
+# 1.3.0
+* **Added** initial support for GitHub Enterprise (not integration tested yet)
+
+
 # 1.2.0
 * **Added** ability to override the default `node` version that will be used for publishing via the `PUBLISH_NODE_VERSION` environment variable in `.travis/` scripts provided by `pr-bumper`
   ```bash
