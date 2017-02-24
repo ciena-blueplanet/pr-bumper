@@ -16,6 +16,7 @@ const Travis = require('../lib/ci/travis')
 
 const BitbucketServer = require('../lib/vcs/bitbucket-server')
 const GitHub = require('../lib/vcs/github')
+const GitHubEnterprise = require('../lib/vcs/github-enterprise')
 
 const Bumper = require('../lib/bumper')
 
@@ -272,6 +273,21 @@ describe('Cli', function () {
 
       it('should create a GitHub instance', function () {
         expect(vcs).to.be.an.instanceof(GitHub)
+      })
+    })
+
+    describe('with github enterprise provider', function () {
+      beforeEach(function () {
+        config.vcs.provider = 'github-enterprise'
+        vcs = cli._getVcs(config)
+      })
+
+      it('should pass along config', function () {
+        expect(vcs.config).to.be.eql(config)
+      })
+
+      it('should create a GitHubEnterprise instance', function () {
+        expect(vcs).to.be.an.instanceof(GitHubEnterprise)
       })
     })
 
