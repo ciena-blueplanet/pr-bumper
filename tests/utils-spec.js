@@ -31,58 +31,81 @@ function setEnv (env) {
 /**
  * Verifiy that getConfig filled in the proper Github/Travis defaults
  * @param {Object} ctx - the context object for the tests
+ * @param {String[]} propsToSkip - an array of string properties to skip the check for (if they've been overwritten)
  */
-function verifyGitHubTravisDefaults (ctx) {
+function verifyGitHubTravisDefaults (ctx, propsToSkip = []) {
+  // NOTE: disabling complexity check here b/c it's just complaining about the conditionals around
+  // all the it() blocks now, but they're necessary to test overrides
+  /* eslint-disable complexity */
   describe('when using github/travis defaults', function () {
     let config
     beforeEach(function () {
       config = ctx.config
     })
 
-    it('should use the proper git user', function () {
-      expect(config.ci.gitUser).to.be.eql({
-        email: 'travis.ci.ciena@gmail.com',
-        name: 'Travis CI'
+    if (!propsToSkip.includes('ci.gitUser')) {
+      it('should use the proper git user', function () {
+        expect(config.ci.gitUser).to.be.eql({
+          email: 'travis.ci.ciena@gmail.com',
+          name: 'Travis CI'
+        })
       })
-    })
+    }
 
-    it('should use the proper ci provider', function () {
-      expect(config.ci.provider).to.be.equal('travis')
-    })
-
-    it('should have the proper owner', function () {
-      expect(config.owner).to.be.equal('jdoe')
-    })
-
-    it('should have the proper branch', function () {
-      expect(config.branch).to.be.equal('my-branch')
-    })
-
-    it('should have the proper repo', function () {
-      expect(config.repo).to.be.equal('john-and-jane')
-    })
-
-    it('should have the proper vcs domain', function () {
-      expect(config.vcs.domain).to.be.equal('github.com')
-    })
-
-    it('should have the proper vcs provider', function () {
-      expect(config.vcs.provider).to.be.equal('github')
-    })
-
-    it('should have the proper vcs auth', function () {
-      expect(config.vcs.auth).to.be.eql({
-        password: undefined,
-        readToken: '12345',
-        username: undefined,
-        writeToken: '54321'
+    if (!propsToSkip.includes('ci.provider')) {
+      it('should use the proper ci provider', function () {
+        expect(config.ci.provider).to.be.equal('travis')
       })
-    })
+    }
 
-    it('should default dependencySnapshotFile to "dependency-snapshot.json"', function () {
-      expect(config.dependencySnapshotFile).to.equal('dependency-snapshot.json')
-    })
+    if (!propsToSkip.includes('owner')) {
+      it('should have the proper owner', function () {
+        expect(config.owner).to.be.equal('jdoe')
+      })
+    }
+
+    if (!propsToSkip.includes('branch')) {
+      it('should have the proper branch', function () {
+        expect(config.branch).to.be.equal('my-branch')
+      })
+    }
+
+    if (!propsToSkip.includes('repo')) {
+      it('should have the proper repo', function () {
+        expect(config.repo).to.be.equal('john-and-jane')
+      })
+    }
+
+    if (!propsToSkip.includes('vcs.domain')) {
+      it('should have the proper vcs domain', function () {
+        expect(config.vcs.domain).to.be.equal('github.com')
+      })
+    }
+
+    if (!propsToSkip.includes('vcs.provider')) {
+      it('should have the proper vcs provider', function () {
+        expect(config.vcs.provider).to.be.equal('github')
+      })
+    }
+
+    if (!propsToSkip.includes('vcs.auth')) {
+      it('should have the proper vcs auth', function () {
+        expect(config.vcs.auth).to.be.eql({
+          password: undefined,
+          readToken: '12345',
+          username: undefined,
+          writeToken: '54321'
+        })
+      })
+    }
+
+    if (!propsToSkip.includes('dependencySnapshotFile')) {
+      it('should default dependencySnapshotFile to "dependency-snapshot.json"', function () {
+        expect(config.dependencySnapshotFile).to.equal('dependency-snapshot.json')
+      })
+    }
   })
+  /* eslint-enable complexity */
 }
 
 /**
@@ -207,9 +230,140 @@ describe('utils', function () {
           setEnv(env)
 
           config = utils.getConfig()
+          ctx.config = config
         })
 
         verifyGitHubTravisDefaults(ctx)
+
+        it('should set isPr to false', function () {
+          expect(config.isPr).to.equal(false)
+        })
+
+        it('should set prNumber to false', function () {
+          expect(config.prNumber).to.be.equal('false')
+        })
+      })
+
+      describe('when a partial config is given', function () {
+        let _config
+        beforeEach(function () {
+          _config = {
+            ci: {
+              gitUser: {
+                email: 'some.other.user@domain.com',
+                name: 'Some Other User'
+              }
+            }
+          }
+
+          saveEnv(Object.keys(env), realEnv)
+          setEnv(env)
+
+          config = utils.getConfig(_config)
+          ctx.config = config
+        })
+
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser'])
+
+        it('should use the overwritten git user', function () {
+          expect(config.ci.gitUser).to.be.eql({
+            email: 'some.other.user@domain.com',
+            name: 'Some Other User'
+          })
+        })
+      })
+    })
+
+    describe('GitHubEnterprise/Travis', function () {
+      const ctx = {}
+      let _config
+      beforeEach(function () {
+        _config = {
+          ci: {
+            gitUser: {
+              email: 'bot@domain.com',
+              name: 'Bot User'
+            }
+          },
+          vcs: {
+            domain: 'ghe.domain.com',
+            provider: 'github-enterprise'
+          }
+        }
+
+        env = {
+          'TRAVIS_BRANCH': 'my-branch',
+          'TRAVIS_BUILD_NUMBER': '123',
+          'TRAVIS_REPO_SLUG': 'jdoe/john-and-jane',
+          'RO_GH_TOKEN': '12345',
+          'GITHUB_TOKEN': '54321'
+        }
+      })
+
+      describe('when doing a pull request build', function () {
+        beforeEach(function () {
+          env.TRAVIS_PULL_REQUEST = '13'
+
+          saveEnv(Object.keys(env), realEnv)
+          setEnv(env)
+
+          config = utils.getConfig(_config)
+          ctx.config = config
+        })
+
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+
+        it('should have the proper gitUser', function () {
+          expect(config.ci.gitUser).to.eql({
+            email: 'bot@domain.com',
+            name: 'Bot User'
+          })
+        })
+
+        it('should have the proper vcs.domain', function () {
+          expect(config.vcs.domain).to.equal('ghe.domain.com')
+        })
+
+        it('should have the proper vcs.provider', function () {
+          expect(config.vcs.provider).to.equal('github-enterprise')
+        })
+
+        it('should set isPr to true', function () {
+          expect(config.isPr).to.equal(true)
+        })
+
+        it('should set prNumber to the PR number', function () {
+          expect(config.prNumber).to.be.equal('13')
+        })
+      })
+
+      describe('when doing a merge build', function () {
+        beforeEach(function () {
+          env.TRAVIS_PULL_REQUEST = 'false'
+
+          saveEnv(Object.keys(env), realEnv)
+          setEnv(env)
+
+          config = utils.getConfig(_config)
+          ctx.config = config
+        })
+
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+
+        it('should have the proper gitUser', function () {
+          expect(config.ci.gitUser).to.eql({
+            email: 'bot@domain.com',
+            name: 'Bot User'
+          })
+        })
+
+        it('should have the proper vcs.domain', function () {
+          expect(config.vcs.domain).to.equal('ghe.domain.com')
+        })
+
+        it('should have the proper vcs.provider', function () {
+          expect(config.vcs.provider).to.equal('github-enterprise')
+        })
 
         it('should set isPr to false', function () {
           expect(config.isPr).to.equal(false)
@@ -227,6 +381,11 @@ describe('utils', function () {
 
       beforeEach(function () {
         env = {
+          'TRAVIS_BRANCH': 'undefined',
+          'TRAVIS_BUILD_NUMBER': 'undefined',
+          'TRAVIS_REPO_SLUG': 'undefined',
+          'RO_GH_TOKEN': 'undefined',
+          'GITHUB_TOKEN': 'undefined',
           'TEAMCITY_BRANCH': 'my-branch',
           'TEAMCITY_BUILD_NUMBER': '123',
           'VCS_USERNAME': 'teamcity',
