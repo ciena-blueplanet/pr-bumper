@@ -33,7 +33,11 @@ function setEnv (env) {
  * @param {Object} ctx - the context object for the tests
  * @param {String[]} propsToSkip - an array of string properties to skip the check for (if they've been overwritten)
  */
-function verifyGitHubTravisDefaults (ctx, propsToSkip = []) {
+function verifyGitHubTravisDefaults (ctx, propsToSkip) {
+  if (propsToSkip === undefined) {
+    propsToSkip = []
+  }
+
   // NOTE: disabling complexity check here b/c it's just complaining about the conditionals around
   // all the it() blocks now, but they're necessary to test overrides
   /* eslint-disable complexity */
