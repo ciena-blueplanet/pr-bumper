@@ -47,7 +47,7 @@ function verifyGitHubTravisDefaults (ctx, propsToSkip) {
       config = ctx.config
     })
 
-    if (!propsToSkip.indexOf('ci.gitUser') > -1) {
+    if (propsToSkip.indexOf('ci.gitUser') === -1) {
       it('should use the proper git user', function () {
         expect(config.ci.gitUser).to.be.eql({
           email: 'travis.ci.ciena@gmail.com',
@@ -56,43 +56,43 @@ function verifyGitHubTravisDefaults (ctx, propsToSkip) {
       })
     }
 
-    if (!propsToSkip.indexOf('ci.provider') > -1) {
+    if (propsToSkip.indexOf('ci.provider') === -1) {
       it('should use the proper ci provider', function () {
         expect(config.ci.provider).to.be.equal('travis')
       })
     }
 
-    if (!propsToSkip.indexOf('owner') > -1) {
+    if (propsToSkip.indexOf('owner') === -1) {
       it('should have the proper owner', function () {
         expect(config.owner).to.be.equal('jdoe')
       })
     }
 
-    if (!propsToSkip.indexOf('branch') > -1) {
+    if (propsToSkip.indexOf('branch') === -1) {
       it('should have the proper branch', function () {
         expect(config.branch).to.be.equal('my-branch')
       })
     }
 
-    if (!propsToSkip.indexOf('repo') > -1) {
+    if (propsToSkip.indexOf('repo') === -1) {
       it('should have the proper repo', function () {
         expect(config.repo).to.be.equal('john-and-jane')
       })
     }
 
-    if (!propsToSkip.indexOf('vcs.domain') > -1) {
+    if (propsToSkip.indexOf('vcs.domain') === -1) {
       it('should have the proper vcs domain', function () {
         expect(config.vcs.domain).to.be.equal('github.com')
       })
     }
 
-    if (!propsToSkip.indexOf('vcs.provider') > -1) {
+    if (propsToSkip.indexOf('vcs.provider') === -1) {
       it('should have the proper vcs provider', function () {
         expect(config.vcs.provider).to.be.equal('github')
       })
     }
 
-    if (!propsToSkip.indexOf('vcs.auth') > -1) {
+    if (propsToSkip.indexOf('vcs.auth') === -1) {
       it('should have the proper vcs auth', function () {
         expect(config.vcs.auth).to.be.eql({
           password: undefined,
@@ -103,7 +103,7 @@ function verifyGitHubTravisDefaults (ctx, propsToSkip) {
       })
     }
 
-    if (!propsToSkip.indexOf('dependencySnapshotFile') > -1) {
+    if (propsToSkip.indexOf('dependencySnapshotFile') === -1) {
       it('should default dependencySnapshotFile to "dependency-snapshot.json"', function () {
         expect(config.dependencySnapshotFile).to.equal('dependency-snapshot.json')
       })
