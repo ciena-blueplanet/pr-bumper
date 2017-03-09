@@ -1,3 +1,6 @@
+# 1.4.0
+* **Updated** script to allow the passing of an argument to run only on non-bump commits
+
 # 1.3.0
 * **Added** initial support for GitHub Enterprise (not integration tested yet)
 
