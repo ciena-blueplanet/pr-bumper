@@ -8,4 +8,9 @@ then
   exit 0
 fi
 
-npm test
+if [ -z "$1" ]
+then
+  npm test
+else
+  npm run $1
+fi
