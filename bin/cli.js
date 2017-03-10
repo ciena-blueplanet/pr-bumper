@@ -16,7 +16,7 @@ program
       .run(cmd, options)
       .catch((error) => {
         const msg = (error.message) ? error.message : error
-        console.log(msg)
+        console.log(`${pkgJson.name}: ERROR: ${msg}`)
         if (error instanceof Bumper.Cancel) {
           process.exit(0)
         }

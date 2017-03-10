@@ -50,7 +50,8 @@ describe('Cli', function () {
     beforeEach(function () {
       bumper = {
         bump: sandbox.stub().returns(Promise.resolve('bumped')),
-        check: sandbox.stub().returns(Promise.resolve('checked'))
+        check: sandbox.stub().returns(Promise.resolve('checked')),
+        checkCoverage: sandbox.stub().returns(Promise.resolve('coverage-checked'))
       }
 
       sandbox.stub(utils, 'getConfig').returns({id: 'config'})
@@ -140,6 +141,50 @@ describe('Cli', function () {
 
       it('should resolve with the result of check', function () {
         expect(result).to.be.equal('checked')
+      })
+
+      it('should not error', function () {
+        expect(error).to.equal('')
+      })
+    })
+
+    describe('check-coverage', function () {
+      beforeEach(function () {
+        result = ''
+        error = ''
+
+        return cli
+          .run('check-coverage')
+          .then((res) => {
+            result = res
+          })
+          .catch((err) => {
+            error = err
+          })
+      })
+
+      it('should get the config', function () {
+        expect(utils.getConfig).to.have.callCount(1)
+      })
+
+      it('should get the vcs', function () {
+        expect(cli._getVcs).to.have.been.calledWith({id: 'config'})
+      })
+
+      it('should get the ci', function () {
+        expect(cli._getCi).to.have.been.calledWith({id: 'config'}, {id: 'vcs'})
+      })
+
+      it('should get the bumper', function () {
+        expect(cli._getBumper).to.have.been.calledWith({
+          ci: {id: 'ci'},
+          config: {id: 'config'},
+          vcs: {id: 'vcs'}
+        })
+      })
+
+      it('should resolve with the result of check', function () {
+        expect(result).to.be.equal('coverage-checked')
       })
 
       it('should not error', function () {

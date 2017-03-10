@@ -107,7 +107,7 @@ describe('Bumper', function () {
       })
 
       it('should notify user that it is skipping the check', function () {
-        expect(logger.log).to.have.been.calledWith('pr-bumper: Not a PR build, skipping check')
+        expect(logger.log).to.have.been.calledWith('Not a PR build, skipping check')
       })
 
       it('should not look for open pr info', function () {
@@ -127,6 +127,189 @@ describe('Bumper', function () {
 
       it('should notify user of the scope it found', function () {
         expect(logger.log).to.have.been.calledWith('Found a minor bump for the current PR')
+      })
+    })
+  })
+
+  describe('.checkCoverage()', function () {
+    let result, error
+    beforeEach(function () {
+      result = error = null
+    })
+
+    describe('when no baseline coverage', function () {
+      beforeEach(function (done) {
+        delete bumper.config.baselineCoverage
+
+        bumper.checkCoverage()
+          .then((resp) => {
+            result = resp
+          })
+          .catch((err) => {
+            error = err
+          })
+
+        setTimeout(() => {
+          done()
+        }, 0)
+      })
+
+      it('should not resolve', function () {
+        expect(result).to.equal(null)
+      })
+
+      it('should reject with an error', function () {
+        const link = 'https://github.com/ciena-blueplanet/pr-bumper#code-coverage'
+        const errorMsg = `No baseline coverage info found!\nSee ${link} for configuration info.`
+        expect(error).to.equal(errorMsg)
+      })
+    })
+
+    describe('when baseline coverage is not a number', function () {
+      beforeEach(function (done) {
+        bumper.config.baselineCoverage = '85.93'
+
+        bumper.checkCoverage()
+          .then((resp) => {
+            result = resp
+          })
+          .catch((err) => {
+            error = err
+          })
+
+        setTimeout(() => {
+          done()
+        }, 0)
+      })
+
+      it('should not resolve', function () {
+        expect(result).to.equal(null)
+      })
+
+      it('should reject with an error', function () {
+        const link = 'https://github.com/ciena-blueplanet/pr-bumper#code-coverage'
+        const errorMsg = `No baseline coverage info found!\nSee ${link} for configuration info.`
+        expect(error).to.equal(errorMsg)
+      })
+    })
+
+    describe('when no current coverage found', function () {
+      beforeEach(function (done) {
+        bumper.config.baselineCoverage = 85.93
+        sandbox.stub(utils, 'getCurrentCoverage').returns(-1)
+
+        bumper.checkCoverage()
+          .then((resp) => {
+            result = resp
+          })
+          .catch((err) => {
+            error = err
+          })
+
+        setTimeout(() => {
+          done()
+        }, 0)
+      })
+
+      it('should not resolve', function () {
+        expect(result).to.equal(null)
+      })
+
+      it('should reject with an error', function () {
+        const link = 'https://github.com/ciena-blueplanet/pr-bumper#code-coverage'
+        const errorMsg = `No current coverage info found!\nSee ${link} for configuration info.`
+        expect(error).to.equal(errorMsg)
+      })
+    })
+
+    describe('when coverage drops', function () {
+      beforeEach(function (done) {
+        bumper.config.baselineCoverage = 85.93
+        sandbox.stub(utils, 'getCurrentCoverage').returns(84.99)
+
+        bumper.checkCoverage()
+          .then((resp) => {
+            result = resp
+          })
+          .catch((err) => {
+            error = err
+          })
+
+        setTimeout(() => {
+          done()
+        }, 0)
+      })
+
+      it('should not resolve', function () {
+        expect(result).to.equal(null)
+      })
+
+      it('should reject with an error', function () {
+        const errorMsg = 'Coverage dropped 0.94% (from 85.93% to 84.99%) in this PR!'
+        expect(error).to.equal(errorMsg)
+      })
+    })
+
+    describe('when coverage stays the same', function () {
+      beforeEach(function (done) {
+        bumper.config.baselineCoverage = 85.93
+        sandbox.stub(utils, 'getCurrentCoverage').returns(85.93)
+
+        bumper.checkCoverage()
+          .then((resp) => {
+            result = resp
+          })
+          .catch((err) => {
+            error = err
+          })
+
+        setTimeout(() => {
+          done()
+        }, 0)
+      })
+
+      it('should resolve', function () {
+        expect(result).to.equal(undefined)
+      })
+
+      it('should not reject', function () {
+        expect(error).to.equal(null)
+      })
+
+      it('should log a message', function () {
+        expect(logger.log).to.have.been.calledWith('Coverage remained the same (at 85.93%) in this PR.')
+      })
+    })
+
+    describe('when coverage increases', function () {
+      beforeEach(function (done) {
+        bumper.config.baselineCoverage = 85.93
+        sandbox.stub(utils, 'getCurrentCoverage').returns(88.01)
+
+        bumper.checkCoverage()
+          .then((resp) => {
+            result = resp
+          })
+          .catch((err) => {
+            error = err
+          })
+
+        setTimeout(() => {
+          done()
+        }, 0)
+      })
+
+      it('should resolve', function () {
+        expect(result).to.equal(undefined)
+      })
+
+      it('should not reject', function () {
+        expect(error).to.equal(null)
+      })
+
+      it('should log a message', function () {
+        const msg = 'Coverage increased 2.08% (from 85.93% to 88.01%) in this PR! Good job :)'
+        expect(logger.log).to.have.been.calledWith(msg)
       })
     })
   })
@@ -462,7 +645,7 @@ describe('Bumper', function () {
       })
 
       it('should log that non merge builds are skipped', function () {
-        expect(logger.log).to.have.been.calledWith('pr-bumper: Not a merge build, skipping bump')
+        expect(logger.log).to.have.been.calledWith('Not a merge build, skipping bump')
       })
 
       it('should not lookup merged PR info', function () {
@@ -531,7 +714,7 @@ describe('Bumper', function () {
       it('should throw an Error', function () {
         expect(() => {
           bumper._bumpVersion(info, '_package.json')
-        }).to.throw('pr-bumper: Invalid scope [foo]')
+        }).to.throw('Invalid scope [foo]')
       })
     })
   })

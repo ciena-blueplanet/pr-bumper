@@ -62,6 +62,25 @@ will know exactly what to do before the build fails.
 [travis-url]: https://travis-ci.org
 [teamcity-url]: https://www.jetbrains.com/teamcity/
 
+### Code Coverage
+`pr-bumper` supports ensuring that code coverage is not decreasing because of a pull request. This is achieved by
+comparing the current code coverage against a saved "baseline" coverage percentage. Enabling this feature is done
+by providing `pr-bumper` with the "baseline" coverage percentage in `package.json`, by adding the following:
+
+```json
+"pr-bumper": {
+  "coverage": 85.93
+}
+```
+
+That would indicate to `pr-bumper` that the current coverage for your repository is `85.93` percent, so any coverage
+below that will fail the `pr-bumper check-coverage` check, and can then fail your CI build if you include the running
+of `pr-bumper check-coverage` in your CI (after your tests run and coverage is reported of course).
+
+The "current" coverage that `pr-bumper` will compare against this "baseline" will be read from the file at `coverage/coverage-summary.json`. This can be populated using the `json-summary` reporter from `istanbul`.
+There are a number of statistics in `coverage-summary.json`, but the one that `pr-bumper` looks at is the total
+percentage of lines covered, or `total.lines.pct`.
+
 ## Integrations
 `pr-bumper` currently supports pull requests on [GitHub][github-url], and [Bitbucket Server][bitbucket-url]
 

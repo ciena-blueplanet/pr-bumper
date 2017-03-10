@@ -5,7 +5,7 @@
   "scripts": {
     "lint": "eslint *.js bin lib tests",
     "test": "npm run-script lint && npm run-script utest",
-    "utest": "istanbul cover _mocha tests tests/ci tests/vcs tests/compliance"
+    "utest": "istanbul cover _mocha tests tests/ci tests/vcs tests/compliance --report lcov --report json-summary"
   },
   "bin": {
     "pr-bumper": "./bin/cli.js"
@@ -54,5 +54,8 @@
     "rewire": "^2.5.1",
     "sinon": "^1.17.3",
     "sinon-chai": "^2.8.0"
+  },
+  "pr-bumper": {
+    "coverage": 91.24
   }
 }
