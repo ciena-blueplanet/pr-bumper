@@ -1,3 +1,7 @@
+# 1.5.0
+* **Improved** application of default values when processing `.pr-bumper.json`. Whereas previously you would have to provide an entire, complex, nested object if you wanted to override the default for any part of a config object, you can now override a partial object in your `.pr-bumper.json` and the rest of the object will get the appropriate defaults. 
+
+
 # 1.4.0
 * **Updated** script to allow the passing of an argument to run only on non-bump commits
 
