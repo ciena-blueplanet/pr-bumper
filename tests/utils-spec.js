@@ -934,6 +934,7 @@ Thought this might be #breaking# but on second thought it is a minor change
     let config, resolver, vcs, result, error
     beforeEach(function () {
       config = {
+        isPr: true,
         prComments: false,
         prNumber: '123'
       }
@@ -980,7 +981,37 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
     })
 
-    describe('and prComments is true', function () {
+    describe('when prComments is true, but isPr is false', function () {
+      beforeEach(function (done) {
+        config.isPr = false
+        config.prComments = true
+        utils.maybePostComment(config, vcs, 'fizz-bang')
+          .then((resp) => {
+            result = resp
+          })
+          .catch((err) => {
+            error = err
+          })
+
+        setTimeout(() => {
+          done()
+        }, 0)
+      })
+
+      it('should not post a comment', function () {
+        expect(vcs.postComment).to.have.callCount(0)
+      })
+
+      it('should not reject', function () {
+        expect(error).to.equal(null)
+      })
+
+      it('should resolve', function () {
+        expect(result).to.equal(undefined)
+      })
+    })
+
+    describe('and prComments is true and isPr is true', function () {
       let promise
       beforeEach(function () {
         config.prComments = true
@@ -1045,6 +1076,7 @@ Thought this might be #breaking# but on second thought it is a minor change
     let config, resolver, vcs, func, result, error
     beforeEach(function () {
       config = {
+        isPr: true,
         prComments: false,
         prNumber: '123'
       }
@@ -1128,9 +1160,41 @@ Thought this might be #breaking# but on second thought it is a minor change
         })
       })
 
-      describe('and prComments is true', function () {
+      describe('and prComments is true but isPr is false', function () {
+        beforeEach(function (done) {
+          config.isPr = false
+          config.prComments = true
+          utils.maybePostCommentOnError(config, vcs, func)
+            .then((resp) => {
+              result = resp
+            })
+            .catch((err) => {
+              error = err
+              done()
+            })
+        })
+
+        it('should call the func', function () {
+          expect(func).to.have.callCount(1)
+        })
+
+        it('should not post a comment', function () {
+          expect(vcs.postComment).to.have.callCount(0)
+        })
+
+        it('should reject with the error thrown', function () {
+          expect(error).to.eql(new Error('Uh oh!'))
+        })
+
+        it('should not resolve', function () {
+          expect(result).to.equal(null)
+        })
+      })
+
+      describe('and prComments is true and isPr is true', function () {
         let promise
         beforeEach(function () {
+          config.isPr = true
           config.prComments = true
           promise = utils.maybePostCommentOnError(config, vcs, func)
             .then((resp) => {
