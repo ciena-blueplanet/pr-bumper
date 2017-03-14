@@ -114,6 +114,12 @@ function verifyGitHubTravisDefaults (ctx, propsToSkip) {
         expect(config.changelogFile).to.equal('CHANGELOG.md')
       })
     }
+
+    if (propsToSkip.indexOf('prComments') === -1) {
+      it('should default prComments to false', function () {
+        expect(config.prComments).to.equal(false)
+      })
+    }
   })
   /* eslint-enable complexity */
 }
@@ -175,6 +181,10 @@ function verifyBitbucketTeamcityOverrides (ctx) {
 
     it('should default changelogFile to "CHANGELOG.md"', function () {
       expect(config.changelogFile).to.equal('CHANGELOG.md')
+    })
+
+    it('should default prComments to false', function () {
+      expect(config.prComments).to.equal(false)
     })
   })
 }
@@ -372,7 +382,8 @@ describe('utils', function () {
           vcs: {
             domain: 'ghe.domain.com',
             provider: 'github-enterprise'
-          }
+          },
+          prComments: true
         }
 
         _pkgJson = {
@@ -401,7 +412,7 @@ describe('utils', function () {
           ctx.config = config
         })
 
-        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider', 'prComments'])
 
         it('should have the proper gitUser', function () {
           expect(config.ci.gitUser).to.eql({
@@ -428,6 +439,10 @@ describe('utils', function () {
 
         it('should not have a baselineCoverage set', function () {
           expect(config.baselineCoverage).to.equal(undefined)
+        })
+
+        it('should have the proper prComments value', function () {
+          expect(config.prComments).to.equal(true)
         })
       })
 
@@ -442,7 +457,7 @@ describe('utils', function () {
           ctx.config = config
         })
 
-        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider', 'prComments'])
 
         it('should have the proper gitUser', function () {
           expect(config.ci.gitUser).to.eql({
@@ -470,6 +485,10 @@ describe('utils', function () {
         it('should set baselineCoverage to the coverage from package.json', function () {
           expect(config.baselineCoverage).to.equal(98.03)
         })
+
+        it('should have the proper prComments value', function () {
+          expect(config.prComments).to.equal(true)
+        })
       })
 
       describe('when doing a merge build (w/o coverage in package.json)', function () {
@@ -483,7 +502,7 @@ describe('utils', function () {
           ctx.config = config
         })
 
-        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider', 'prComments'])
 
         it('should have the proper gitUser', function () {
           expect(config.ci.gitUser).to.eql({
@@ -511,6 +530,10 @@ describe('utils', function () {
         it('should not have a baselineCoverage set', function () {
           expect(config.baselineCoverage).to.equal(undefined)
         })
+
+        it('should have the proper prComments value', function () {
+          expect(config.prComments).to.equal(true)
+        })
       })
 
       describe('when doing a merge build (with coverage in package.json)', function () {
@@ -524,7 +547,7 @@ describe('utils', function () {
           ctx.config = config
         })
 
-        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider', 'prComments'])
 
         it('should have the proper gitUser', function () {
           expect(config.ci.gitUser).to.eql({
@@ -551,6 +574,10 @@ describe('utils', function () {
 
         it('should set baselineCoverage to the coverage from package.json', function () {
           expect(config.baselineCoverage).to.equal(98.03)
+        })
+
+        it('should have the proper prComments value', function () {
+          expect(config.prComments).to.equal(true)
         })
       })
     })
@@ -899,6 +926,336 @@ Thought this might be #breaking# but on second thought it is a minor change
 
       it('should return the total line pct', function () {
         expect(pct).to.equal(95.98)
+      })
+    })
+  })
+
+  describe('.maybePostComment()', function () {
+    let config, resolver, vcs, result, error
+    beforeEach(function () {
+      config = {
+        isPr: true,
+        prComments: false,
+        prNumber: '123'
+      }
+
+      resolver = {}
+      resolver.promise = new Promise((resolve, reject) => {
+        resolver.resolve = resolve
+        resolver.reject = reject
+      })
+
+      vcs = {
+        postComment: sandbox.stub().returns(resolver.promise)
+      }
+
+      result = error = null
+    })
+
+    describe('when prComments is false', function () {
+      beforeEach(function (done) {
+        config.prComments = false
+        utils.maybePostComment(config, vcs, 'fizz-bang')
+          .then((resp) => {
+            result = resp
+          })
+          .catch((err) => {
+            error = err
+          })
+
+        setTimeout(() => {
+          done()
+        }, 0)
+      })
+
+      it('should not post a comment', function () {
+        expect(vcs.postComment).to.have.callCount(0)
+      })
+
+      it('should not reject', function () {
+        expect(error).to.equal(null)
+      })
+
+      it('should resolve', function () {
+        expect(result).to.equal(undefined)
+      })
+    })
+
+    describe('when prComments is true, but isPr is false', function () {
+      beforeEach(function (done) {
+        config.isPr = false
+        config.prComments = true
+        utils.maybePostComment(config, vcs, 'fizz-bang')
+          .then((resp) => {
+            result = resp
+          })
+          .catch((err) => {
+            error = err
+          })
+
+        setTimeout(() => {
+          done()
+        }, 0)
+      })
+
+      it('should not post a comment', function () {
+        expect(vcs.postComment).to.have.callCount(0)
+      })
+
+      it('should not reject', function () {
+        expect(error).to.equal(null)
+      })
+
+      it('should resolve', function () {
+        expect(result).to.equal(undefined)
+      })
+    })
+
+    describe('and prComments is true and isPr is true', function () {
+      let promise
+      beforeEach(function () {
+        config.prComments = true
+        promise = utils.maybePostComment(config, vcs, 'fizz-bang')
+          .then((resp) => {
+            result = resp
+          })
+          .catch((err) => {
+            error = err
+            throw err
+          })
+      })
+
+      it('should post a comment', function () {
+        expect(vcs.postComment).to.have.been.calledWith(config.prNumber, 'fizz-bang')
+      })
+
+      it('should not reject yet', function () {
+        expect(error).to.equal(null)
+      })
+
+      it('should not resolve yet', function () {
+        expect(result).to.equal(null)
+      })
+
+      describe('when postComment succeeds', function () {
+        beforeEach(function () {
+          resolver.resolve()
+          return promise
+        })
+
+        it('should not reject', function () {
+          expect(error).to.equal(null)
+        })
+
+        it('should resolve', function () {
+          expect(result).to.equal(undefined)
+        })
+      })
+
+      describe('when postComment fails', function () {
+        beforeEach(function (done) {
+          resolver.reject(new Error('Aw snap!'))
+          promise.catch(() => {
+            done()
+          })
+        })
+
+        it('should reject with a combined error', function () {
+          const msg = 'Received error: Aw snap! while trying to post PR comment about: fizz-bang'
+          expect(error.message).to.equal(msg)
+        })
+
+        it('should not resolve', function () {
+          expect(result).to.equal(null)
+        })
+      })
+    })
+  })
+
+  describe('.maybePostCommentOnError()', function () {
+    let config, resolver, vcs, func, result, error
+    beforeEach(function () {
+      config = {
+        isPr: true,
+        prComments: false,
+        prNumber: '123'
+      }
+
+      resolver = {}
+      resolver.promise = new Promise((resolve, reject) => {
+        resolver.resolve = resolve
+        resolver.reject = reject
+      })
+
+      vcs = {
+        postComment: sandbox.stub().returns(resolver.promise)
+      }
+
+      func = sandbox.stub()
+      result = error = null
+    })
+
+    describe('when func succeeds', function () {
+      beforeEach(function () {
+        func.returns('foo')
+        return utils.maybePostCommentOnError(config, vcs, func)
+          .then((resp) => {
+            result = resp
+          })
+          .catch((err) => {
+            error = err
+            throw err
+          })
+      })
+
+      it('should call the func', function () {
+        expect(func).to.have.callCount(1)
+      })
+
+      it('should not post a comment', function () {
+        expect(vcs.postComment).to.have.callCount(0)
+      })
+
+      it('should not reject', function () {
+        expect(error).to.equal(null)
+      })
+
+      it('should resolve with the return value of func', function () {
+        expect(result).to.equal('foo')
+      })
+    })
+
+    describe('when func throws an error', function () {
+      beforeEach(function () {
+        func.throws(new Error('Uh oh!'))
+      })
+
+      describe('and prComments is false', function () {
+        beforeEach(function (done) {
+          config.prComments = false
+          utils.maybePostCommentOnError(config, vcs, func)
+            .then((resp) => {
+              result = resp
+            })
+            .catch((err) => {
+              error = err
+              done()
+            })
+        })
+
+        it('should call the func', function () {
+          expect(func).to.have.callCount(1)
+        })
+
+        it('should not post a comment', function () {
+          expect(vcs.postComment).to.have.callCount(0)
+        })
+
+        it('should reject with the error thrown', function () {
+          expect(error).to.eql(new Error('Uh oh!'))
+        })
+
+        it('should not resolve', function () {
+          expect(result).to.equal(null)
+        })
+      })
+
+      describe('and prComments is true but isPr is false', function () {
+        beforeEach(function (done) {
+          config.isPr = false
+          config.prComments = true
+          utils.maybePostCommentOnError(config, vcs, func)
+            .then((resp) => {
+              result = resp
+            })
+            .catch((err) => {
+              error = err
+              done()
+            })
+        })
+
+        it('should call the func', function () {
+          expect(func).to.have.callCount(1)
+        })
+
+        it('should not post a comment', function () {
+          expect(vcs.postComment).to.have.callCount(0)
+        })
+
+        it('should reject with the error thrown', function () {
+          expect(error).to.eql(new Error('Uh oh!'))
+        })
+
+        it('should not resolve', function () {
+          expect(result).to.equal(null)
+        })
+      })
+
+      describe('and prComments is true and isPr is true', function () {
+        let promise
+        beforeEach(function () {
+          config.isPr = true
+          config.prComments = true
+          promise = utils.maybePostCommentOnError(config, vcs, func)
+            .then((resp) => {
+              result = resp
+            })
+            .catch((err) => {
+              error = err
+              throw err
+            })
+        })
+
+        it('should call the func', function () {
+          expect(func).to.have.callCount(1)
+        })
+
+        it('should post a comment', function () {
+          expect(vcs.postComment).to.have.been.calledWith(config.prNumber, 'Uh oh!')
+        })
+
+        it('should not reject yet', function () {
+          expect(error).to.equal(null)
+        })
+
+        it('should not resolve', function () {
+          expect(result).to.equal(null)
+        })
+
+        describe('when postComment succeeds', function () {
+          beforeEach(function (done) {
+            resolver.resolve()
+            promise.catch(() => {
+              done()
+            })
+          })
+
+          it('should reject with the original error', function () {
+            expect(error.message).to.equal('Uh oh!')
+          })
+
+          it('should not resolve', function () {
+            expect(result).to.equal(null)
+          })
+        })
+
+        describe('when postComment fails', function () {
+          beforeEach(function (done) {
+            resolver.reject(new Error('Aw snap!'))
+            promise.catch(() => {
+              done()
+            })
+          })
+
+          it('should reject with a combined error', function () {
+            const msg = 'Received error: Aw snap! while trying to post PR comment about error: Uh oh!'
+            expect(error.message).to.equal(msg)
+          })
+
+          it('should not resolve', function () {
+            expect(result).to.equal(null)
+          })
+        })
       })
     })
   })

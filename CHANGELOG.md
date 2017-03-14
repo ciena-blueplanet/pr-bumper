@@ -1,30 +1,30 @@
 # 1.7.0 (2017-03-14)
-* **Added** a date string (ISO standard `YYYY-MM-DD`) to the title line when prepending changelog with a new version. 
-* **Fixed** bug where version bump in `package.json` was being overwritten by coverage update.
+* **Added** a date string (ISO standard `YYYY-MM-DD`) to the title line when prepending changelog with a new version.
+* **Fixed** bug where version bump in `package.json` was being overwritten by coverage update  [#89](https://github.com/ciena-blueplanet/pr-bumper/issues/89).
 
-# 1.6.0
-* **Added** the ability to ensure code coverage does not decrease because of a PR. Simply add your project's current code coverage in `package.json` under: 
+# 1.6.0 (never published due to [#89](https://github.com/ciena-blueplanet/pr-bumper/issues/89))
+* **Added** the ability to ensure code coverage does not decrease because of a PR. Simply add your project's current code coverage in `package.json` under:
   ```js
   "pr-bumper": {
     "coverage": 95.93
   }
-   ``` 
+   ```
   Then add a `pr-bumper check-coverage` call to your CI. The `check-coverage` command will fail if the current code coverage is below the baseline in your `package.json`.  
-  
-  **NOTE**: You must place the `pr-bumper check-coverage` line **after** you run your tests, or `pr-bumper` will not be able to find the current code coverage information to check against the baseline, and your build will fail regardless of your code coverage. 
-  
+
+  **NOTE**: You must place the `pr-bumper check-coverage` line **after** you run your tests, or `pr-bumper` will not be able to find the current code coverage information to check against the baseline, and your build will fail regardless of your code coverage.
+
   During a `pr-bumper bump` command, the current coverage will be saved to `package.json`
 
-* **Added** the ability to customize the name of the changelog file to prepend (defaults to `CHANGELOG.md` still). 
-* **Added** a `[pr-bumper]` prefix to all commits made by `pr-bumper` so they can be easily identified. 
-* **Added** a `pr-bumper: ` prefix to all messages logged to the console by `pr-bumper` so they can be easily identified. 
-* **Added** initial coverage baseline to `package.json` within this project to enable code coverage check. 
-* **Added** `check-coverage` check after the build. 
+* **Added** the ability to customize the name of the changelog file to prepend (defaults to `CHANGELOG.md` still).
+* **Added** a `[pr-bumper]` prefix to all commits made by `pr-bumper` so they can be easily identified.
+* **Added** a `pr-bumper: ` prefix to all messages logged to the console by `pr-bumper` so they can be easily identified.
+* **Added** initial coverage baseline to `package.json` within this project to enable code coverage check.
+* **Added** `check-coverage` check after the build.
 * **Added** `.travis/maybe-check-coverage.sh` script to wrap a call to `pr-bumper check-coverage` and skip it if the commit being built is a `pr-bumper` commit.
-* **Updated** how `.travis/is-bump-commit.sh` verifies that a commit came from `pr-bumper` to match the new prefix being used by `pr-bumper` for commits. 
+* **Updated** how `.travis/is-bump-commit.sh` verifies that a commit came from `pr-bumper` to match the new prefix being used by `pr-bumper` for commits.
 
 # 1.5.0
-* **Improved** application of default values when processing `.pr-bumper.json`. Whereas previously you would have to provide an entire, complex, nested object if you wanted to override the default for any part of a config object, you can now override a partial object in your `.pr-bumper.json` and the rest of the object will get the appropriate defaults. 
+* **Improved** application of default values when processing `.pr-bumper.json`. Whereas previously you would have to provide an entire, complex, nested object if you wanted to override the default for any part of a config object, you can now override a partial object in your `.pr-bumper.json` and the rest of the object will get the appropriate defaults.
 
 
 # 1.4.0
@@ -81,11 +81,11 @@
 
 
 # 1.1.3
-* **Fixed** issue where `npm shrinkwrap` was being called w/o `--dev` so not all dependencies were actually being accounted for in the snapshot. This is particularly important in things like ember apps where everything is in `devDependencies`. 
+* **Fixed** issue where `npm shrinkwrap` was being called w/o `--dev` so not all dependencies were actually being accounted for in the snapshot. This is particularly important in things like ember apps where everything is in `devDependencies`.
 
 
 # 1.1.2
- * **Updated** tests to run in `node@5.0.0` and `node@6.9.1` and only publish after success on `node@6.9.1`. 
+ * **Updated** tests to run in `node@5.0.0` and `node@6.9.1` and only publish after success on `node@6.9.1`.
 
 
 # 1.1.1
@@ -96,11 +96,11 @@
 
 
 # 1.0.0
- * **Fixed** #44 by throwing an error when `# CHANGELOG` is missing/empty unless `prependChangelog` is set to `false`.  This is a **breaking** change as previously missing `# CHANGELOG` sections would result in a default message in the `CHANGELOG.md` file. 
+ * **Fixed** #44 by throwing an error when `# CHANGELOG` is missing/empty unless `prependChangelog` is set to `false`.  This is a **breaking** change as previously missing `# CHANGELOG` sections would result in a default message in the `CHANGELOG.md` file.
 
 
 # 0.7.4
-* **Addedd** another test to try out codecov.io reporting. 
+* **Addedd** another test to try out codecov.io reporting.
 
 # 0.7.3
 * **Attempted** to switch from [coveralls.io](http://coveralls.io) to [codecov.io](http://codecov.io)
@@ -111,7 +111,7 @@
 
 
 # 0.7.1
-* **Fixed** #55 
+* **Fixed** #55
 
 
 
@@ -126,7 +126,7 @@
       "reposFile": "repos",
       "ignoreFile": "ignore"
     },
-    production: false, 
+    production: false,
     "additionalRepos": [
           {
             "pattern": "\\s+\"(ember\\-frost\\-\\S+)\"",
@@ -188,12 +188,12 @@ You can now configure `pr-bumper` to work with something other than Travis CI an
 }
 ```
 ## `ci.env.buildNumber`
-A string that provides the environment variable that holds the TeamCity build number on the agent that runs your build. One way to set that variable is with the following in your Build Step: 
+A string that provides the environment variable that holds the TeamCity build number on the agent that runs your build. One way to set that variable is with the following in your Build Step:
 ```
 export TEAMCITY_BUILD_NUMBER="%teamcity.build.id%"
 ```
 ## `ci.env.pr`
-A string that provides the environment variable that holds the PR number of the pull request being built (empty when a not a PR build). One way to fill that variable is by including the following in your Build Step: 
+A string that provides the environment variable that holds the PR number of the pull request being built (empty when a not a PR build). One way to fill that variable is by including the following in your Build Step:
 ```
 stripped_branch=\$(echo "%teamcity.build.branch%" | sed -e "s/\/merge//")
 re='^[0-9]+$'
@@ -231,7 +231,7 @@ Here you configure what VCS system you use, the only currently supported options
 Format the `CHANGELOG.md` file properly by adding some newlines after the prepended entry.
 
 # 0.4.1
- * Fixes issue where `\r` characters in the pr description weren't properly handled. Who knew GitHub was built on Windows? ;) 
+ * Fixes issue where `\r` characters in the pr description weren't properly handled. Who knew GitHub was built on Windows? ;)
  * Fixes issue where users had to be extremely specific with their `# CHANGELOG` section heading. The following are now all valid as well: `#CHANGELOG`, `# CHANGELOG  `, `#changelog `, `# changelog`
 
 # 0.4.0

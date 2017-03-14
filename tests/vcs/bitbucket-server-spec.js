@@ -60,6 +60,19 @@ describe('BitbucketServer', function () {
     expect(bitbucket.baseUrl).to.be.equal(url)
   })
 
+  describe('.addRemoteForPush()', function () {
+    let remoteName
+    beforeEach(function () {
+      return bitbucket.addRemoteForPush().then((name) => {
+        remoteName = name
+      })
+    })
+
+    it('should resolve with oritin', function () {
+      expect(remoteName).to.be.equal('origin')
+    })
+  })
+
   describe('.getPr()', function () {
     let resolution, rejection, promise, fetchResolver
     beforeEach(function () {
@@ -71,6 +84,7 @@ describe('BitbucketServer', function () {
 
       fetchStub.returns(fetchPromise)
 
+      resolution = rejection = null
       promise = bitbucket.getPr('5')
         .then((resp) => {
           resolution = resp
@@ -86,10 +100,10 @@ describe('BitbucketServer', function () {
       expect(fetchStub).to.have.been.calledWith(`${bitbucket.baseUrl}/projects/me/repos/my-repo/pull-requests/5`)
     })
 
-    describe('when fetch succeeds', function () {
+    describe('when fetch resolves with success', function () {
       let resp
       beforeEach(function (done) {
-        resp = {ok: true, status: 200, json: function () {}}
+        resp = {ok: true, status: 200, json () {}}
         let pr = {
           id: 5,
           description: 'This is a #fix#',
@@ -121,6 +135,31 @@ describe('BitbucketServer', function () {
       })
     })
 
+    describe('when fetch resolves with error', function () {
+      let resp, err
+      beforeEach(function (done) {
+        resp = {ok: false, status: 400, json () {}}
+        err = {
+          message: 'Uh oh'
+        }
+        sandbox.stub(resp, 'json').returns(Promise.resolve(err))
+
+        promise.catch(() => {
+          done()
+        })
+
+        fetchResolver.resolve(resp)
+      })
+
+      it('should not resolve', function () {
+        expect(resolution).to.equal(null)
+      })
+
+      it('should reject with the proper error', function () {
+        expect(rejection).to.be.eql(new Error(`400: ${JSON.stringify(err)}`))
+      })
+    })
+
     describe('when fetch errors', function () {
       beforeEach(function (done) {
         promise.catch(() => {
@@ -136,16 +175,92 @@ describe('BitbucketServer', function () {
     })
   })
 
-  describe('.addRemoteForPush()', function () {
-    let remoteName
+  describe('.postComment()', function () {
+    let resolution, rejection, promise, fetchResolver
     beforeEach(function () {
-      return bitbucket.addRemoteForPush().then((name) => {
-        remoteName = name
+      fetchResolver = {}
+      let fetchPromise = new Promise((resolve, reject) => {
+        fetchResolver.resolve = resolve
+        fetchResolver.reject = reject
+      })
+
+      fetchStub.returns(fetchPromise)
+
+      resolution = rejection = null
+      promise = bitbucket.postComment('5', 'Missing PR scope!')
+        .then((resp) => {
+          resolution = resp
+          return resolution
+        })
+        .catch((err) => {
+          rejection = err
+          throw err
+        })
+    })
+
+    it('should call fetch with proper params', function () {
+      const url = `${bitbucket.baseUrl}/projects/me/repos/my-repo/pull-requests/5/comments`
+      expect(fetchStub).to.have.been.calledWith(url, {
+        method: 'POST',
+        body: JSON.stringify({text: 'Missing PR scope!'}),
+        headers: {'Content-Type': 'application/json'}
       })
     })
 
-    it('should resolve with oritin', function () {
-      expect(remoteName).to.be.equal('origin')
+    describe('when fetch resolves with success', function () {
+      beforeEach(function (done) {
+        promise.then(() => {
+          done()
+        })
+        fetchResolver.resolve({ok: true})
+      })
+
+      it('should resolve', function () {
+        expect(resolution).to.equal(undefined)
+      })
+    })
+
+    describe('when fetch resolves with error', function () {
+      let resp, err
+      beforeEach(function (done) {
+        err = {message: 'Uh oh'}
+        resp = {
+          ok: false,
+          status: 400,
+          json () {
+            return err
+          }
+        }
+        promise.catch(() => {
+          done()
+        })
+        fetchResolver.resolve(resp)
+      })
+
+      it('should not resolve', function () {
+        expect(resolution).to.equal(null)
+      })
+
+      it('should reject with proper error', function () {
+        expect(rejection).to.eql(new Error(`400: ${JSON.stringify(err)}`))
+      })
+    })
+
+    describe('when fetch rejects', function () {
+      beforeEach(function (done) {
+        promise.catch(() => {
+          done()
+        })
+        fetchResolver.reject('Uh oh')
+      })
+
+      it('should not resolve', function () {
+        expect(resolution).to.equal(null)
+      })
+
+      it('should reject with proper error', function () {
+        expect(rejection).to.equal('Uh oh')
+      })
     })
   })
 })
