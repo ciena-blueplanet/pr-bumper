@@ -1,3 +1,7 @@
+# 1.7.0 (2017-03-14)
+* **Added** a date string (ISO standard `YYYY-MM-DD`) to the title line when prepending changelog with a new version. 
+* **Fixed** bug where version bump in `package.json` was being overwritten by coverage update.
+
 # 1.6.0
 * **Added** the ability to ensure code coverage does not decrease because of a PR. Simply add your project's current code coverage in `package.json` under: 
   ```js
