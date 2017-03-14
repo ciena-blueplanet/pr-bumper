@@ -74,6 +74,7 @@ describe('Bumper', function () {
   let execStub, revertExecRewire
   let prependStub, revertPrepend
   let depStub, revertDeps
+  let readFileStub, revertReadFileRewire
   let writeFileStub, revertWriteFileRewire
 
   beforeEach(function () {
@@ -94,6 +95,10 @@ describe('Bumper', function () {
     }
     revertDeps = Bumper.__set__('dependencies', depStub)
 
+    // stub out the top-level 'readFile'
+    readFileStub = sandbox.stub()
+    revertReadFileRewire = Bumper.__set__('readFile', readFileStub)
+
     // stub out the top-level 'writeFile'
     writeFileStub = sandbox.stub()
     revertWriteFileRewire = Bumper.__set__('writeFile', writeFileStub)
@@ -110,6 +115,7 @@ describe('Bumper', function () {
     revertExecRewire()
     revertPrepend()
     revertDeps()
+    revertReadFileRewire()
     revertWriteFileRewire()
   })
 
@@ -1333,7 +1339,9 @@ describe('Bumper', function () {
       })
 
       it('should prepend the changelog', function () {
-        const data = `# ${info.version}\n${info.changelog}\n\n`
+        const now = new Date()
+        const dateString = now.toISOString().split('T').slice(0, 1).join('')
+        const data = `# ${info.version} (${dateString})\n${info.changelog}\n\n`
         expect(prependStub).to.have.been.calledWith('the-changelog-file', data)
       })
 
@@ -1418,9 +1426,10 @@ describe('Bumper', function () {
     describe('when no baseline coverage present', function () {
       beforeEach(function (done) {
         _pkgJson = {}
+        readFileStub.returns(Promise.resolve(JSON.stringify(_pkgJson, null, 2)))
 
         result = error = null
-        bumper._maybeUpdateBaselineCoverage(info, _pkgJson)
+        bumper._maybeUpdateBaselineCoverage(info)
           .then((r) => {
             result = r
           })
@@ -1441,6 +1450,10 @@ describe('Bumper', function () {
         expect(utils.getCurrentCoverage).to.have.callCount(0)
       })
 
+      it('should not read from a file', function () {
+        expect(readFileStub).to.have.callCount(0)
+      })
+
       it('should not write to a file', function () {
         expect(writeFileStub).to.have.callCount(0)
       })
@@ -1457,11 +1470,12 @@ describe('Bumper', function () {
     describe('when no current coverage present', function () {
       beforeEach(function (done) {
         _pkgJson = {}
+        readFileStub.returns(Promise.resolve(JSON.stringify(_pkgJson, null, 2)))
         bumper.config.baselineCoverage = 99.93
         utils.getCurrentCoverage.returns(-1)
 
         result = error = null
-        bumper._maybeUpdateBaselineCoverage(info, _pkgJson)
+        bumper._maybeUpdateBaselineCoverage(info)
           .then((r) => {
             result = r
           })
@@ -1475,6 +1489,10 @@ describe('Bumper', function () {
 
       it('should lookup current coverage', function () {
         expect(utils.getCurrentCoverage).to.have.callCount(1)
+      })
+
+      it('should not read from a file', function () {
+        expect(readFileStub).to.have.callCount(0)
       })
 
       it('should not write to a file', function () {
@@ -1497,6 +1515,7 @@ describe('Bumper', function () {
     })
 
     describe('when current coverage and baseline present', function () {
+      let location
       beforeEach(function (done) {
         _pkgJson = {
           foo: 'bar',
@@ -1504,6 +1523,8 @@ describe('Bumper', function () {
             coverage: 99.15
           }
         }
+        readFileStub.returns(Promise.resolve(JSON.stringify(_pkgJson, null, 2)))
+        location = path.join(process.cwd(), 'package.json')
 
         bumper.config.baselineCoverage = 99.15
         utils.getCurrentCoverage.returns(99.57)
@@ -1525,13 +1546,14 @@ describe('Bumper', function () {
         expect(utils.getCurrentCoverage).to.have.callCount(1)
       })
 
-      it('should update the coverage in the contents of the package.json', function () {
-        expect(_pkgJson['pr-bumper'].coverage).to.equal(99.57)
+      it('should read previous contents of the "package.json" file', function () {
+        expect(readFileStub).to.have.been.calledWith(location, 'utf8')
       })
 
       it('should write new contents of the "package.json" file', function () {
-        const location = path.join(process.cwd(), 'package.json')
-        expect(writeFileStub).to.have.been.calledWith(location, JSON.stringify(_pkgJson, null, 2))
+        const newPkgJson = __.cloneDeep(_pkgJson)
+        newPkgJson['pr-bumper'].coverage = 99.57
+        expect(writeFileStub).to.have.been.calledWith(location, JSON.stringify(newPkgJson, null, 2))
       })
 
       it('should add "package.json" to the list of modified files', function () {
