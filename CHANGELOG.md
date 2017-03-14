@@ -1,3 +1,24 @@
+# 1.6.0
+* **Added** the ability to ensure code coverage does not decrease because of a PR. Simply add your project's current code coverage in `package.json` under: 
+  ```js
+  "pr-bumper": {
+    "coverage": 95.93
+  }
+   ``` 
+  Then add a `pr-bumper check-coverage` call to your CI. The `check-coverage` command will fail if the current code coverage is below the baseline in your `package.json`.  
+  
+  **NOTE**: You must place the `pr-bumper check-coverage` line **after** you run your tests, or `pr-bumper` will not be able to find the current code coverage information to check against the baseline, and your build will fail regardless of your code coverage. 
+  
+  During a `pr-bumper bump` command, the current coverage will be saved to `package.json`
+
+* **Added** the ability to customize the name of the changelog file to prepend (defaults to `CHANGELOG.md` still). 
+* **Added** a `[pr-bumper]` prefix to all commits made by `pr-bumper` so they can be easily identified. 
+* **Added** a `pr-bumper: ` prefix to all messages logged to the console by `pr-bumper` so they can be easily identified. 
+* **Added** initial coverage baseline to `package.json` within this project to enable code coverage check. 
+* **Added** `check-coverage` check after the build. 
+* **Added** `.travis/maybe-check-coverage.sh` script to wrap a call to `pr-bumper check-coverage` and skip it if the commit being built is a `pr-bumper` commit.
+* **Updated** how `.travis/is-bump-commit.sh` verifies that a commit came from `pr-bumper` to match the new prefix being used by `pr-bumper` for commits. 
+
 # 1.5.0
 * **Improved** application of default values when processing `.pr-bumper.json`. Whereas previously you would have to provide an entire, complex, nested object if you wanted to override the default for any part of a config object, you can now override a partial object in your `.pr-bumper.json` and the rest of the object will get the appropriate defaults. 
 
