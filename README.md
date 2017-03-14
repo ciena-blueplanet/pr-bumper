@@ -82,7 +82,7 @@ The "current" coverage that `pr-bumper` will compare against this "baseline" wil
 There are a number of statistics in `coverage-summary.json`, but the one that `pr-bumper` looks at is the total
 percentage of lines covered, or `total.lines.pct`.
 
-### Pull Request comments
+### Pull Request comments (except on github.com)
 `pr-bumper` can post information to the pull request it is checking. This does not happen by default, but can be
 turned on by enabling the `prComments` flag in `.pr-bumper.json`:
 
@@ -99,6 +99,12 @@ When that flag is set, `pr-bumper` will post comments to pull requests in the fo
  * If code coverage decreases, it will indicate the delta, the previous value and the current value
 ##### information
  * When code coverage does not decrese, it will indicate the delta, the previous value and the current value
+
+As mentioned in the heading, PR comments do not currently work on github.com. This is because during the PR build
+`pr-bumper` does not have access to a user token with sufficient permissions to allow creation of a comment on
+an issue. We're investigating ways to allow this without having to publish a token with write permissions as
+a public variable in Travis, but for now the feature is only usable in private scenarios
+(github enterprise and bitbucket server).
 
 ## Integrations
 `pr-bumper` currently supports pull requests on [GitHub][github-url], and [Bitbucket Server][bitbucket-url]
