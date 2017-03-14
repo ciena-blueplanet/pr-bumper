@@ -1,6 +1,6 @@
 {
   "name": "pr-bumper",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "dependencies": {
     "abbrev": {
       "version": "1.0.9",
@@ -1181,9 +1181,9 @@
       "resolved": "https://registry.npmjs.org/read-package-json/-/read-package-json-2.0.5.tgz"
     },
     "readable-stream": {
-      "version": "2.2.3",
+      "version": "2.2.5",
       "from": "readable-stream@>=2.2.2 <3.0.0",
-      "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.2.3.tgz",
+      "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.2.5.tgz",
       "dev": true
     },
     "readdir-scoped-modules": {

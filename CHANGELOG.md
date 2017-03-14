@@ -1,3 +1,11 @@
+# 1.8.0 (2017-03-14)
+* **Added** ability to post comments to pull requests in certain scenarios. By default this behavior is off, it can be enabled by adding:
+  ```json
+  "prComments": true
+  ```
+  to your `.pr-bumper.json` config.
+  **Sadly** this feature does not currently work in github.com/travis scenarios. Mainly because `pr-bumper` doesn't have sufficient permissions during the PR build to post a comment on the PR. We're trying to find a way around that, but in the meantime, at least the feature can be used in bitbucket server / teamcity scenarios. 
+
 # 1.7.0 (2017-03-14)
 * **Added** a date string (ISO standard `YYYY-MM-DD`) to the title line when prepending changelog with a new version.
 * **Fixed** bug where version bump in `package.json` was being overwritten by coverage update  [#89](https://github.com/ciena-blueplanet/pr-bumper/issues/89).
