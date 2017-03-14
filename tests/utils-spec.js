@@ -108,6 +108,12 @@ function verifyGitHubTravisDefaults (ctx, propsToSkip) {
         expect(config.dependencySnapshotFile).to.equal('dependency-snapshot.json')
       })
     }
+
+    if (propsToSkip.indexOf('changelogFile') === -1) {
+      it('should default changelogFile to "CHANGELOG.md"', function () {
+        expect(config.changelogFile).to.equal('CHANGELOG.md')
+      })
+    }
   })
   /* eslint-enable complexity */
 }
@@ -165,6 +171,10 @@ function verifyBitbucketTeamcityOverrides (ctx) {
 
     it('should default dependencySnapshotFile to "dependency-snapshot.json"', function () {
       expect(config.dependencySnapshotFile).to.equal('dependency-snapshot.json')
+    })
+
+    it('should default changelogFile to "CHANGELOG.md"', function () {
+      expect(config.changelogFile).to.equal('CHANGELOG.md')
     })
   })
 }

@@ -6,6 +6,7 @@ const sinonChai = require('sinon-chai')
 const expect = chai.expect
 chai.use(sinonChai)
 
+const pkgJson = require('../package.json')
 const logger = require('../lib/logger')
 
 describe('logger', function () {
@@ -14,7 +15,7 @@ describe('logger', function () {
     it('should log to console', function () {
       stub = sinon.stub(console, 'log')
       logger.log('foo bar baz')
-      expect(console.log).to.have.been.calledWith('foo bar baz')
+      expect(console.log).to.have.been.calledWith(`${pkgJson.name}: foo bar baz`)
       stub.restore()
     })
   })
@@ -23,7 +24,7 @@ describe('logger', function () {
     it('should log to console', function () {
       stub = sinon.stub(console, 'error')
       logger.error('foo bar baz')
-      expect(console.error).to.have.been.calledWith('foo bar baz')
+      expect(console.error).to.have.been.calledWith(`${pkgJson.name}: foo bar baz`)
       stub.restore()
     })
   })

@@ -152,4 +152,23 @@ describe('CiBase', function () {
       expect(result).to.be.equal('executed')
     })
   })
+
+  describe('.tag()', function () {
+    let result
+    beforeEach(function () {
+      execStub.returns(Promise.resolve('tagged'))
+      return base.tag('v1.2.3', 'Super-cool tag description')
+        .then((res) => {
+          result = res
+        })
+    })
+
+    it('should create the tag', function () {
+      expect(execStub).to.have.been.calledWith('git tag v1.2.3 -a -m "Super-cool tag description"')
+    })
+
+    it('should resolve with the result of the exec call', function () {
+      expect(result).to.equal('tagged')
+    })
+  })
 })
