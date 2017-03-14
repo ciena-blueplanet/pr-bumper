@@ -49,7 +49,7 @@ function verifyGitHubTravisDefaults (ctx, propsToSkip) {
 
     if (propsToSkip.indexOf('ci.gitUser') === -1) {
       it('should use the proper git user', function () {
-        expect(config.ci.gitUser).to.be.eql({
+        expect(config.ci.gitUser).to.eql({
           email: 'travis.ci.ciena@gmail.com',
           name: 'Travis CI'
         })
@@ -58,43 +58,43 @@ function verifyGitHubTravisDefaults (ctx, propsToSkip) {
 
     if (propsToSkip.indexOf('ci.provider') === -1) {
       it('should use the proper ci provider', function () {
-        expect(config.ci.provider).to.be.equal('travis')
+        expect(config.ci.provider).to.equal('travis')
       })
     }
 
     if (propsToSkip.indexOf('owner') === -1) {
       it('should have the proper owner', function () {
-        expect(config.owner).to.be.equal('jdoe')
+        expect(config.owner).to.equal('jdoe')
       })
     }
 
     if (propsToSkip.indexOf('branch') === -1) {
       it('should have the proper branch', function () {
-        expect(config.branch).to.be.equal('my-branch')
+        expect(config.branch).to.equal('my-branch')
       })
     }
 
     if (propsToSkip.indexOf('repo') === -1) {
       it('should have the proper repo', function () {
-        expect(config.repo).to.be.equal('john-and-jane')
+        expect(config.repo).to.equal('john-and-jane')
       })
     }
 
     if (propsToSkip.indexOf('vcs.domain') === -1) {
       it('should have the proper vcs domain', function () {
-        expect(config.vcs.domain).to.be.equal('github.com')
+        expect(config.vcs.domain).to.equal('github.com')
       })
     }
 
     if (propsToSkip.indexOf('vcs.provider') === -1) {
       it('should have the proper vcs provider', function () {
-        expect(config.vcs.provider).to.be.equal('github')
+        expect(config.vcs.provider).to.equal('github')
       })
     }
 
     if (propsToSkip.indexOf('vcs.auth') === -1) {
       it('should have the proper vcs auth', function () {
-        expect(config.vcs.auth).to.be.eql({
+        expect(config.vcs.auth).to.eql({
           password: undefined,
           readToken: '12345',
           username: undefined,
@@ -106,6 +106,12 @@ function verifyGitHubTravisDefaults (ctx, propsToSkip) {
     if (propsToSkip.indexOf('dependencySnapshotFile') === -1) {
       it('should default dependencySnapshotFile to "dependency-snapshot.json"', function () {
         expect(config.dependencySnapshotFile).to.equal('dependency-snapshot.json')
+      })
+    }
+
+    if (propsToSkip.indexOf('changelogFile') === -1) {
+      it('should default changelogFile to "CHANGELOG.md"', function () {
+        expect(config.changelogFile).to.equal('CHANGELOG.md')
       })
     }
   })
@@ -124,38 +130,38 @@ function verifyBitbucketTeamcityOverrides (ctx) {
     })
 
     it('should have the proper git user', function () {
-      expect(config.ci.gitUser).to.be.eql({
+      expect(config.ci.gitUser).to.eql({
         email: 'teamcity@domain.com',
         name: 'teamcity'
       })
     })
 
     it('should have the proper ci provider', function () {
-      expect(config.ci.provider).to.be.equal('teamcity')
+      expect(config.ci.provider).to.equal('teamcity')
     })
 
     it('should have the proper owner', function () {
-      expect(config.owner).to.be.equal('my-project')
+      expect(config.owner).to.equal('my-project')
     })
 
     it('should have the proper repo', function () {
-      expect(config.repo).to.be.equal('my-repo')
+      expect(config.repo).to.equal('my-repo')
     })
 
     it('should have the proper branch', function () {
-      expect(config.branch).to.be.equal('my-branch')
+      expect(config.branch).to.equal('my-branch')
     })
 
     it('should have the proper vcs domain', function () {
-      expect(config.vcs.domain).to.be.equal('bitbucket.domain.com')
+      expect(config.vcs.domain).to.equal('bitbucket.domain.com')
     })
 
     it('should have the proper vcs provider', function () {
-      expect(config.vcs.provider).to.be.equal('bitbucket-server')
+      expect(config.vcs.provider).to.equal('bitbucket-server')
     })
 
     it('should have the proper vcs auth', function () {
-      expect(config.vcs.auth).to.be.eql({
+      expect(config.vcs.auth).to.eql({
         password: 'teamcity12345',
         readToken: undefined,
         username: 'teamcity',
@@ -165,6 +171,10 @@ function verifyBitbucketTeamcityOverrides (ctx) {
 
     it('should default dependencySnapshotFile to "dependency-snapshot.json"', function () {
       expect(config.dependencySnapshotFile).to.equal('dependency-snapshot.json')
+    })
+
+    it('should default changelogFile to "CHANGELOG.md"', function () {
+      expect(config.changelogFile).to.equal('CHANGELOG.md')
     })
   })
 }
@@ -204,14 +214,14 @@ describe('utils', function () {
         }
       })
 
-      describe('when doing a pull request build', function () {
+      describe('when doing a pull request build (w/o coverage in package.json)', function () {
         beforeEach(function () {
           env.TRAVIS_PULL_REQUEST = '13'
 
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          config = utils.getConfig()
+          config = utils.getConfig(null, {})
           ctx.config = config
         })
 
@@ -222,18 +232,53 @@ describe('utils', function () {
         })
 
         it('should set prNumber to the PR number', function () {
-          expect(config.prNumber).to.be.equal('13')
+          expect(config.prNumber).to.equal('13')
+        })
+
+        it('should not have a baselineCoverage set', function () {
+          expect(config.baselineCoverage).to.equal(undefined)
         })
       })
 
-      describe('when doing a merge build', function () {
+      describe('when doing a pull request build (with coverage in package.json)', function () {
+        beforeEach(function () {
+          env.TRAVIS_PULL_REQUEST = '13'
+
+          saveEnv(Object.keys(env), realEnv)
+          setEnv(env)
+
+          const pkgJson = {
+            'pr-bumper': {
+              coverage: 85.93
+            }
+          }
+          config = utils.getConfig(null, pkgJson)
+          ctx.config = config
+        })
+
+        verifyGitHubTravisDefaults(ctx)
+
+        it('should set isPr to true', function () {
+          expect(config.isPr).to.equal(true)
+        })
+
+        it('should set prNumber to the PR number', function () {
+          expect(config.prNumber).to.equal('13')
+        })
+
+        it('should set baselineCoverage to the coverage from package.json', function () {
+          expect(config.baselineCoverage).to.equal(85.93)
+        })
+      })
+
+      describe('when doing a merge build (w/o coverage in package.json)', function () {
         beforeEach(function () {
           env.TRAVIS_PULL_REQUEST = 'false'
 
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          config = utils.getConfig()
+          config = utils.getConfig(null, {})
           ctx.config = config
         })
 
@@ -244,7 +289,42 @@ describe('utils', function () {
         })
 
         it('should set prNumber to false', function () {
-          expect(config.prNumber).to.be.equal('false')
+          expect(config.prNumber).to.equal('false')
+        })
+
+        it('should not have a baselineCoverage set', function () {
+          expect(config.baselineCoverage).to.equal(undefined)
+        })
+      })
+
+      describe('when doing a merge build (with coverage in package.json)', function () {
+        beforeEach(function () {
+          const pkgJson = {
+            'pr-bumper': {
+              coverage: 85.93
+            }
+          }
+          env.TRAVIS_PULL_REQUEST = 'false'
+
+          saveEnv(Object.keys(env), realEnv)
+          setEnv(env)
+
+          config = utils.getConfig(null, pkgJson)
+          ctx.config = config
+        })
+
+        verifyGitHubTravisDefaults(ctx)
+
+        it('should set isPr to false', function () {
+          expect(config.isPr).to.equal(false)
+        })
+
+        it('should set prNumber to false', function () {
+          expect(config.prNumber).to.equal('false')
+        })
+
+        it('should set baselineCoverage to the coverage from package.json', function () {
+          expect(config.baselineCoverage).to.equal(85.93)
         })
       })
 
@@ -270,7 +350,7 @@ describe('utils', function () {
         verifyGitHubTravisDefaults(ctx, ['ci.gitUser'])
 
         it('should use the overwritten git user', function () {
-          expect(config.ci.gitUser).to.be.eql({
+          expect(config.ci.gitUser).to.eql({
             email: 'some.other.user@domain.com',
             name: 'Some Other User'
           })
@@ -280,7 +360,7 @@ describe('utils', function () {
 
     describe('GitHubEnterprise/Travis', function () {
       const ctx = {}
-      let _config
+      let _config, _pkgJson
       beforeEach(function () {
         _config = {
           ci: {
@@ -295,6 +375,12 @@ describe('utils', function () {
           }
         }
 
+        _pkgJson = {
+          'pr-bumper': {
+            coverage: 98.03
+          }
+        }
+
         env = {
           'TRAVIS_BRANCH': 'my-branch',
           'TRAVIS_BUILD_NUMBER': '123',
@@ -304,14 +390,14 @@ describe('utils', function () {
         }
       })
 
-      describe('when doing a pull request build', function () {
+      describe('when doing a pull request build (w/o coverage in package.json)', function () {
         beforeEach(function () {
           env.TRAVIS_PULL_REQUEST = '13'
 
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          config = utils.getConfig(_config)
+          config = utils.getConfig(_config, {})
           ctx.config = config
         })
 
@@ -337,18 +423,63 @@ describe('utils', function () {
         })
 
         it('should set prNumber to the PR number', function () {
-          expect(config.prNumber).to.be.equal('13')
+          expect(config.prNumber).to.equal('13')
+        })
+
+        it('should not have a baselineCoverage set', function () {
+          expect(config.baselineCoverage).to.equal(undefined)
         })
       })
 
-      describe('when doing a merge build', function () {
+      describe('when doing a pull request build (with coverage in package.json)', function () {
+        beforeEach(function () {
+          env.TRAVIS_PULL_REQUEST = '13'
+
+          saveEnv(Object.keys(env), realEnv)
+          setEnv(env)
+
+          config = utils.getConfig(_config, _pkgJson)
+          ctx.config = config
+        })
+
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+
+        it('should have the proper gitUser', function () {
+          expect(config.ci.gitUser).to.eql({
+            email: 'bot@domain.com',
+            name: 'Bot User'
+          })
+        })
+
+        it('should have the proper vcs.domain', function () {
+          expect(config.vcs.domain).to.equal('ghe.domain.com')
+        })
+
+        it('should have the proper vcs.provider', function () {
+          expect(config.vcs.provider).to.equal('github-enterprise')
+        })
+
+        it('should set isPr to true', function () {
+          expect(config.isPr).to.equal(true)
+        })
+
+        it('should set prNumber to the PR number', function () {
+          expect(config.prNumber).to.equal('13')
+        })
+
+        it('should set baselineCoverage to the coverage from package.json', function () {
+          expect(config.baselineCoverage).to.equal(98.03)
+        })
+      })
+
+      describe('when doing a merge build (w/o coverage in package.json)', function () {
         beforeEach(function () {
           env.TRAVIS_PULL_REQUEST = 'false'
 
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          config = utils.getConfig(_config)
+          config = utils.getConfig(_config, {})
           ctx.config = config
         })
 
@@ -374,7 +505,52 @@ describe('utils', function () {
         })
 
         it('should set prNumber to false', function () {
-          expect(config.prNumber).to.be.equal('false')
+          expect(config.prNumber).to.equal('false')
+        })
+
+        it('should not have a baselineCoverage set', function () {
+          expect(config.baselineCoverage).to.equal(undefined)
+        })
+      })
+
+      describe('when doing a merge build (with coverage in package.json)', function () {
+        beforeEach(function () {
+          env.TRAVIS_PULL_REQUEST = 'false'
+
+          saveEnv(Object.keys(env), realEnv)
+          setEnv(env)
+
+          config = utils.getConfig(_config, _pkgJson)
+          ctx.config = config
+        })
+
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+
+        it('should have the proper gitUser', function () {
+          expect(config.ci.gitUser).to.eql({
+            email: 'bot@domain.com',
+            name: 'Bot User'
+          })
+        })
+
+        it('should have the proper vcs.domain', function () {
+          expect(config.vcs.domain).to.equal('ghe.domain.com')
+        })
+
+        it('should have the proper vcs.provider', function () {
+          expect(config.vcs.provider).to.equal('github-enterprise')
+        })
+
+        it('should set isPr to false', function () {
+          expect(config.isPr).to.equal(false)
+        })
+
+        it('should set prNumber to false', function () {
+          expect(config.prNumber).to.equal('false')
+        })
+
+        it('should set baselineCoverage to the coverage from package.json', function () {
+          expect(config.baselineCoverage).to.equal(98.03)
         })
       })
     })
@@ -441,7 +617,7 @@ describe('utils', function () {
         })
 
         it('should set prNumber to the PR number', function () {
-          expect(config.prNumber).to.be.equal('13')
+          expect(config.prNumber).to.equal('13')
         })
       })
 
@@ -462,7 +638,7 @@ describe('utils', function () {
         })
 
         it('should set prNumber to false', function () {
-          expect(config.prNumber).to.be.equal('false')
+          expect(config.prNumber).to.equal('false')
         })
       })
 
@@ -477,7 +653,7 @@ describe('utils', function () {
         })
 
         it('should default to master branch', function () {
-          expect(config.branch).to.be.equal('master')
+          expect(config.branch).to.equal('master')
         })
       })
     })
@@ -498,7 +674,7 @@ describe('utils', function () {
 
     __.forIn(scopes, (value, key) => {
       it(`handles ${key}`, function () {
-        expect(utils.getValidatedScope(key, prNum, prUrl)).to.be.equal(value)
+        expect(utils.getValidatedScope(key, prNum, prUrl)).to.equal(value)
       })
     })
 
@@ -557,11 +733,11 @@ describe('utils', function () {
       })
 
       it('should call .getValidatedScope() with proper arguments', function () {
-        expect(utils.getValidatedScope.lastCall.args).to.be.eql(['feature', '12345', 'my-pr-url'])
+        expect(utils.getValidatedScope.lastCall.args).to.eql(['feature', '12345', 'my-pr-url'])
       })
 
       it('should return the result of .getValidatedScope()', function () {
-        expect(scope).to.be.equal('the-validated-scope')
+        expect(scope).to.equal('the-validated-scope')
       })
     })
 
@@ -578,7 +754,7 @@ describe('utils', function () {
       })
 
       it('should call .getValidatedScope() with proper arguments', function () {
-        expect(utils.getValidatedScope.lastCall.args).to.be.eql(['minor', '12345', 'my-pr-url'])
+        expect(utils.getValidatedScope.lastCall.args).to.eql(['minor', '12345', 'my-pr-url'])
       })
     })
 
@@ -616,7 +792,7 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
 
       it('should call .getValidatedScope() with proper arguments', function () {
-        expect(utils.getValidatedScope.lastCall.args).to.be.eql(['minor', '12345', 'my-pr-url'])
+        expect(utils.getValidatedScope.lastCall.args).to.eql(['minor', '12345', 'my-pr-url'])
       })
     })
   })
@@ -678,7 +854,7 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
 
       it('should grab the changelog text', function () {
-        expect(changelog).to.be.eql('## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang')
+        expect(changelog).to.eql('## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang')
       })
     })
 
@@ -689,7 +865,40 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
 
       it('should grab the changelog text', function () {
-        expect(changelog).to.be.eql('## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang')
+        expect(changelog).to.eql('## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang')
+      })
+    })
+  })
+
+  describe('.getCurrentCoverage()', function () {
+    let cov, pct
+    beforeEach(function () {
+      cov = {
+        total: {
+          lines: {
+            pct: 95.98
+          }
+        }
+      }
+    })
+
+    describe('when no coverage present', function () {
+      beforeEach(function () {
+        pct = utils.getCurrentCoverage({})
+      })
+
+      it('should return -1', function () {
+        expect(pct).to.equal(-1)
+      })
+    })
+
+    describe('when coverage is present', function () {
+      beforeEach(function () {
+        pct = utils.getCurrentCoverage(cov)
+      })
+
+      it('should return the total line pct', function () {
+        expect(pct).to.equal(95.98)
       })
     })
   })

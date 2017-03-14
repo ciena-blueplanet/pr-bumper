@@ -9,6 +9,7 @@ before_script:
 - .travis/maybe-check-scope.sh
 script:
 - .travis/maybe-test.sh
+- .travis/maybe-check-coverage.sh
 - .travis/maybe-bump-version.sh
 after_success:
 - .travis/maybe-publish-coverage.sh
