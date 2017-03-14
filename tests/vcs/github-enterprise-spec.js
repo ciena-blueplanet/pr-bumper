@@ -10,7 +10,7 @@ chai.use(sinonChai)
 const logger = require('../../lib/logger')
 const GitHubEnterprise = rewire('../../lib/vcs/github-enterprise')
 
-describe('GitHub', function () {
+describe('GitHub Enterprise', function () {
   let config, sandbox, github, execStub, fetchStub, revertFetchRewire, revertExecRewire
   beforeEach(function () {
     sandbox = sinon.sandbox.create()
@@ -61,6 +61,25 @@ describe('GitHub', function () {
     expect(github.config).to.be.eql(config)
   })
 
+  describe('.addRemoteForPush()', function () {
+    let remoteName
+    beforeEach(function () {
+      execStub.returns(Promise.resolve())
+      return github.addRemoteForPush().then((name) => {
+        remoteName = name
+      })
+    })
+
+    it('should makes the proper git remote command', function () {
+      const url = 'https://my-gh-token@my-ghe.com/me/my-repo'
+      expect(execStub.firstCall.args).to.be.eql([`git remote add ci-origin ${url}`])
+    })
+
+    it('should resolve with the proper remote name', function () {
+      expect(remoteName).to.be.equal('ci-origin')
+    })
+  })
+
   describe('.getPr()', function () {
     let resolution, rejection, promise, fetchResolver
     beforeEach(function () {
@@ -72,6 +91,7 @@ describe('GitHub', function () {
 
       fetchStub.returns(fetchPromise)
 
+      resolution = rejection = null
       promise = github.getPr('5')
         .then((resp) => {
           resolution = resp
@@ -94,7 +114,7 @@ describe('GitHub', function () {
       )
     })
 
-    describe('when fetch succeeds', function () {
+    describe('when fetch resolves with success', function () {
       let resp
       beforeEach(function (done) {
         resp = {ok: true, status: 200, json: function () {}}
@@ -125,6 +145,31 @@ describe('GitHub', function () {
       })
     })
 
+    describe('when fetch resolves with error', function () {
+      let resp, err
+      beforeEach(function (done) {
+        resp = {ok: false, status: 400, json () {}}
+        err = {
+          message: 'Uh oh'
+        }
+        sandbox.stub(resp, 'json').returns(Promise.resolve(err))
+
+        promise.catch(() => {
+          done()
+        })
+
+        fetchResolver.resolve(resp)
+      })
+
+      it('should not resolve', function () {
+        expect(resolution).to.equal(null)
+      })
+
+      it('should reject with the proper error', function () {
+        expect(rejection).to.be.eql(new Error(`400: ${JSON.stringify(err)}`))
+      })
+    })
+
     describe('when fetch errors', function () {
       beforeEach(function (done) {
         promise.catch(() => {
@@ -140,22 +185,92 @@ describe('GitHub', function () {
     })
   })
 
-  describe('.addRemoteForPush()', function () {
-    let remoteName
+  describe('.postComment()', function () {
+    let resolution, rejection, promise, fetchResolver
     beforeEach(function () {
-      execStub.returns(Promise.resolve())
-      return github.addRemoteForPush().then((name) => {
-        remoteName = name
+      fetchResolver = {}
+      let fetchPromise = new Promise((resolve, reject) => {
+        fetchResolver.resolve = resolve
+        fetchResolver.reject = reject
+      })
+
+      fetchStub.returns(fetchPromise)
+
+      resolution = rejection = null
+      promise = github.postComment('5', 'Missing PR scope!')
+        .then((resp) => {
+          resolution = resp
+          return resolution
+        })
+        .catch((err) => {
+          rejection = err
+          throw err
+        })
+    })
+
+    it('should call fetch with proper params', function () {
+      const url = 'https://my-ghe.com/api/v3/repos/me/my-repo/issues/5/comments'
+      expect(fetchStub).to.have.been.calledWith(url, {
+        method: 'POST',
+        body: JSON.stringify({body: 'Missing PR scope!'}),
+        headers: {'Content-Type': 'application/json'}
       })
     })
 
-    it('should makes the proper git remote command', function () {
-      const url = 'https://my-gh-token@my-ghe.com/me/my-repo'
-      expect(execStub.firstCall.args).to.be.eql([`git remote add ci-origin ${url}`])
+    describe('when fetch resolves with success', function () {
+      beforeEach(function (done) {
+        promise.then(() => {
+          done()
+        })
+        fetchResolver.resolve({ok: true})
+      })
+
+      it('should resolve', function () {
+        expect(resolution).to.equal(undefined)
+      })
     })
 
-    it('should resolve with the proper remote name', function () {
-      expect(remoteName).to.be.equal('ci-origin')
+    describe('when fetch resolves with error', function () {
+      let resp, err
+      beforeEach(function (done) {
+        err = {message: 'Uh oh'}
+        resp = {
+          ok: false,
+          status: 400,
+          json () {
+            return err
+          }
+        }
+        promise.catch(() => {
+          done()
+        })
+        fetchResolver.resolve(resp)
+      })
+
+      it('should not resolve', function () {
+        expect(resolution).to.equal(null)
+      })
+
+      it('should reject with proper error', function () {
+        expect(rejection).to.eql(new Error(`400: ${JSON.stringify(err)}`))
+      })
+    })
+
+    describe('when fetch rejects', function () {
+      beforeEach(function (done) {
+        promise.catch(() => {
+          done()
+        })
+        fetchResolver.reject('Uh oh')
+      })
+
+      it('should not resolve', function () {
+        expect(resolution).to.equal(null)
+      })
+
+      it('should reject with proper error', function () {
+        expect(rejection).to.equal('Uh oh')
+      })
     })
   })
 })

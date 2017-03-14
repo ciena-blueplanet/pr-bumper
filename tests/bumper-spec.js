@@ -155,15 +155,17 @@ describe('Bumper', function () {
   })
 
   describe('.checkCoverage()', function () {
-    let result, error
+    let result, error, errorMsg
     beforeEach(function () {
       result = error = null
+      sandbox.stub(utils, 'maybePostComment').returns(Promise.resolve())
     })
 
     describe('when no baseline coverage', function () {
       beforeEach(function (done) {
         delete bumper.config.baselineCoverage
-
+        const link = 'https://github.com/ciena-blueplanet/pr-bumper#code-coverage'
+        errorMsg = `No baseline coverage info found!\nSee ${link} for configuration info.`
         bumper.checkCoverage()
           .then((resp) => {
             result = resp
@@ -181,9 +183,11 @@ describe('Bumper', function () {
         expect(result).to.equal(null)
       })
 
+      it('should maybe post a comment', function () {
+        expect(utils.maybePostComment).to.have.been.calledWith(bumper.config, bumper.vcs, errorMsg)
+      })
+
       it('should reject with an error', function () {
-        const link = 'https://github.com/ciena-blueplanet/pr-bumper#code-coverage'
-        const errorMsg = `No baseline coverage info found!\nSee ${link} for configuration info.`
         expect(error).to.equal(errorMsg)
       })
     })
@@ -191,6 +195,8 @@ describe('Bumper', function () {
     describe('when baseline coverage is not a number', function () {
       beforeEach(function (done) {
         bumper.config.baselineCoverage = '85.93'
+        const link = 'https://github.com/ciena-blueplanet/pr-bumper#code-coverage'
+        errorMsg = `No baseline coverage info found!\nSee ${link} for configuration info.`
 
         bumper.checkCoverage()
           .then((resp) => {
@@ -209,9 +215,11 @@ describe('Bumper', function () {
         expect(result).to.equal(null)
       })
 
+      it('should maybe post a comment', function () {
+        expect(utils.maybePostComment).to.have.been.calledWith(bumper.config, bumper.vcs, errorMsg)
+      })
+
       it('should reject with an error', function () {
-        const link = 'https://github.com/ciena-blueplanet/pr-bumper#code-coverage'
-        const errorMsg = `No baseline coverage info found!\nSee ${link} for configuration info.`
         expect(error).to.equal(errorMsg)
       })
     })
@@ -220,6 +228,8 @@ describe('Bumper', function () {
       beforeEach(function (done) {
         bumper.config.baselineCoverage = 85.93
         sandbox.stub(utils, 'getCurrentCoverage').returns(-1)
+        const link = 'https://github.com/ciena-blueplanet/pr-bumper#code-coverage'
+        errorMsg = `No current coverage info found!\nSee ${link} for configuration info.`
 
         bumper.checkCoverage()
           .then((resp) => {
@@ -238,9 +248,11 @@ describe('Bumper', function () {
         expect(result).to.equal(null)
       })
 
+      it('should maybe post a comment', function () {
+        expect(utils.maybePostComment).to.have.been.calledWith(bumper.config, bumper.vcs, errorMsg)
+      })
+
       it('should reject with an error', function () {
-        const link = 'https://github.com/ciena-blueplanet/pr-bumper#code-coverage'
-        const errorMsg = `No current coverage info found!\nSee ${link} for configuration info.`
         expect(error).to.equal(errorMsg)
       })
     })
@@ -249,6 +261,7 @@ describe('Bumper', function () {
       beforeEach(function (done) {
         bumper.config.baselineCoverage = 85.93
         sandbox.stub(utils, 'getCurrentCoverage').returns(84.99)
+        errorMsg = 'Coverage dropped 0.94% (from 85.93% to 84.99%) in this PR!'
 
         bumper.checkCoverage()
           .then((resp) => {
@@ -267,16 +280,21 @@ describe('Bumper', function () {
         expect(result).to.equal(null)
       })
 
+      it('should maybe post a comment', function () {
+        expect(utils.maybePostComment).to.have.been.calledWith(bumper.config, bumper.vcs, errorMsg)
+      })
+
       it('should reject with an error', function () {
-        const errorMsg = 'Coverage dropped 0.94% (from 85.93% to 84.99%) in this PR!'
         expect(error).to.equal(errorMsg)
       })
     })
 
     describe('when coverage stays the same', function () {
+      let msg
       beforeEach(function (done) {
         bumper.config.baselineCoverage = 85.93
         sandbox.stub(utils, 'getCurrentCoverage').returns(85.93)
+        msg = 'Coverage remained the same (at 85.93%) in this PR.'
 
         bumper.checkCoverage()
           .then((resp) => {
@@ -299,15 +317,21 @@ describe('Bumper', function () {
         expect(error).to.equal(null)
       })
 
+      it('should maybe post a comment', function () {
+        expect(utils.maybePostComment).to.have.been.calledWith(bumper.config, bumper.vcs, msg)
+      })
+
       it('should log a message', function () {
-        expect(logger.log).to.have.been.calledWith('Coverage remained the same (at 85.93%) in this PR.')
+        expect(logger.log).to.have.been.calledWith(msg)
       })
     })
 
     describe('when coverage increases', function () {
+      let msg
       beforeEach(function (done) {
         bumper.config.baselineCoverage = 85.93
         sandbox.stub(utils, 'getCurrentCoverage').returns(88.01)
+        msg = 'Coverage increased 2.08% (from 85.93% to 88.01%) in this PR! Good job :)'
 
         bumper.checkCoverage()
           .then((resp) => {
@@ -330,8 +354,11 @@ describe('Bumper', function () {
         expect(error).to.equal(null)
       })
 
+      it('should maybe post a comment', function () {
+        expect(utils.maybePostComment).to.have.been.calledWith(bumper.config, bumper.vcs, msg)
+      })
+
       it('should log a message', function () {
-        const msg = 'Coverage increased 2.08% (from 85.93% to 88.01%) in this PR! Good job :)'
         expect(logger.log).to.have.been.calledWith(msg)
       })
     })
@@ -549,7 +576,7 @@ describe('Bumper', function () {
     let getPrResolver, resolution, rejection, promise
 
     beforeEach(function () {
-      bumper.vcs = {getPr: function () {}}
+      bumper.vcs = {getPr () {}}
 
       getPrResolver = {}
       const getPrPromise = new Promise((resolve, reject) => {
@@ -755,11 +782,12 @@ describe('Bumper', function () {
     let result
     beforeEach(function () {
       bumper.config = {foo: 'bar', prNumber: '123'}
-      bumper.vcs = {getPr: function () {}}
+      bumper.vcs = {getPr () {}}
 
       sandbox.stub(bumper.vcs, 'getPr').returns(Promise.resolve('the-pr'))
       sandbox.stub(utils, 'getScopeForPr').returns('patch')
       sandbox.stub(utils, 'getChangelogForPr').returns('the-changelog')
+      sandbox.spy(utils, 'maybePostCommentOnError')
     })
 
     describe('when prependChangelog is set', function () {
@@ -786,6 +814,74 @@ describe('Bumper', function () {
         expect(result).to.be.eql({
           changelog: 'the-changelog',
           scope: 'patch'
+        })
+      })
+
+      describe('the first call to maybePostCommentOnError()', function () {
+        let args
+        beforeEach(function () {
+          args = utils.maybePostCommentOnError.firstCall.args
+        })
+
+        it('should pass in the config', function () {
+          expect(args[0]).to.equal(bumper.config)
+        })
+
+        it('should pass in the vcs', function () {
+          expect(args[1]).to.equal(bumper.vcs)
+        })
+
+        describe('when the wrapped function is called', function () {
+          let ret
+          beforeEach(function () {
+            utils.getScopeForPr.reset()
+            ret = args[2]()
+          })
+
+          it('should get the scope', function () {
+            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr')
+          })
+
+          it('should return the pr and scope', function () {
+            expect(ret).to.eql({
+              pr: 'the-pr',
+              scope: 'patch'
+            })
+          })
+        })
+      })
+
+      describe('the second call to maybePostCommentOnError()', function () {
+        let args
+        beforeEach(function () {
+          args = utils.maybePostCommentOnError.secondCall.args
+        })
+
+        it('should pass in the config', function () {
+          expect(args[0]).to.equal(bumper.config)
+        })
+
+        it('should pass in the vcs', function () {
+          expect(args[1]).to.equal(bumper.vcs)
+        })
+
+        describe('when the wrapped function is called', function () {
+          let ret
+          beforeEach(function () {
+            utils.getChangelogForPr.reset()
+            ret = args[2]()
+          })
+
+          it('should get the changelog', function () {
+            expect(utils.getChangelogForPr).to.have.been.calledWith('the-pr')
+          })
+
+          it('should return the changelog and scope', function () {
+            expect(ret).to.eql({
+              changelog: 'the-changelog',
+              scope: 'patch'
+            })
+          })
         })
       })
     })

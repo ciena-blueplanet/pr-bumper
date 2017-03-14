@@ -77,9 +77,28 @@ That would indicate to `pr-bumper` that the current coverage for your repository
 below that will fail the `pr-bumper check-coverage` check, and can then fail your CI build if you include the running
 of `pr-bumper check-coverage` in your CI (after your tests run and coverage is reported of course).
 
-The "current" coverage that `pr-bumper` will compare against this "baseline" will be read from the file at `coverage/coverage-summary.json`. This can be populated using the `json-summary` reporter from `istanbul`.
+The "current" coverage that `pr-bumper` will compare against this "baseline" will be read from the file at
+`coverage/coverage-summary.json`. This can be populated using the `json-summary` reporter from `istanbul`.
 There are a number of statistics in `coverage-summary.json`, but the one that `pr-bumper` looks at is the total
 percentage of lines covered, or `total.lines.pct`.
+
+### Pull Request comments
+`pr-bumper` can post information to the pull request it is checking. This does not happen by default, but can be
+turned on by enabling the `prComments` flag in `.pr-bumper.json`:
+
+```json
+"prComments": true
+```
+
+When that flag is set, `pr-bumper` will post comments to pull requests in the following situations:
+
+**NOTE** The changelog and code coverage comments are only made if those features are enabled.
+##### Errors
+ * If no valid PR scope is found in the PR description
+ * If no `# CHANGELOG` section is found in the PR description
+ * If code coverage decreases, it will indicate the delta, the previous value and the current value
+##### information
+ * When code coverage does not decrese, it will indicate the delta, the previous value and the current value
 
 ## Integrations
 `pr-bumper` currently supports pull requests on [GitHub][github-url], and [Bitbucket Server][bitbucket-url]
@@ -137,9 +156,15 @@ Add the following snippet to your `.travis.yml` file to integrate `pr-bumper`
 
 This will allow `pr-bumper` to be installed for your build, allow it to check for the existence of version-bump
 comments on your PRs, as well as allow it to automatically version-bump and git tag your releases before you deploy
-them. You'll notice that in the *deploy* section we tell Travis to deploy for all branches when a tag is part of the commit. The way this works is when you merge a pull request the merge build will run the tests as well as the pr-bumper bump command. As part of this build a new commit will be pushed back to your VCS firing off two new builds, one for the branch and one for the tag. The build for the branch will be exited as soon as possible as we don't care about that build. The build for the tag is where the actual deployment to npm will occur.
+them. You'll notice that in the *deploy* section we tell Travis to deploy for all branches when a tag is part of the
+commit. The way this works is when you merge a pull request the merge build will run the tests as well as the
+`pr-bumper bump` command. As part of this build a new commit will be pushed back to your VCS firing off two new builds,
+one for the branch and one for the tag. The build for the branch will be exited as soon as possible as we don't care
+about that build. The build for the tag is where the actual deployment to npm will occur.
 
-*NOTE: The above snippet uses the scripts from this project itself which may or may not suite your needs. If you find one of the scripts doesn't do exactly what you need, then copy it directly into your project, modify it, and update the Travis config to run you modified copy instead.*
+*NOTE: The above snippet uses the scripts from this project itself which may or may not suite your needs. If you find
+one of the scripts doesn't do exactly what you need, then copy it directly into your project, modify it, and update
+the Travis config to run you modified copy instead.*
 
 Before `pr-bumper` can push commits and tags back to your repository however, you need to set up authentication.
 
@@ -163,7 +188,8 @@ Otherwise, replace the `owner/repo` with the organization and repo of your `upst
 [env-docs]: https://docs.travis-ci.com/user/environment-variables/#Encrypted-Variables
 Also, to avoid rate-limit issues on API requests to github, you should also specify a `RO_GH_TOKEN`
 for `pr-bumper` to use when making read requests to github. This is necessary because secure environment variables are
-not available to pull request builds when coming from forks in travis for [security reasons][env-docs].
+not available to pull request builds when coming from forks in travis for [security reasons][env-docs]. The
+`RO_GH_TOKEN` will also be required if you opt-in to having `pr-bumper` post comments to your pull requests.
 
 > **NOTE** Since `RO_GH_TOKEN` is not secure, it is printed directly into your Travis Logs!!!
 > So, make sure it has only read access to your repository. Hence the name `RO_GH_TOKEN` (Read Only GitHub Token)
