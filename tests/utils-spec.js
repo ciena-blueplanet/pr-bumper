@@ -922,7 +922,7 @@ Thought this might be #breaking# but on second thought it is a minor change
     beforeEach(function () {
       cov = {
         total: {
-          lines: {
+          statements: {
             pct: 95.98
           }
         }
