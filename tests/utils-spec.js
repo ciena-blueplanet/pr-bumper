@@ -1031,6 +1031,47 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
     })
 
+    describe('when prComments is true, and isPr is true, but SKIP_COMMENTS is in env', function () {
+      let realSkipComments
+      beforeEach(function (done) {
+        realSkipComments = process.env['SKIP_COMMENTS']
+        process.env['SKIP_COMMENTS'] = '1'
+        config.isPr = true
+        config.prComments = true
+        utils.maybePostComment(config, vcs, 'fizz-bang')
+          .then((resp) => {
+            result = resp
+          })
+          .catch((err) => {
+            error = err
+          })
+
+        setTimeout(() => {
+          done()
+        }, 0)
+      })
+
+      afterEach(function () {
+        if (realSkipComments !== undefined) {
+          process.env['SKIP_COMMENTS'] = realSkipComments
+        } else {
+          delete process.env['SKIP_COMMENTS']
+        }
+      })
+
+      it('should not post a comment', function () {
+        expect(vcs.postComment).to.have.callCount(0)
+      })
+
+      it('should not reject', function () {
+        expect(error).to.equal(null)
+      })
+
+      it('should resolve', function () {
+        expect(result).to.equal(undefined)
+      })
+    })
+
     describe('and prComments is true and isPr is true', function () {
       let promise
       beforeEach(function () {
