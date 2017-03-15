@@ -1,3 +1,6 @@
+# 1.9.0 (2017-03-15)
+* **Added** support for skipping pr comments in the `pr-bumper check-coverage` command by supplying a `SKIP_COMMENTS` env variable.
+
 # 1.8.2 (2017-03-15)
 * **Fixed** PR comments to use `## ERROR` instead of `##ERROR` since apparently at least bitbucket doesn't consider the latter a heading. 
 
