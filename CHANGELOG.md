@@ -1,3 +1,6 @@
+# 1.10.0 (2017-03-15)
+* **Updated** check for current coverage to use `statements` instead of `lines` as it seems the more accurate metric.
+
 # 1.9.0 (2017-03-15)
 * **Added** support for skipping pr comments in the `pr-bumper check-coverage` command by supplying a `SKIP_COMMENTS` env variable.
 
