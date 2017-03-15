@@ -18,9 +18,8 @@ Use text from a pull request description to automatically bump the version numbe
 ## Pull Requests
 `pr-bumper` uses [Semantic Versioning](http://semver.org/).
 
-Pull requests must include a directive indicating the
-scope of the change being made (`major`/`minor`/`patch`/`none`). Directives are **case insensitive** and wrapped in `#` to
-avoid a description such as
+Pull request descriptions must include a directive indicating the scope of the change being made
+(`major`/`minor`/`patch`/`none`). Directives are **case insensitive** and wrapped in `#` to avoid a description such as
 
 ```
 Fixing a major bug in the code
@@ -62,6 +61,43 @@ will know exactly what to do before the build fails.
 [travis-url]: https://travis-ci.org
 [teamcity-url]: https://www.jetbrains.com/teamcity/
 
+### CHANGELOG
+`pr-bumper` includes support for managing your `CHANGELOG.md` file for you. This feature is enabled by default, but
+can be disabled by setting `prependChangelog` to `false` in `.pr-bumper.json`:
+
+```json
+"prependChangelog": false
+```
+
+You can also change the name of your changelog file from `CHANGELOG.md` to something else using the `changelogFile`
+property in `.pr-bumper.json`:
+
+```json
+"changelogFile": "CHANGES.md"
+```
+
+When `prependChangelog` is `true` (the default), `pr-bumper` will ensure that a `# CHANGELOG` section exists in your
+PR description during the `pr-bumper check`. Then, during a `pr-bumper bump` it will take all the content below the
+`# CHANGELOG` line, and prepend it to the `CHANGELOG.md` (or whatever file is configured). It will give this new
+content a heading with the newly bumped version number, along with the date (in ISO `yyy-mm-dd` format, based on UTC)
+
+So, if your project is at version `1.2.3` and you have a PR description that looks like:
+
+```
+This is a new #feature#
+
+# CHANGELOG
+ * **Added** the ability to do fizz-bang
+```
+
+that is merged on January 15th, 2017, `pr-bumper` will prepend your `CHANGELOG.md` with the following:
+
+```
+# 1.3.0 (2017-01-15)
+ * **Added** the ability to do fizz-bang
+
+```
+
 ### Code Coverage
 `pr-bumper` supports ensuring that code coverage is not decreasing because of a pull request. This is achieved by
 comparing the current code coverage against a saved "baseline" coverage percentage. Enabling this feature is done
@@ -82,7 +118,9 @@ The "current" coverage that `pr-bumper` will compare against this "baseline" wil
 There are a number of statistics in `coverage-summary.json`, but the one that `pr-bumper` looks at is the total
 percentage of lines covered, or `total.lines.pct`.
 
-### Pull Request comments (except on github.com)
+### Pull Request comments
+> **EXCEPT** on github.com
+
 `pr-bumper` can post information to the pull request it is checking. This does not happen by default, but can be
 turned on by enabling the `prComments` flag in `.pr-bumper.json`:
 
@@ -100,7 +138,7 @@ When that flag is set, `pr-bumper` will post comments to pull requests in the fo
 ##### information
  * When code coverage does not decrese, it will indicate the delta, the previous value and the current value
 
-As mentioned in the heading, PR comments do not currently work on github.com. This is because during the PR build
+As mentioned above, PR comments do not currently work on github.com. This is because during the PR build
 `pr-bumper` does not have access to a user token with sufficient permissions to allow creation of a comment on
 an issue. We're investigating ways to allow this without having to publish a token with write permissions as
 a public variable in Travis, but for now the feature is only usable in private scenarios

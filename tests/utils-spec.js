@@ -366,6 +366,22 @@ describe('utils', function () {
           })
         })
       })
+
+      describe('when pr env is missing', function () {
+        let _config
+        beforeEach(function () {
+          env.TRAVIS_PULL_REQUEST = undefined
+          saveEnv(Object.keys(env), realEnv)
+          setEnv(env)
+
+          config = utils.getConfig(_config)
+          ctx.config = config
+        })
+
+        it('should not consider it a PR', function () {
+          expect(config.isPr).to.equal(false)
+        })
+      })
     })
 
     describe('GitHubEnterprise/Travis', function () {
@@ -735,7 +751,9 @@ describe('utils', function () {
           utils.getScopeForPr(pr)
         }
 
-        expect(fn).to.throw('No version-bump scope found for PR #12345 (my-pr-url)')
+        const example = 'Please include a scope (i.e. `#major`, `#minor#`, `#patch#`) in your PR description.'
+        const exampleLink = 'See https://github.com/ciena-blueplanet/pr-bumper#pull-requests for more details.'
+        expect(fn).to.throw(`No version-bump scope found for [PR #12345](my-pr-url)\n${example}\n${exampleLink}`)
       })
     })
 
@@ -749,7 +767,7 @@ describe('utils', function () {
           utils.getScopeForPr(pr)
         }
 
-        expect(fn).to.throw('Too many version-bump scopes found for PR #12345 (my-pr-url)')
+        expect(fn).to.throw('Too many version-bump scopes found for [PR #12345](my-pr-url)')
       })
     })
 
@@ -800,7 +818,7 @@ describe('utils', function () {
           utils.getScopeForPr(pr)
         }
 
-        expect(fn).to.throw('Too many version-bump scopes found for PR #12345 (my-pr-url)')
+        expect(fn).to.throw('Too many version-bump scopes found for [PR #12345](my-pr-url)')
       })
     })
 
@@ -825,8 +843,10 @@ Thought this might be #breaking# but on second thought it is a minor change
   })
 
   describe('.getChangelogForPr()', function () {
+    const link = 'https://github.com/ciena-blueplanet/pr-bumper#changelog'
     const errorMsg = 'No CHANGELOG content found in PR description.\n' +
-      'Please add a "# CHANGELOG" section to your PR description with some content describing your change'
+      'Please add a `# CHANGELOG` section to your PR description with some content describing your change.\n' +
+      `See ${link} for details.`
 
     let pr, changelog
 
@@ -1061,7 +1081,67 @@ Thought this might be #breaking# but on second thought it is a minor change
         })
 
         it('should reject with a combined error', function () {
-          const msg = 'Received error: Aw snap! while trying to post PR comment about: fizz-bang'
+          const msg = 'Received error: Aw snap! while trying to post PR comment: fizz-bang'
+          expect(error.message).to.equal(msg)
+        })
+
+        it('should not resolve', function () {
+          expect(result).to.equal(null)
+        })
+      })
+    })
+
+    describe('and prComments is true and isPr is true, and isError is true', function () {
+      let promise
+      beforeEach(function () {
+        config.prComments = true
+        promise = utils.maybePostComment(config, vcs, 'fizz-bang', true)
+          .then((resp) => {
+            result = resp
+          })
+          .catch((err) => {
+            error = err
+            throw err
+          })
+      })
+
+      it('should post a comment', function () {
+        expect(vcs.postComment).to.have.been.calledWith(config.prNumber, '##ERROR\nfizz-bang')
+      })
+
+      it('should not reject yet', function () {
+        expect(error).to.equal(null)
+      })
+
+      it('should not resolve yet', function () {
+        expect(result).to.equal(null)
+      })
+
+      describe('when postComment succeeds', function () {
+        beforeEach(function () {
+          resolver.resolve()
+          return promise
+        })
+
+        it('should not reject', function () {
+          expect(error).to.equal(null)
+        })
+
+        it('should resolve', function () {
+          expect(result).to.equal(undefined)
+        })
+      })
+
+      describe('when postComment fails', function () {
+        beforeEach(function (done) {
+          resolver.reject(new Error('Aw snap!'))
+          promise.catch(() => {
+            done()
+          })
+        })
+
+        it('should reject with a combined error', function () {
+          const msg = 'Received error: Aw snap! while trying to post PR comment: ##ERROR\nfizz-bang'
           expect(error.message).to.equal(msg)
         })
 
@@ -1211,7 +1291,7 @@ Thought this might be #breaking# but on second thought it is a minor change
         })
 
         it('should post a comment', function () {
-          expect(vcs.postComment).to.have.been.calledWith(config.prNumber, 'Uh oh!')
+          expect(vcs.postComment).to.have.been.calledWith(config.prNumber, '##ERROR\nUh oh!')
         })
 
         it('should not reject yet', function () {

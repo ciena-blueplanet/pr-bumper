@@ -80,6 +80,7 @@ describe('Bumper', function () {
   beforeEach(function () {
     sandbox = sinon.sandbox.create()
     sandbox.stub(logger, 'log')
+    sandbox.stub(logger, 'error')
 
     // stub out the top-level 'exec'
     execStub = sandbox.stub()
@@ -184,7 +185,7 @@ describe('Bumper', function () {
       })
 
       it('should maybe post a comment', function () {
-        expect(utils.maybePostComment).to.have.been.calledWith(bumper.config, bumper.vcs, errorMsg)
+        expect(utils.maybePostComment).to.have.been.calledWith(bumper.config, bumper.vcs, errorMsg, true)
       })
 
       it('should reject with an error', function () {
@@ -216,7 +217,7 @@ describe('Bumper', function () {
       })
 
       it('should maybe post a comment', function () {
-        expect(utils.maybePostComment).to.have.been.calledWith(bumper.config, bumper.vcs, errorMsg)
+        expect(utils.maybePostComment).to.have.been.calledWith(bumper.config, bumper.vcs, errorMsg, true)
       })
 
       it('should reject with an error', function () {
@@ -249,7 +250,7 @@ describe('Bumper', function () {
       })
 
       it('should maybe post a comment', function () {
-        expect(utils.maybePostComment).to.have.been.calledWith(bumper.config, bumper.vcs, errorMsg)
+        expect(utils.maybePostComment).to.have.been.calledWith(bumper.config, bumper.vcs, errorMsg, true)
       })
 
       it('should reject with an error', function () {
@@ -261,7 +262,7 @@ describe('Bumper', function () {
       beforeEach(function (done) {
         bumper.config.baselineCoverage = 85.93
         sandbox.stub(utils, 'getCurrentCoverage').returns(84.99)
-        errorMsg = 'Coverage dropped 0.94% (from 85.93% to 84.99%) in this PR!'
+        errorMsg = 'Code Coverage: `84.99%` (dropped `0.94%` from `85.93%`)'
 
         bumper.checkCoverage()
           .then((resp) => {
@@ -294,7 +295,7 @@ describe('Bumper', function () {
       beforeEach(function (done) {
         bumper.config.baselineCoverage = 85.93
         sandbox.stub(utils, 'getCurrentCoverage').returns(85.93)
-        msg = 'Coverage remained the same (at 85.93%) in this PR.'
+        msg = 'Code Coverage: `85.93%` (no change)'
 
         bumper.checkCoverage()
           .then((resp) => {
@@ -322,7 +323,7 @@ describe('Bumper', function () {
       })
 
       it('should log a message', function () {
-        expect(logger.log).to.have.been.calledWith(msg)
+        expect(logger.log).to.have.been.calledWith(msg, true)
       })
     })
 
@@ -331,7 +332,7 @@ describe('Bumper', function () {
       beforeEach(function (done) {
         bumper.config.baselineCoverage = 85.93
         sandbox.stub(utils, 'getCurrentCoverage').returns(88.01)
-        msg = 'Coverage increased 2.08% (from 85.93% to 88.01%) in this PR! Good job :)'
+        msg = 'Code Coverage: `88.01%` (increased `2.08%` from `85.93%`)'
 
         bumper.checkCoverage()
           .then((resp) => {
@@ -359,7 +360,7 @@ describe('Bumper', function () {
       })
 
       it('should log a message', function () {
-        expect(logger.log).to.have.been.calledWith(msg)
+        expect(logger.log).to.have.been.calledWith(msg, true)
       })
     })
   })
