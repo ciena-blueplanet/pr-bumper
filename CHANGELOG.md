@@ -1,3 +1,12 @@
+# 1.8.1 (2017-03-15)
+* **Fixed** bug where `pr-bumper check-coverage` failed in dev if `prComments` was `true`
+* **Fixed** logging in `pr-bumper` to only print if `VERBOSE` environment variable is set (except for coverage info, that is forced to log regardless)
+* **Fixed** PR comments to include clear indication if the message is the result of an error.
+* **Fixed** PR comments to be formatted nicer (using markdown syntax)
+* **Fixed** PR comments to be more detailed and offer a clearer path to know how to resolve the issue at hand. 
+* **Added** more documentation about the changelog feature
+
+
 # 1.8.0 (2017-03-14)
 * **Added** ability to post comments to pull requests in certain scenarios. By default this behavior is off, it can be enabled by adding:
   ```json

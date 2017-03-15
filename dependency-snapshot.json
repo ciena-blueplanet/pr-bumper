@@ -1,6 +1,6 @@
 {
   "name": "pr-bumper",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "dependencies": {
     "abbrev": {
       "version": "1.0.9",
@@ -656,9 +656,9 @@
       "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.15.tgz"
     },
     "ignore": {
-      "version": "3.2.4",
+      "version": "3.2.5",
       "from": "ignore@>=3.2.0 <4.0.0",
-      "resolved": "https://registry.npmjs.org/ignore/-/ignore-3.2.4.tgz",
+      "resolved": "https://registry.npmjs.org/ignore/-/ignore-3.2.5.tgz",
       "dev": true
     },
     "imurmurhash": {
