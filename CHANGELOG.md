@@ -1,3 +1,7 @@
+# 1.8.2 (2017-03-15)
+* **Fixed** PR comments to use `## ERROR` instead of `##ERROR` since apparently at least bitbucket doesn't consider the latter a heading. 
+
+
 # 1.8.1 (2017-03-15)
 * **Fixed** bug where `pr-bumper check-coverage` failed in dev if `prComments` was `true`
 * **Fixed** logging in `pr-bumper` to only print if `VERBOSE` environment variable is set (except for coverage info, that is forced to log regardless)
