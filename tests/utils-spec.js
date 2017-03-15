@@ -1106,7 +1106,7 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
 
       it('should post a comment', function () {
-        expect(vcs.postComment).to.have.been.calledWith(config.prNumber, '##ERROR\nfizz-bang')
+        expect(vcs.postComment).to.have.been.calledWith(config.prNumber, '## ERROR\nfizz-bang')
       })
 
       it('should not reject yet', function () {
@@ -1141,7 +1141,7 @@ Thought this might be #breaking# but on second thought it is a minor change
         })
 
         it('should reject with a combined error', function () {
-          const msg = 'Received error: Aw snap! while trying to post PR comment: ##ERROR\nfizz-bang'
+          const msg = 'Received error: Aw snap! while trying to post PR comment: ## ERROR\nfizz-bang'
           expect(error.message).to.equal(msg)
         })
 
@@ -1291,7 +1291,7 @@ Thought this might be #breaking# but on second thought it is a minor change
         })
 
         it('should post a comment', function () {
-          expect(vcs.postComment).to.have.been.calledWith(config.prNumber, '##ERROR\nUh oh!')
+          expect(vcs.postComment).to.have.been.calledWith(config.prNumber, '## ERROR\nUh oh!')
         })
 
         it('should not reject yet', function () {
