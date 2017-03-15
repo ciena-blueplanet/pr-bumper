@@ -116,7 +116,7 @@ of `pr-bumper check-coverage` in your CI (after your tests run and coverage is r
 The "current" coverage that `pr-bumper` will compare against this "baseline" will be read from the file at
 `coverage/coverage-summary.json`. This can be populated using the `json-summary` reporter from `istanbul`.
 There are a number of statistics in `coverage-summary.json`, but the one that `pr-bumper` looks at is the total
-percentage of lines covered, or `total.lines.pct`.
+percentage of statements covered, or `total.statements.pct`.
 
 ### Pull Request comments
 > **EXCEPT** on github.com
