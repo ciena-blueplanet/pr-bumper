@@ -1,3 +1,9 @@
+# 1.11.0 (2017-03-30)
+* **Added** a command-line switch `--skip-comments` which explicitly sets `prComments` to `false` in the config, regardless of what is in `.pr-bumper.json`. Useful when you just want to get the coverage change info and setting `SKIP_COMMENTS` environment variable is difficult. 
+
+* **Fixed** grammar of PR comment about missing scope (thanks @gknoy)
+
+
 # 1.10.0 (2017-03-15)
 * **Updated** check for current coverage to use `statements` instead of `lines` as it seems the more accurate metric.
 
