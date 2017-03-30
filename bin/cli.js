@@ -10,10 +10,11 @@ const cli = new Cli()
 
 program
   .version(pkgJson.version)
+  .option('-s, --skip-comments', 'disable PR comments even if enabled via .pr-bumper.json')
   .arguments('<cmd>')
-  .action((cmd, options) => {
+  .action((cmd, program) => {
     cli
-      .run(cmd, options)
+      .run(cmd, program.skipComments)
       .catch((error) => {
         const msg = (error.message) ? error.message : error
         console.log(`${pkgJson.name}: ERROR: ${msg}`)
@@ -24,9 +25,17 @@ program
       })
   })
   .on('--help', () => {
+    console.log('  Options:')
+    console.log('')
+    console.log(
+      '    --skip-comments - disable PR comments even if enabled via .pr-bumper.json\n' +
+      '                      Useful particularly when running check-coverage manually'
+    )
+    console.log('')
     console.log('  Commands:')
     console.log('')
     console.log('    check - verify an open PR has a version-bump comment')
+    console.log('    check-coverage - compare current code coverage against baseline from package.json')
     console.log('    bump - actually bump the version based on the merged PR')
     console.log('')
   })

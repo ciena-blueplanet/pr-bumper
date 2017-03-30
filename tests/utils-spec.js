@@ -751,7 +751,7 @@ describe('utils', function () {
           utils.getScopeForPr(pr)
         }
 
-        const example = 'Please include a scope (i.e. `#major`, `#minor#`, `#patch#`) in your PR description.'
+        const example = 'Please include a scope (e.g. `#major#`, `#minor#`, `#patch#`) in your PR description.'
         const exampleLink = 'See https://github.com/ciena-blueplanet/pr-bumper#pull-requests for more details.'
         expect(fn).to.throw(`No version-bump scope found for [PR #12345](my-pr-url)\n${example}\n${exampleLink}`)
       })

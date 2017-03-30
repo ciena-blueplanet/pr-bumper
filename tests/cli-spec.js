@@ -192,6 +192,50 @@ describe('Cli', function () {
       })
     })
 
+    describe('check-coverage --skip-comments', function () {
+      beforeEach(function () {
+        result = ''
+        error = ''
+
+        return cli
+          .run('check-coverage', true)
+          .then((res) => {
+            result = res
+          })
+          .catch((err) => {
+            error = err
+          })
+      })
+
+      it('should get the config', function () {
+        expect(utils.getConfig).to.have.callCount(1)
+      })
+
+      it('should get the vcs', function () {
+        expect(cli._getVcs).to.have.been.calledWith({id: 'config', prComments: false})
+      })
+
+      it('should get the ci', function () {
+        expect(cli._getCi).to.have.been.calledWith({id: 'config', prComments: false}, {id: 'vcs'})
+      })
+
+      it('should get the bumper', function () {
+        expect(cli._getBumper).to.have.been.calledWith({
+          ci: {id: 'ci'},
+          config: {id: 'config', prComments: false},
+          vcs: {id: 'vcs'}
+        })
+      })
+
+      it('should resolve with the result of check', function () {
+        expect(result).to.be.equal('coverage-checked')
+      })
+
+      it('should not error', function () {
+        expect(error).to.equal('')
+      })
+    })
+
     describe('invalid command', function () {
       beforeEach(function () {
         result = ''
