@@ -101,6 +101,8 @@ describe('CiBase', function () {
   describe('.push()', function () {
     let result
     beforeEach(function () {
+      base.vcs = {addRemoteForPush () {}}
+      sandbox.stub(base.vcs, 'addRemoteForPush').returns(Promise.resolve('origin'))
       execStub.returns(Promise.resolve('pushed'))
       return base.push()
         .then((res) => {
