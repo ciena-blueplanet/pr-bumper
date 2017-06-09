@@ -101,8 +101,9 @@ describe('CiBase', function () {
   describe('.push()', function () {
     let result
     beforeEach(function () {
-      base.vcs = {addRemoteForPush () {}}
-      sandbox.stub(base.vcs, 'addRemoteForPush').returns(Promise.resolve('origin'))
+      base.vcs = {
+        addRemoteForPush: sandbox.stub().returns(Promise.resolve('my-origin'))
+      }
       execStub.returns(Promise.resolve('pushed'))
       return base.push()
         .then((res) => {
@@ -110,12 +111,16 @@ describe('CiBase', function () {
         })
     })
 
+    it('should add the push remote via the vcs', function () {
+      expect(base.vcs.addRemoteForPush).to.have.callCount(1)
+    })
+
     it('should log that it is about to push', function () {
-      expect(logger.log).to.have.been.calledWith('Pushing my-branch to origin')
+      expect(logger.log).to.have.been.calledWith('Pushing my-branch to my-origin')
     })
 
     it('should push origin to master with --tags', function () {
-      expect(execStub).to.have.been.calledWith('git push origin my-branch --tags')
+      expect(execStub).to.have.been.calledWith('git push my-origin my-branch --tags')
     })
 
     it('should resolve with the result of the git command', function () {
