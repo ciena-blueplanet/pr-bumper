@@ -1,3 +1,8 @@
+# 1.11.2 (2017-06-12)
+ * **Updated** secure auth tokens to fix build
+ * **Added** CHANGELOG details from last failed build
+
+
 # 1.11.1 (2017-06-09 *unpublished*)
 * Change Teamcity/Base ci to utilize addRemoteForPush
 
