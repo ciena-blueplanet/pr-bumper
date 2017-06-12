@@ -1,5 +1,8 @@
+# 1.11.1 (2017-06-09 *unpublished*)
+* Change Teamcity/Base ci to utilize addRemoteForPush
+
 # 1.11.0 (2017-03-30)
-* **Added** a command-line switch `--skip-comments` which explicitly sets `prComments` to `false` in the config, regardless of what is in `.pr-bumper.json`. Useful when you just want to get the coverage change info and setting `SKIP_COMMENTS` environment variable is difficult. 
+* **Added** a command-line switch `--skip-comments` which explicitly sets `prComments` to `false` in the config, regardless of what is in `.pr-bumper.json`. Useful when you just want to get the coverage change info and setting `SKIP_COMMENTS` environment variable is difficult.
 
 * **Fixed** grammar of PR comment about missing scope (thanks @gknoy)
 
@@ -11,7 +14,7 @@
 * **Added** support for skipping pr comments in the `pr-bumper check-coverage` command by supplying a `SKIP_COMMENTS` env variable.
 
 # 1.8.2 (2017-03-15)
-* **Fixed** PR comments to use `## ERROR` instead of `##ERROR` since apparently at least bitbucket doesn't consider the latter a heading. 
+* **Fixed** PR comments to use `## ERROR` instead of `##ERROR` since apparently at least bitbucket doesn't consider the latter a heading.
 
 
 # 1.8.1 (2017-03-15)
@@ -19,7 +22,7 @@
 * **Fixed** logging in `pr-bumper` to only print if `VERBOSE` environment variable is set (except for coverage info, that is forced to log regardless)
 * **Fixed** PR comments to include clear indication if the message is the result of an error.
 * **Fixed** PR comments to be formatted nicer (using markdown syntax)
-* **Fixed** PR comments to be more detailed and offer a clearer path to know how to resolve the issue at hand. 
+* **Fixed** PR comments to be more detailed and offer a clearer path to know how to resolve the issue at hand.
 * **Added** more documentation about the changelog feature
 
 
@@ -29,7 +32,7 @@
   "prComments": true
   ```
   to your `.pr-bumper.json` config.
-  **Sadly** this feature does not currently work in github.com/travis scenarios. Mainly because `pr-bumper` doesn't have sufficient permissions during the PR build to post a comment on the PR. We're trying to find a way around that, but in the meantime, at least the feature can be used in bitbucket server / teamcity scenarios. 
+  **Sadly** this feature does not currently work in github.com/travis scenarios. Mainly because `pr-bumper` doesn't have sufficient permissions during the PR build to post a comment on the PR. We're trying to find a way around that, but in the meantime, at least the feature can be used in bitbucket server / teamcity scenarios.
 
 # 1.7.0 (2017-03-14)
 * **Added** a date string (ISO standard `YYYY-MM-DD`) to the title line when prepending changelog with a new version.
