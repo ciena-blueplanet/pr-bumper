@@ -29,15 +29,27 @@ being considered a `major` change.
 
 We also support the aliases of `breaking`, `feature`, and `fix`.
 
+In addition, `pre-release` tags on versions are supported, but only for the `patch` or `none` scope. When using
+`minor` or `major` with a pre-release tag, the `pre-release` tag will be cleared
+
 | Starting Version | Directive    | Ending Version |
 | :--------------: | :----------- | :------------: |
 | 1.2.3            | `#none#`     | 1.2.3          |
+| 1.2.3-alpha.4    | `#none#`     | 1.2.3-alpha.4  |
 | 1.2.3            | `#patch#`    | 1.2.4          |
+| 1.2.3-alpha.4    | `#patch#`    | 1.2.4-alpha.5  |
+| 1.2.3-a.b.9      | `#patch#`    | 1.2.4-a.b.10   |
 | 1.2.3            | `#fix#`      | 1.2.4          |
+| 1.2.3-alpha.4    | `#fix#`      | 1.2.4-alpha.5  |
+| 1.2.3-a.b.9      | `#fix#`      | 1.2.4-a.b.10   |
 | 1.2.3            | `#minor#`    | 1.3.0          |
+| 1.2.3-alpha.4    | `#minor#`    | 1.3.0          |
 | 1.2.3            | `#feature#`  | 1.3.0          |
+| 1.2.3-alpha.4    | `#feature#`  | 1.3.0          |
 | 1.2.3            | `#major#`    | 2.0.0          |
+| 1.2.3-alpha.4    | `#major#`    | 2.0.0          |
 | 1.2.3            | `#breaking#` | 2.0.0          |
+| 1.2.3-alpha.4    | `#breaking#` | 2.0.0          |
 
 
 [gfm-checklist-url]: https://github.com/blog/1375-task-lists-in-gfm-issues-pulls-comments

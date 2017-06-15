@@ -17,29 +17,28 @@ const logger = require('../lib/logger')
 const Bumper = rewire('../lib/bumper')
 
 const exec = Promise.denodeify(cpExec)
-const getVersionCmd = 'node -e "console.log(require(\'./_package.json\').version)"'
+
+function getVersionCmd (filename) {
+  return `node -e "console.log(require('./${filename}').version)"`
+}
 
 /**
  * Helper for performing repetative tasks in setting up _maybeBumpVersion tests
- * Since versiony doesn't let you tell it to be quiet, we need to stub out
- * console.log() but only while _maybeBumpVersion runs, or we won't get mocha output
- * while running our tests
  *
  * @param {Object} ctx - the context object so the function can pass some info back to the tests for validation
+ * @param {String} filename - the name of the file to test with
  * @param {String} scope - the scope to bump
  * @param {String} expectedVersion - the expected version after the bump
  */
-function testMaybeBumpVersion (ctx, scope, expectedVersion) {
+function testMaybeBumpVersion (ctx, filename, scope, expectedVersion) {
   describe(`a ${scope}`, function () {
-    let bumper, logStub, info, newVersion
+    let bumper, info, newVersion
     beforeEach(function () {
       bumper = ctx.bumper
 
-      logStub = sinon.stub(console, 'log')
-      info = bumper._maybeBumpVersion({scope, modifiedFiles: []}, '_package.json')
-      logStub.restore()
+      info = bumper._maybeBumpVersion({scope, modifiedFiles: []}, filename)
 
-      return exec(`${getVersionCmd}`)
+      return exec(getVersionCmd(filename))
         .then((stdout) => {
           newVersion = stdout.replace('\n', '')
         })
@@ -54,16 +53,16 @@ function testMaybeBumpVersion (ctx, scope, expectedVersion) {
         expect(info.version).to.equal(undefined)
       })
 
-      it('should not add "package.json" to the list of modified files', function () {
-        expect(info.modifiedFiles).not.to.include('_package.json')
+      it(`should not add "${filename}" to the list of modified files`, function () {
+        expect(info.modifiedFiles).not.to.include(filename)
       })
     } else {
       it('should return the correct version', function () {
         expect(info.version).to.be.equal(expectedVersion)
       })
 
-      it('should add "package.json" to the list of modified files', function () {
-        expect(info.modifiedFiles).to.include('_package.json')
+      it(`should add "${filename}" to the list of modified files`, function () {
+        expect(info.modifiedFiles).to.include(filename)
       })
     }
   })
@@ -655,7 +654,7 @@ describe('Bumper', function () {
         let result
 
         beforeEach(function () {
-          bumper.config = {foo: 'bar'}
+          bumper.config = {foo: 'bar', maxScope: 'minor'}
           bumper.vcs = {bar: 'baz'}
 
           sandbox.stub(bumper, '_getLastPr').returns(Promise.resolve('the-pr'))
@@ -676,7 +675,7 @@ describe('Bumper', function () {
           })
 
           it('should gets the scope for the given pr', function () {
-            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr')
+            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'minor')
           })
 
           it('should get the changelog for the given pr', function () {
@@ -701,7 +700,7 @@ describe('Bumper', function () {
           })
 
           it('should gets the scope for the given pr', function () {
-            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr')
+            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'minor')
           })
 
           it('should not get the changelog for the given pr', function () {
@@ -719,7 +718,7 @@ describe('Bumper', function () {
       let result
 
       beforeEach(function () {
-        bumper.config = {foo: 'bar'}
+        bumper.config = {foo: 'bar', maxScope: 'patch'}
         bumper.vcs = {bar: 'baz'}
 
         sandbox.stub(bumper, '_getLastPr').returns(Promise.resolve('the-pr'))
@@ -740,7 +739,7 @@ describe('Bumper', function () {
         })
 
         it('should gets the scope for the given pr', function () {
-          expect(utils.getScopeForPr).to.have.been.calledWith('the-pr')
+          expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'patch')
         })
 
         it('should not get the changelog for the given pr', function () {
@@ -765,7 +764,7 @@ describe('Bumper', function () {
         })
 
         it('should gets the scope for the given pr', function () {
-          expect(utils.getScopeForPr).to.have.been.calledWith('the-pr')
+          expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'patch')
         })
 
         it('should not get the changelog for the given pr', function () {
@@ -782,7 +781,7 @@ describe('Bumper', function () {
   describe('._getOpenPrInfo()', function () {
     let result
     beforeEach(function () {
-      bumper.config = {foo: 'bar', prNumber: '123'}
+      bumper.config = {foo: 'bar', prNumber: '123', maxScope: 'minor'}
       bumper.vcs = {getPr () {}}
 
       sandbox.stub(bumper.vcs, 'getPr').returns(Promise.resolve('the-pr'))
@@ -804,7 +803,7 @@ describe('Bumper', function () {
       })
 
       it('should get the scope for the given pr', function () {
-        expect(utils.getScopeForPr).to.have.been.calledWith('the-pr')
+        expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'minor')
       })
 
       it('should get the changelog for the given pr', function () {
@@ -840,7 +839,7 @@ describe('Bumper', function () {
           })
 
           it('should get the scope', function () {
-            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr')
+            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'minor')
           })
 
           it('should return the pr and scope', function () {
@@ -900,7 +899,7 @@ describe('Bumper', function () {
       })
 
       it('should get the scope for the given pr', function () {
-        expect(utils.getScopeForPr).to.have.been.calledWith('the-pr')
+        expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'minor')
       })
 
       it('should not get the changelog for the given pr', function () {
@@ -922,18 +921,25 @@ describe('Bumper', function () {
     beforeEach(function () {
       ctx.bumper = bumper
 
-      let original = path.join(__dirname, '_package.json')
+      const original = path.join(__dirname, '_package.json')
+      const otherOriginal = path.join(__dirname, '_package-with-pre-release.json')
       return exec(`cp ${original} _package.json`)
+        .then(() => {
+          return exec(`cp ${otherOriginal} _package-with-pre-release.json`)
+        })
     })
 
     afterEach(function () {
-      return exec('rm -f _package.json')
+      return exec('rm -f _package.json _package-with-pre-release.json')
     })
 
-    testMaybeBumpVersion(ctx, 'none', '1.2.3')
-    testMaybeBumpVersion(ctx, 'patch', '1.2.4')
-    testMaybeBumpVersion(ctx, 'minor', '1.3.0')
-    testMaybeBumpVersion(ctx, 'major', '2.0.0')
+    testMaybeBumpVersion(ctx, '_package.json', 'none', '1.2.3')
+    testMaybeBumpVersion(ctx, '_package.json', 'patch', '1.2.4')
+    testMaybeBumpVersion(ctx, '_package.json', 'minor', '1.3.0')
+    testMaybeBumpVersion(ctx, '_package.json', 'major', '2.0.0')
+
+    testMaybeBumpVersion(ctx, '_package-with-pre-release.json', 'none', '1.2.3-alpha.4')
+    testMaybeBumpVersion(ctx, '_package-with-pre-release.json', 'patch', '1.2.3-alpha.5')
 
     describe('an invalid scope', function () {
       let info

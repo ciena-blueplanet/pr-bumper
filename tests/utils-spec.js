@@ -1,11 +1,15 @@
 'use strict'
 
 const __ = require('lodash')
-const expect = require('chai').expect
+const chai = require('chai')
+const sinonChai = require('sinon-chai')
 const sinon = require('sinon')
 
 const logger = require('../lib/logger')
 const utils = require('../lib/utils')
+
+chai.use(sinonChai)
+const expect = chai.expect
 
 /**
  * Save the existing environment variables into an env object
@@ -248,6 +252,10 @@ describe('utils', function () {
         it('should not have a baselineCoverage set', function () {
           expect(config.baselineCoverage).to.equal(undefined)
         })
+
+        it('should default maxScope to "major"', function () {
+          expect(config.maxScope).to.equal('major')
+        })
       })
 
       describe('when doing a pull request build (with coverage in package.json)', function () {
@@ -279,6 +287,10 @@ describe('utils', function () {
         it('should set baselineCoverage to the coverage from package.json', function () {
           expect(config.baselineCoverage).to.equal(85.93)
         })
+
+        it('should default maxScope to "major"', function () {
+          expect(config.maxScope).to.equal('major')
+        })
       })
 
       describe('when doing a merge build (w/o coverage in package.json)', function () {
@@ -304,6 +316,10 @@ describe('utils', function () {
 
         it('should not have a baselineCoverage set', function () {
           expect(config.baselineCoverage).to.equal(undefined)
+        })
+
+        it('should default maxScope to "major"', function () {
+          expect(config.maxScope).to.equal('major')
         })
       })
 
@@ -336,6 +352,10 @@ describe('utils', function () {
         it('should set baselineCoverage to the coverage from package.json', function () {
           expect(config.baselineCoverage).to.equal(85.93)
         })
+
+        it('should default maxScope to "major"', function () {
+          expect(config.maxScope).to.equal('major')
+        })
       })
 
       describe('when a partial config is given', function () {
@@ -365,6 +385,10 @@ describe('utils', function () {
             name: 'Some Other User'
           })
         })
+
+        it('should default maxScope to "major"', function () {
+          expect(config.maxScope).to.equal('major')
+        })
       })
 
       describe('when pr env is missing', function () {
@@ -380,6 +404,10 @@ describe('utils', function () {
 
         it('should not consider it a PR', function () {
           expect(config.isPr).to.equal(false)
+        })
+
+        it('should default maxScope to "major"', function () {
+          expect(config.maxScope).to.equal('major')
         })
       })
     })
@@ -595,6 +623,10 @@ describe('utils', function () {
         it('should have the proper prComments value', function () {
           expect(config.prComments).to.equal(true)
         })
+
+        it('should default maxScope to "major"', function () {
+          expect(config.maxScope).to.equal('major')
+        })
       })
     })
 
@@ -683,6 +715,10 @@ describe('utils', function () {
         it('should set prNumber to false', function () {
           expect(config.prNumber).to.equal('false')
         })
+
+        it('should default maxScope to "major"', function () {
+          expect(config.maxScope).to.equal('major')
+        })
       })
 
       describe('when no branch env is given', function () {
@@ -698,13 +734,17 @@ describe('utils', function () {
         it('should default to master branch', function () {
           expect(config.branch).to.equal('master')
         })
+
+        it('should default maxScope to "major"', function () {
+          expect(config.maxScope).to.equal('major')
+        })
       })
     })
   })
 
   describe('.getValidatedScope()', function () {
     const prUrl = 'my-pr-url'
-    const prNum = '12345'
+    const prNumber = '12345'
     const scopes = {
       fix: 'patch',
       patch: 'patch',
@@ -716,17 +756,81 @@ describe('utils', function () {
     }
 
     __.forIn(scopes, (value, key) => {
-      it(`handles ${key}`, function () {
-        expect(utils.getValidatedScope(key, prNum, prUrl)).to.equal(value)
+      it(`should handle a scope of "${key}"`, function () {
+        const ret = utils.getValidatedScope({
+          scope: key,
+          prNumber,
+          prUrl
+        })
+        expect(ret).to.equal(value)
       })
     })
 
-    it('should throw on invalid scope', function () {
+    it('should throw an error on invalid scope', function () {
       const fn = () => {
-        utils.getValidatedScope('foo-bar', prNum, prUrl)
+        utils.getValidatedScope({
+          scope: 'foo-bar',
+          prNumber,
+          prUrl
+        })
       }
 
-      expect(fn).to.throw('Invalid version-bump scope [foo-bar] found for PR #12345 (my-pr-url)')
+      expect(fn).to.throw('Invalid version-bump scope "foo-bar" found for PR #12345 (my-pr-url)')
+    })
+
+    describe('when max scope is set', function () {
+      const maxScopes = {
+        none: {
+          valid: ['none'],
+          invalid: ['fix', 'patch', 'feature', 'minor', 'breaking', 'major']
+        },
+        patch: {
+          valid: ['none', 'fix', 'patch'],
+          invalid: ['feature', 'minor', 'breaking', 'major']
+        },
+        minor: {
+          valid: ['none', 'fix', 'patch', 'feature', 'minor'],
+          invalid: ['breaking', 'major']
+        },
+        major: {
+          valid: ['none', 'fix', 'patch', 'feature', 'minor', 'breaking', 'major'],
+          invalid: []
+        }
+      }
+
+      Object.keys(maxScopes).forEach((maxScope) => {
+        const {invalid, valid} = maxScopes[maxScope]
+        describe(`with a maxScope of "${maxScope}"`, function () {
+          valid.forEach((scope) => {
+            it(`should be fine when scope is "${scope}"`, function () {
+              const ret = utils.getValidatedScope({
+                scope,
+                maxScope,
+                prNumber,
+                prUrl
+              })
+
+              expect(ret).to.equal(scopes[scope])
+            })
+          })
+
+          invalid.forEach((scope) => {
+            it(`should throw an error when scope is "${scope}"`, function () {
+              const fn = () => {
+                utils.getValidatedScope({
+                  scope,
+                  maxScope,
+                  prNumber,
+                  prUrl
+                })
+              }
+              const prStr = `PR #${prNumber} (${prUrl})`
+              const msg = `Version-bump scope "${scope}" is higher than the maximum "${maxScope}" for ${prStr}`
+              expect(fn).to.throw(msg)
+            })
+          })
+        })
+      })
     })
   })
 
@@ -778,7 +882,32 @@ describe('utils', function () {
       })
 
       it('should call .getValidatedScope() with proper arguments', function () {
-        expect(utils.getValidatedScope.lastCall.args).to.eql(['feature', '12345', 'my-pr-url'])
+        expect(utils.getValidatedScope).to.have.been.calledWith({
+          scope: 'feature',
+          maxScope: 'major',
+          prNumber: '12345',
+          prUrl: 'my-pr-url'
+        })
+      })
+
+      it('should return the result of .getValidatedScope()', function () {
+        expect(scope).to.equal('the-validated-scope')
+      })
+    })
+
+    describe('when given a maxScope', function () {
+      beforeEach(function () {
+        pr.description = 'This is my super-cool #feature#'
+        scope = utils.getScopeForPr(pr, 'minor')
+      })
+
+      it('should call .getValidatedScope() with proper arguments', function () {
+        expect(utils.getValidatedScope).to.have.been.calledWith({
+          scope: 'feature',
+          maxScope: 'minor',
+          prNumber: '12345',
+          prUrl: 'my-pr-url'
+        })
       })
 
       it('should return the result of .getValidatedScope()', function () {
@@ -799,7 +928,12 @@ describe('utils', function () {
       })
 
       it('should call .getValidatedScope() with proper arguments', function () {
-        expect(utils.getValidatedScope.lastCall.args).to.eql(['minor', '12345', 'my-pr-url'])
+        expect(utils.getValidatedScope).to.have.been.calledWith({
+          scope: 'minor',
+          maxScope: 'major',
+          prNumber: '12345',
+          prUrl: 'my-pr-url'
+        })
       })
     })
 
@@ -837,7 +971,12 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
 
       it('should call .getValidatedScope() with proper arguments', function () {
-        expect(utils.getValidatedScope.lastCall.args).to.eql(['minor', '12345', 'my-pr-url'])
+        expect(utils.getValidatedScope).to.have.been.calledWith({
+          scope: 'minor',
+          maxScope: 'major',
+          prNumber: '12345',
+          prUrl: 'my-pr-url'
+        })
       })
     })
   })
