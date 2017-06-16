@@ -116,34 +116,18 @@ Here are the defaults that are provided by `pr-bumper` and can be overwritten by
 
   ```json
   {
-    "config": {
-      "ci": {
-        "env": {
-          "branch": "TRAVIS_BRANCH",
-          "buildNumber": "TRAVIS_BUILD_NUMBER",
-          "pr": "TRAVIS_PULL_REQUEST",
-          "repoSlug": "TRAVIS_REPO_SLUG"
-        },
-        "gitUser": {
-          "email": "travis.ci.ciena@gmail.com",
-          "name": "Travis CI"
-        },
-        "provider": "travis"
+    "ci": {
+      "env": {
+        "branch": "TRAVIS_BRANCH",
+        "buildNumber": "TRAVIS_BUILD_NUMBER",
+        "pr": "TRAVIS_PULL_REQUEST",
+        "repoSlug": "TRAVIS_REPO_SLUG"
       },
-      "vcs": {
-        "domain": "github.com",
-        "env": {
-          "readToken": "RO_GH_TOKEN",
-          "writeToken": "GITHUB_TOKEN",
-          "username": "",
-          "password": ""
-        },
-        "provider": "github",
-        "repository": {
-          "name": "",
-          "owner": ""
-        }
-      }
+      "gitUser": {
+        "email": "travis.ci.ciena@gmail.com",
+        "name": "Travis CI"
+      },
+      "provider": "travis"
     },
     "features": {
       "changelog": {
@@ -176,23 +160,34 @@ Here are the defaults that are provided by `pr-bumper` and can be overwritten by
         "value": "major"
       },
     },
+    "vcs": {
+      "domain": "github.com",
+      "env": {
+        "readToken": "RO_GH_TOKEN",
+        "writeToken": "GITHUB_TOKEN",
+        "username": "",
+        "password": ""
+      },
+      "provider": "github",
+      "repository": {
+        "name": "",
+        "owner": ""
+      }
+    }
   }
   ```
 
-You'll notice the data in `.pr-bumper.json` is separated into two top-level properties, `config` and `features`.
+You'll notice the data in `.pr-bumper.json` is separated into three top-level properties, `ci`, `features` and `vcs`.
+[`ci`](#ci) and [`vcs`](#vcs) help `pr-bumper` work with your particular environment, while [`features`](#features)
+allows you to enable and configure optional features within `pr-bumper`.
 
-### `config`
-Holds all the configuration information that `pr-bumper` needs in order to operate at all. It needs to
-be able to interact with your continuous integration system (the place where `pr-bumper` is being run) and your
-version control system (the place where your code is stored).
-
-#### `config.ci`
+### `ci`
 Holds all the information `pr-bumper` needs to interact with your continuous integration system.
 
-##### `config.ci.env`
+#### `ci.env`
 Defines the names of the environment variables that `pr-bumper` needs to find out information about the current build.
 
-###### `config.ci.env.branch`
+##### `ci.env.branch`
 The name of the environment variable that holds the current branch being built (on a merge build) or the target branch
 of a pull request (on a pr build).
 
@@ -206,7 +201,7 @@ Don't forget you'll need to update your build step in TeamCity to set the variab
   export TEAMCITY_BRANCH="%teamcity.build.branch%"
   ```
 
-##### `config.ci.env.buildNumber`
+##### `ci.env.buildNumber`
 The name of the environment variable that holds the number of the current build.
 
 The default is `TRAVIS_BUILD_NUMBER` which is already set in Travis CI.
@@ -219,7 +214,7 @@ Don't forget you'll need to update your build step in TeamCity to set the variab
   export TEAMCITY_BUILD_NUMBER="%teamcity.build.id%"
   ```
 
-##### `config.ci.env.pr`
+##### `ci.env.pr`
 The name of the environment variable that holds the number of the pull request (on a pr build) or `false` (on a
 merge build)
 
@@ -240,105 +235,28 @@ Don't forget you'll need to update your build step in TeamCity to set the variab
   fi
   ```
 
-##### `config.ci.env.repoSlug`
+##### `ci.env.repoSlug`
 The name of the environment variable that holds the slug for the repository `<owner>/<name>`.
 
 The default is `TRAVIS_REPO_SLOG` which is already set in Travis CI.
 
 If you're using a `provider` of `teamcity`, there isn't a clean way of getting that information, so you can provide
-the owner of the repository (GitHub organization or Bitbucket project) via the `config.vcs.repo.owner` field.
-Similarly, you can provide the name of the repository via the `config.vcs.repo.name` field.
+the owner of the repository (GitHub organization or Bitbucket project) via the `vcs.repo.owner` field.
+Similarly, you can provide the name of the repository via the `vcs.repo.name` field.
 
-##### `config.ci.gitUser`
+#### `ci.gitUser`
 Information about the git user that will be used by `pr-bumper` to make the version bump commit and create the tag
 for the release.
 
-###### `config.ci.gitUser.email`
+##### `ci.gitUser.email`
 You guessed it, the email address of the git user.
 
-###### `config.ci.gitUser.name`
+##### `ci.gitUser.name`
 Surprisingly enough, the name of the git user.
 
-##### `config.ci.provider`
+#### `ci.provider`
 `pr-bumper` currently supports two CI providers: `travis` (the default) and `teamcity`. When using `travis`, the only
-thing you'll probably want to configure is the `config.ci.gitUser`
-
-#### `config.vcs`
-Holds all the information `pr-bumper` needs to interact with your version control system.
-
-##### `config.vcs.domain`
-The domain of your VCS. This would be `github.com` (the default) if using public github, or the domain of your
-private GitHub Enterprise or Bitbucket Server instance.
-
-##### `config.vcs.env`
-Holds the names of environment variables `pr-bumper` uses to interact with your VCS.
-
-###### `config.vcs.env.readToken`
-[env-docs]: https://docs.travis-ci.com/user/environment-variables/#Encrypted-Variables
-The name of the environment variable that holds the read only access token to use when accessing the GitHub API.
-While one can access the GitHub API just fine without a token, there are rate-limits imposed on anonymous API requests.
-Since those rate-limits are based on the IP of the requester, you'd be sharing a limit with anyone else building in
-your CI, which, for Travis CI, could be quite a few people. So, if you specify a `config.vcs.env.readToken` and
-set the corresponding environment variable in your CI environment, `pr-bumper` will use that token when making API
-requests to find out information about pull requests. Since we need to be able to access `RO_GH_TOKEN` during a PR
-build, it cannot be encrypted, and thus will not be private. See [travis docs][env-docs] for more info about encrypted
-environment variables.
-
-> **NOTE** Since `RO_GH_TOKEN` is not secure, it is printed directly into your Travis Logs!!!
-> So, make sure it has only read access to your repository. Hence the name `RO_GH_TOKEN` (Read Only GitHub Token)
-
-###### `config.vcs.env.writeToken`
-The name of the environment variable that holds the write access token to use when pushing commits to your vcs
-(specifically GitHub). Since this environment variable stores a token with write access to your repository, it must
-be encrypted. The default value is `GITHUB_TOKEN`. Here's an example of how you can encrypt a `GITHUB_TOKEN` into your
-`.travis.yml` for use in Travis CI. If you have a private CI, you can probably just configure the environment variable.
-
-[github-pat]: https://help.github.com/articles/creating-an-access-token-for-command-line-use/
-In case you're unfamiliar, GitHub allows users to create [Personal Access Tokens][github-pat] to allow various levels
-of access to external systems. The `public_repo` access is sufficient for `pr-bumper` to be able to push commits and
-create tags on your behalf. You'll want to create this token on whatever GitHub user you want to be responsible for
-your version bump commits and automatic release tags. Once you've got a Personal Access Token with the correct
-permissions, you'll want to encrypt it into `.travis.yml` to let it be accessible in your merge builds, but not
-publicly available.
-
-You can do so by using the [Travis Client](https://github.com/travis-ci/travis.rb) to `travis encrypt` your token.
-
-First, you'll need to authenticate with `travis` (you can use the same token for that)
-
-  ```bash
-  travis login --github-token <your-token>
-  travis encrypt GITHUB_TOKEN=<your-token> --add -r <owner>/<repo>
-  ```
-
-If you do not use a fork workflow and your `origin` is the main repository, you can skip the `-r <owner>/<repo>` part.
-Otherwise, replace the `<owner>/<repo>` with the organization and name of your `upstream` repository.
-
-###### `config.vcs.env.username` and `config.vcs.env.password`
-The names of the environment variables that hold credentials for a Bitbucket Server user with write permissions on
-your repository. This is necessary when using a `provider` of `bitbucket-server` since Bitbucket Server doesn't have
-a Personal Access Token concept like GitHub and GitHub Enterprise do.
-
-#### `config.vcs.provider`
-`pr-bumper` currently supports three VCS providers: `github` (the default), `github-enterprise`,
-and `bitbucket-server`. When using `github` the defaults should be sufficient, when using `github-enterprise` make
-sure to remember to set `config.vcs.domain` to point to your GitHub Enterprise instance. When using
-`bitbucket-server`, make sure to set the following:
- * `config.vcs.domain`
- * `config.vcs.env.username`
- * `config.vcs.env.password`
- * `config.vcs.repository.name`
- * `config.vcs.repository.owner`
-
-#### `config.vcs.repository`
-Holds info about the name and organization of the repository. Not required when using a `travis` CI, but necessary
-when using a `teamcity` CI.
-
-##### `config.vcs.repository.name`
-The name of the repository (no matter what kind of VCS you have).
-
-##### `config.vcs.repository.owner`
-The name of the project that holds your repository (in Bitbucket Server), or the name of the organization that holds
-your repository (in GitHub and GitHub Enterprise).
+thing you'll probably want to configure is the `ci.gitUser`
 
 ### `features`
 Holds individual properties for configuring optional features of `pr-bumper`. None of them are enabled by
@@ -506,6 +424,83 @@ Set this value to `true` to enable the maxScope check.
 
 ##### `features.maxScope.value`
 The value to use for the maximum scope (default is `major`), must be one of [`major`, `minor`, `patch`, `none`]
+
+### `vcs`
+Holds all the information `pr-bumper` needs to interact with your version control system.
+
+#### `vcs.domain`
+The domain of your VCS. This would be `github.com` (the default) if using public github, or the domain of your
+private GitHub Enterprise or Bitbucket Server instance.
+
+#### `vcs.env`
+Holds the names of environment variables `pr-bumper` uses to interact with your VCS.
+
+##### `vcs.env.readToken`
+[env-docs]: https://docs.travis-ci.com/user/environment-variables/#Encrypted-Variables
+The name of the environment variable that holds the read only access token to use when accessing the GitHub API.
+While one can access the GitHub API just fine without a token, there are rate-limits imposed on anonymous API requests.
+Since those rate-limits are based on the IP of the requester, you'd be sharing a limit with anyone else building in
+your CI, which, for Travis CI, could be quite a few people. So, if you specify a `vcs.env.readToken` and
+set the corresponding environment variable in your CI environment, `pr-bumper` will use that token when making API
+requests to find out information about pull requests. Since we need to be able to access `RO_GH_TOKEN` during a PR
+build, it cannot be encrypted, and thus will not be private. See [travis docs][env-docs] for more info about encrypted
+environment variables.
+
+> **NOTE** Since `RO_GH_TOKEN` is not secure, it is printed directly into your Travis Logs!!!
+> So, make sure it has only read access to your repository. Hence the name `RO_GH_TOKEN` (Read Only GitHub Token)
+
+##### `vcs.env.writeToken`
+The name of the environment variable that holds the write access token to use when pushing commits to your vcs
+(specifically GitHub). Since this environment variable stores a token with write access to your repository, it must
+be encrypted. The default value is `GITHUB_TOKEN`. Here's an example of how you can encrypt a `GITHUB_TOKEN` into your
+`.travis.yml` for use in Travis CI. If you have a private CI, you can probably just configure the environment variable.
+
+[github-pat]: https://help.github.com/articles/creating-an-access-token-for-command-line-use/
+In case you're unfamiliar, GitHub allows users to create [Personal Access Tokens][github-pat] to allow various levels
+of access to external systems. The `public_repo` access is sufficient for `pr-bumper` to be able to push commits and
+create tags on your behalf. You'll want to create this token on whatever GitHub user you want to be responsible for
+your version bump commits and automatic release tags. Once you've got a Personal Access Token with the correct
+permissions, you'll want to encrypt it into `.travis.yml` to let it be accessible in your merge builds, but not
+publicly available.
+
+You can do so by using the [Travis Client](https://github.com/travis-ci/travis.rb) to `travis encrypt` your token.
+
+First, you'll need to authenticate with `travis` (you can use the same token for that)
+
+  ```bash
+  travis login --github-token <your-token>
+  travis encrypt GITHUB_TOKEN=<your-token> --add -r <owner>/<repo>
+  ```
+
+If you do not use a fork workflow and your `origin` is the main repository, you can skip the `-r <owner>/<repo>` part.
+Otherwise, replace the `<owner>/<repo>` with the organization and name of your `upstream` repository.
+
+##### `vcs.env.username` and `vcs.env.password`
+The names of the environment variables that hold credentials for a Bitbucket Server user with write permissions on
+your repository. This is necessary when using a `provider` of `bitbucket-server` since Bitbucket Server doesn't have
+a Personal Access Token concept like GitHub and GitHub Enterprise do.
+
+#### `vcs.provider`
+`pr-bumper` currently supports three VCS providers: `github` (the default), `github-enterprise`,
+and `bitbucket-server`. When using `github` the defaults should be sufficient, when using `github-enterprise` make
+sure to remember to set `vcs.domain` to point to your GitHub Enterprise instance. When using
+`bitbucket-server`, make sure to set the following:
+ * `vcs.domain`
+ * `vcs.env.username`
+ * `vcs.env.password`
+ * `vcs.repository.name`
+ * `vcs.repository.owner`
+
+#### `vcs.repository`
+Holds info about the name and organization of the repository. Not required when using a `travis` CI, but necessary
+when using a `teamcity` CI.
+
+##### `vcs.repository.name`
+The name of the repository (no matter what kind of VCS you have).
+
+##### `vcs.repository.owner`
+The name of the project that holds your repository (in Bitbucket Server), or the name of the organization that holds
+your repository (in GitHub and GitHub Enterprise).
 
 ## Integrations
 
