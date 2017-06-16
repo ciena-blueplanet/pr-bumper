@@ -193,9 +193,18 @@ describe('Cli', function () {
     })
 
     describe('check-coverage --skip-comments', function () {
+      let _config
       beforeEach(function () {
         result = ''
         error = ''
+        _config = {
+          id: 'config',
+          features: {
+            comments: {
+              enabled: false
+            }
+          }
+        }
 
         return cli
           .run('check-coverage', true)
@@ -212,17 +221,17 @@ describe('Cli', function () {
       })
 
       it('should get the vcs', function () {
-        expect(cli._getVcs).to.have.been.calledWith({id: 'config', prComments: false})
+        expect(cli._getVcs).to.have.been.calledWith(_config)
       })
 
       it('should get the ci', function () {
-        expect(cli._getCi).to.have.been.calledWith({id: 'config', prComments: false}, {id: 'vcs'})
+        expect(cli._getCi).to.have.been.calledWith(_config, {id: 'vcs'})
       })
 
       it('should get the bumper', function () {
         expect(cli._getBumper).to.have.been.calledWith({
           ci: {id: 'ci'},
-          config: {id: 'config', prComments: false},
+          config: _config,
           vcs: {id: 'vcs'}
         })
       })
