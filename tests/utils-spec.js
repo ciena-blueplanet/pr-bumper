@@ -245,13 +245,13 @@ function verifyBitbucketTeamcityOverrides (ctx) {
   })
 }
 
-// ARM IS HERE
 describe.only('utils', function () {
   let sandbox
 
   beforeEach(function () {
     sandbox = sinon.sandbox.create()
     sandbox.stub(logger, 'log')
+    sandbox.stub(utils, 'readJsonFile')
   })
 
   afterEach(function () {
@@ -264,7 +264,6 @@ describe.only('utils', function () {
 
     beforeEach(function () {
       realEnv = {}
-      sandbox.stub(utils, 'readJsonFile')
     })
 
     afterEach(function () {
@@ -1104,12 +1103,25 @@ Thought this might be #breaking# but on second thought it is a minor change
   })
 
   describe('.getCurrentCoverage()', function () {
-    let cov, pct
+    let config, coverageSummary, pct
     beforeEach(function () {
-      cov = {
+      config = {
+        features: {
+          coverage: {
+            file: 'path-to-coverage/coverage-file.json'
+          }
+        }
+      }
+
+      coverageSummary = {
         total: {
+          branches: {
+            total: 10,
+            covered: 9
+          },
           statements: {
-            pct: 95.98
+            total: 90,
+            covered: 80
           }
         }
       }
@@ -1117,7 +1129,8 @@ Thought this might be #breaking# but on second thought it is a minor change
 
     describe('when no coverage present', function () {
       beforeEach(function () {
-        pct = utils.getCurrentCoverage({})
+        utils.readJsonFile.withArgs('path-to-coverage/coverage-file.json').returns({})
+        pct = utils.getCurrentCoverage(config)
       })
 
       it('should return -1', function () {
@@ -1127,11 +1140,12 @@ Thought this might be #breaking# but on second thought it is a minor change
 
     describe('when coverage is present', function () {
       beforeEach(function () {
-        pct = utils.getCurrentCoverage(cov)
+        utils.readJsonFile.withArgs('path-to-coverage/coverage-file.json').returns(coverageSummary)
+        pct = utils.getCurrentCoverage(config)
       })
 
-      it('should return the total line pct', function () {
-        expect(pct).to.equal(95.98)
+      it('should return the total statement and branch pct', function () {
+        expect(pct).to.equal(89.00)
       })
     })
   })
@@ -1140,9 +1154,12 @@ Thought this might be #breaking# but on second thought it is a minor change
     let config, resolver, vcs, result, error
     beforeEach(function () {
       config = {
-        isPr: true,
-        prComments: false,
-        prNumber: '123'
+        computed: {
+          ci: {
+            isPr: true,
+            prNumber: '123'
+          }
+        }
       }
 
       resolver = {}
@@ -1158,9 +1175,8 @@ Thought this might be #breaking# but on second thought it is a minor change
       result = error = null
     })
 
-    describe('when prComments is false', function () {
+    describe('when feature is not enabled', function () {
       beforeEach(function (done) {
-        config.prComments = false
         utils.maybePostComment(config, vcs, 'fizz-bang')
           .then((resp) => {
             result = resp
@@ -1187,10 +1203,15 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
     })
 
-    describe('when prComments is true, but isPr is false', function () {
+    describe('when feature is enabled, but isPr is false', function () {
       beforeEach(function (done) {
-        config.isPr = false
-        config.prComments = true
+        config.computed.ci.isPr = false
+        config.features = {
+          comments: {
+            enabled: true
+          }
+        }
+
         utils.maybePostComment(config, vcs, 'fizz-bang')
           .then((resp) => {
             result = resp
@@ -1217,13 +1238,18 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
     })
 
-    describe('when prComments is true, and isPr is true, but SKIP_COMMENTS is in env', function () {
+    describe('when feature is enabled, and isPr is true, but SKIP_COMMENTS is in env', function () {
       let realSkipComments
       beforeEach(function (done) {
         realSkipComments = process.env['SKIP_COMMENTS']
         process.env['SKIP_COMMENTS'] = '1'
-        config.isPr = true
-        config.prComments = true
+        config.computed.ci.isPr = true
+        config.features = {
+          comments: {
+            enabled: true
+          }
+        }
+
         utils.maybePostComment(config, vcs, 'fizz-bang')
           .then((resp) => {
             result = resp
@@ -1258,10 +1284,15 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
     })
 
-    describe('and prComments is true and isPr is true', function () {
+    describe('when feature is enabled and isPr is true (and no SKIP_COMMENTS is present)', function () {
       let promise
       beforeEach(function () {
-        config.prComments = true
+        config.features = {
+          comments: {
+            enabled: true
+          }
+        }
+
         promise = utils.maybePostComment(config, vcs, 'fizz-bang')
           .then((resp) => {
             result = resp
@@ -1273,7 +1304,7 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
 
       it('should post a comment', function () {
-        expect(vcs.postComment).to.have.been.calledWith(config.prNumber, 'fizz-bang')
+        expect(vcs.postComment).to.have.been.calledWith(config.computed.ci.prNumber, 'fizz-bang')
       })
 
       it('should not reject yet', function () {
@@ -1318,10 +1349,15 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
     })
 
-    describe('and prComments is true and isPr is true, and isError is true', function () {
+    describe('when feature is enabled and isPr is true, and isError is true', function () {
       let promise
       beforeEach(function () {
-        config.prComments = true
+        config.features = {
+          comments: {
+            enabled: true
+          }
+        }
+
         promise = utils.maybePostComment(config, vcs, 'fizz-bang', true)
           .then((resp) => {
             result = resp
@@ -1333,7 +1369,7 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
 
       it('should post a comment', function () {
-        expect(vcs.postComment).to.have.been.calledWith(config.prNumber, '## ERROR\nfizz-bang')
+        expect(vcs.postComment).to.have.been.calledWith(config.computed.ci.prNumber, '## ERROR\nfizz-bang')
       })
 
       it('should not reject yet', function () {
@@ -1383,9 +1419,12 @@ Thought this might be #breaking# but on second thought it is a minor change
     let config, resolver, vcs, func, result, error
     beforeEach(function () {
       config = {
-        isPr: true,
-        prComments: false,
-        prNumber: '123'
+        computed: {
+          ci: {
+            isPr: true,
+            prNumber: '123'
+          }
+        }
       }
 
       resolver = {}
@@ -1437,7 +1476,7 @@ Thought this might be #breaking# but on second thought it is a minor change
         func.throws(new Error('Uh oh!'))
       })
 
-      describe('and prComments is false', function () {
+      describe('and feature is not enabled', function () {
         beforeEach(function (done) {
           config.prComments = false
           utils.maybePostCommentOnError(config, vcs, func)
@@ -1467,10 +1506,15 @@ Thought this might be #breaking# but on second thought it is a minor change
         })
       })
 
-      describe('and prComments is true but isPr is false', function () {
+      describe('and feature is enabled but isPr is false', function () {
         beforeEach(function (done) {
-          config.isPr = false
-          config.prComments = true
+          config.computed.ci.isPr = false
+          config.features = {
+            comments: {
+              enabled: true
+            }
+          }
+
           utils.maybePostCommentOnError(config, vcs, func)
             .then((resp) => {
               result = resp
@@ -1501,8 +1545,13 @@ Thought this might be #breaking# but on second thought it is a minor change
       describe('and prComments is true and isPr is true', function () {
         let promise
         beforeEach(function () {
-          config.isPr = true
-          config.prComments = true
+          config.computed.ci.isPr = true
+          config.features = {
+            comments: {
+              enabled: true
+            }
+          }
+
           promise = utils.maybePostCommentOnError(config, vcs, func)
             .then((resp) => {
               result = resp
@@ -1518,7 +1567,7 @@ Thought this might be #breaking# but on second thought it is a minor change
         })
 
         it('should post a comment', function () {
-          expect(vcs.postComment).to.have.been.calledWith(config.prNumber, '## ERROR\nUh oh!')
+          expect(vcs.postComment).to.have.been.calledWith(config.computed.ci.prNumber, '## ERROR\nUh oh!')
         })
 
         it('should not reject yet', function () {
