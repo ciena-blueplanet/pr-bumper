@@ -1,8 +1,9 @@
 language: node_js
 sudo: false
 node_js:
-- '5.0.0'
+- '6.0.0'
 - '6.9.1'
+- 'stable'
 install:
 - .travis/maybe-install.sh
 before_script:
@@ -24,6 +25,12 @@ env:
   - CXX=g++-4.8
   global:
     secure: FuDCzVzi5GRMBrHdwqxQiQv6g4rAVGW/75SXN9WbciyEOD5pSqxWWFxXMiLVfeUftt1CPuk8zozqlJIkuWQh0FWPsgPjkuhkbuhWmvlIINSdVXptipBrA/izYRoZlTa2e+bO0ng0nPqEV/lETVs18hbGJw+Qts/kMcI3llaM76Lx/2hS/hYLN0mOHv7MEdf09pgeHinZMslr0HJ7Ut+wFZkjGIyTqZ14nfjBlZie82ew7MPfZSPGiU/iuc28Vb4aIdxOLL1k6yFYPlA7fNCKmT3BrTB94qjGyiyQ29cfm4JBCoZIGkTb0GCuhXxPH3SkOICneCjQKdIIJKD5O4UqbzAEgBogD1WCduWAQt0sFdG5k2806nWcSghwJkwQC+spbPMUIxX78NBErtNB2OTyav7FISJSbCP2qsVbi3vEcRcPTabs0/V30wD1neQ0uvGJIHrNCjVBVDIv+g/pGjZ8n5PO0Bg22EE5VauzeFxwuVCkaqBCFR1iGBnhEEI/kuMfUDin5iIwXdl1RkBuX0AyickqzBxd8npxwmm8hXrp3A6SSv4CDl6c/NSBiviociWgomwOiAfenIKEVW1CznrIu8yD2FMCY43XL/n++CSROdhdAP9OsMEKjMpZAnknXN1wruD0QaEKI6+/df4DVYT21YxhW9Bkl0ChsZr0qFphs7g=
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - node_js: 'stable'
+
 deploy:
   provider: npm
   email: npm.ciena@gmail.com

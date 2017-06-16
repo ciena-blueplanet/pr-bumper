@@ -351,6 +351,17 @@ Disable dependency snapshot example:
 }
 ```
 
+### `maxScope`
+Make sure not to accept bumps of a higher scope than you want. Ideal for maintenance branches, to prevent a `major`
+bump that would conflict with the main branch. The order from least to greatest of scopes is:
+ * `none`
+ * `patch`
+ * `minor`
+ * `major`
+
+So, if `maxScope` is `major` (the default), all bumps are allowed. If `maxScope` is `patch`, only `none` and `patch`
+are allowed. You get the idea.
+
 ### `owner`
 The Bitbucket project where your repository resides
 
