@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$TRAVIS_NODE_VERSION" != "${PUBLISH_NODE_VERSION:-6.9.1}" ]
+if [ "$TRAVIS_NODE_VERSION" != "${PUBLISH_NODE_VERSION:-6.11.0}" ]
 then
   echo "Skipping coverage publish for TRAVIS_NODE_VERSION [${TRAVIS_NODE_VERSION}]"
   exit 0
