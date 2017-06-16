@@ -35,6 +35,10 @@ We also support the aliases of `breaking`, `feature`, and `fix`.
 In addition, `pre-release` tags on versions are supported, but only for the `patch` or `none` scope. When using
 `minor` or `major` with a `pre-release` tag, the `pre-release` tag will be cleared.
 
+**NOTE** `pr-bumper` never *introduces* a pre-release tag, it only supports an existing pre-release tag. If you want
+to use a pre-release tag, you'll need to add it manually to the `version` in your `package.json` as part of your PR,
+then `pr-bumper` will be able to do a `patch` bump to increment the last number in the pre-release for you.
+
 | Starting Version | Directive                 | Ending Version |
 | :--------------- | :------------------------ | :------------- |
 | 1.2.3            | `#none#`                  | 1.2.3          |
@@ -63,7 +67,6 @@ You may also specify a list of possible scopes in a [GFM checklist][gfm-checklis
 
 Combined with [Pull Request Templates][pr-template-url], contributors who are unfamiliar with `pr-bumper`
 will know exactly what to do before the build fails.
-
 
 ## Integrations
 [github-url]: https://github.com
@@ -507,7 +510,7 @@ The value to use for the maximum scope (default is `major`), must be one of [`ma
 ## Integrations
 
 ### Travis CI
-`pr-bumper` is optimized to work with Travis CI and by dbefaults uses Travis CI environment variables for configuration.
+`pr-bumper` is optimized to work with Travis CI and by default uses Travis CI environment variables for configuration.
 
 Add the following snippet to your `.travis.yml` file to integrate `pr-bumper`
 
