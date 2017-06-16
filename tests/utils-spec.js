@@ -245,7 +245,7 @@ function verifyBitbucketTeamcityOverrides (ctx) {
   })
 }
 
-describe.only('utils', function () {
+describe('utils', function () {
   let sandbox
 
   beforeEach(function () {
@@ -258,7 +258,6 @@ describe.only('utils', function () {
     sandbox.restore()
   })
 
-  // ARM IS HERE, need to add the verifyFeatureDefaults() to all these...
   describe('.getConfig()', function () {
     let config, env, realEnv
 
@@ -328,6 +327,7 @@ describe.only('utils', function () {
         })
 
         verifyGitHubTravisDefaults(ctx)
+        verifyFeatureDefaults(ctx)
 
         it('should set isPr to true', function () {
           expect(config.computed.ci.isPr).to.equal(true)
@@ -356,6 +356,7 @@ describe.only('utils', function () {
         })
 
         verifyGitHubTravisDefaults(ctx)
+        verifyFeatureDefaults(ctx)
 
         it('should set isPr to false', function () {
           expect(config.computed.ci.isPr).to.equal(false)
@@ -388,6 +389,7 @@ describe.only('utils', function () {
         })
 
         verifyGitHubTravisDefaults(ctx)
+        verifyFeatureDefaults(ctx)
 
         it('should set isPr to false', function () {
           expect(config.computed.ci.isPr).to.equal(false)
@@ -413,6 +415,12 @@ describe.only('utils', function () {
                 email: 'some.other.user@domain.com',
                 name: 'Some Other User'
               }
+            },
+            features: {
+              changelog: {
+                enabled: true,
+                file: 'CHANGES.md'
+              }
             }
           })
           utils.readJsonFile.withArgs('package.json').returns({})
@@ -421,11 +429,19 @@ describe.only('utils', function () {
         })
 
         verifyGitHubTravisDefaults(ctx, ['ci.gitUser'])
+        verifyFeatureDefaults(ctx, ['features.changelog.enabled', 'features.changelog.file'])
 
         it('should use the overwritten git user', function () {
           expect(config.ci.gitUser).to.eql({
             email: 'some.other.user@domain.com',
             name: 'Some Other User'
+          })
+        })
+
+        it('should use the overwritten changelog settings', function () {
+          expect(config.features.changelog).to.eql({
+            enabled: true,
+            file: 'CHANGES.md'
           })
         })
       })
@@ -498,7 +514,8 @@ describe.only('utils', function () {
           ctx.config = config = utils.getConfig()
         })
 
-        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider', 'features.comments.enabled'])
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+        verifyFeatureDefaults(ctx, ['features.comments.enabled'])
 
         it('should have the proper gitUser', function () {
           expect(config.ci.gitUser).to.eql({
@@ -536,6 +553,20 @@ describe.only('utils', function () {
         beforeEach(function () {
           env.TRAVIS_PULL_REQUEST = '13'
 
+          _config.features = {
+            compliance: {
+              enabled: true,
+              production: true,
+              output: {
+                directory: 'foo-bar',
+                requirementsFile: 'requirements.json',
+                reposFile: 'repos-file',
+                ignoreFile: 'ignore-file'
+              },
+              additionalRepos: ['none']
+            }
+          }
+
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
@@ -545,7 +576,8 @@ describe.only('utils', function () {
           ctx.config = config = utils.getConfig()
         })
 
-        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider', 'features.comments.enabled'])
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+        verifyFeatureDefaults(ctx, ['features.compliance.enabled'])
 
         it('should have the proper gitUser', function () {
           expect(config.ci.gitUser).to.eql({
@@ -574,8 +606,8 @@ describe.only('utils', function () {
           expect(config.computed.baselineCoverage).to.equal(98.03)
         })
 
-        it('should have enabled the comments feature', function () {
-          expect(config.features.comments.enabled).to.equal(true)
+        it('should use the overwritten compliance config', function () {
+          expect(config.features.compliance).to.eql(_config.features.compliance)
         })
       })
 
@@ -586,13 +618,21 @@ describe.only('utils', function () {
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
+          _config.features = {
+            dependencies: {
+              enabled: true,
+              snapshotFile: 'snapshot.json'
+            }
+          }
+
           utils.readJsonFile.withArgs('.pr-bumper.json').returns(_config)
           utils.readJsonFile.withArgs('package.json').returns({})
 
           ctx.config = config = utils.getConfig()
         })
 
-        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider', 'features.comments.enabled'])
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+        verifyFeatureDefaults(ctx, ['features.dependencies.enabled', 'features.dependencies.snapshotFile'])
 
         it('should have the proper gitUser', function () {
           expect(config.ci.gitUser).to.eql({
@@ -621,8 +661,8 @@ describe.only('utils', function () {
           expect(config.computed.baselineCoverage).to.equal(0)
         })
 
-        it('should have enabled the comments feature', function () {
-          expect(config.features.comments.enabled).to.equal(true)
+        it('should have the proper dependencies feature config', function () {
+          expect(config.features.dependencies).to.eql(_config.features.dependencies)
         })
       })
 
@@ -633,13 +673,21 @@ describe.only('utils', function () {
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
+          _config.features = {
+            maxScope: {
+              enabled: true,
+              value: 'patch'
+            }
+          }
+
           utils.readJsonFile.withArgs('.pr-bumper.json').returns(_config)
           utils.readJsonFile.withArgs('package.json').returns(_pkgJson)
 
           ctx.config = config = utils.getConfig()
         })
 
-        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider', 'features.comments.enabled'])
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+        verifyFeatureDefaults(ctx, ['features.maxScope.enabled', 'features.maxScope.value'])
 
         it('should have the proper gitUser', function () {
           expect(config.ci.gitUser).to.eql({
@@ -668,8 +716,8 @@ describe.only('utils', function () {
           expect(config.computed.baselineCoverage).to.equal(98.03)
         })
 
-        it('should have enabled the comments feature', function () {
-          expect(config.features.comments.enabled).to.equal(true)
+        it('should have the proper maxScope config', function () {
+          expect(config.features.maxScope).to.eql(_config.features.maxScope)
         })
       })
     })
@@ -734,6 +782,7 @@ describe.only('utils', function () {
         })
 
         verifyBitbucketTeamcityOverrides(ctx)
+        verifyFeatureDefaults(ctx)
 
         it('should set isPr to true', function () {
           expect(config.computed.ci.isPr).to.equal(true)
@@ -758,6 +807,7 @@ describe.only('utils', function () {
         })
 
         verifyBitbucketTeamcityOverrides(ctx)
+        verifyFeatureDefaults(ctx)
 
         it('should set isPr to false', function () {
           expect(config.computed.ci.isPr).to.equal(false)
