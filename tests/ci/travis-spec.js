@@ -13,9 +13,9 @@ const Travis = rewire('../../lib/ci/travis')
 const testUtils = require('./utils')
 const ensureCiBaseMethodIsUsed = testUtils.ensureCiBaseMethodIsUsed
 
-describe('Travis', function () {
+describe('CI / Travis', function () {
   const ctx = {}
-  let execStub, revertExecRewire, travis, sandbox
+  let execStub, revertExecRewire, travis, sandbox, config
 
   beforeEach(function () {
     sandbox = sinon.sandbox.create()
@@ -26,8 +26,14 @@ describe('Travis', function () {
     // stub out the top-level 'exec'
     execStub = sandbox.stub()
     revertExecRewire = Travis.__set__('exec', execStub)
-
-    travis = new Travis({id: 'config', branch: 'my-branch'}, {id: 'vcs'})
+    config = {
+      computed: {
+        ci: {
+          branch: 'my-branch'
+        }
+      }
+    }
+    travis = new Travis(config, {id: 'vcs'})
 
     ctx.ci = travis
     ctx.sandbox = sandbox
@@ -41,11 +47,11 @@ describe('Travis', function () {
   })
 
   it('should save the config', function () {
-    expect(travis.config).to.be.eql({id: 'config', branch: 'my-branch'})
+    expect(travis.config).to.equal(config)
   })
 
   it('should save the vcs', function () {
-    expect(travis.vcs).to.be.eql({id: 'vcs'})
+    expect(travis.vcs).to.eql({id: 'vcs'})
   })
 
   it('should extend CiBase', function () {

@@ -45,7 +45,7 @@ function testMaybeBumpVersion (ctx, filename, scope, expectedVersion) {
     })
 
     it('should create the correct version', function () {
-      expect(newVersion).to.be.equal(expectedVersion)
+      expect(newVersion).to.equal(expectedVersion)
     })
 
     if (scope === 'none') {
@@ -58,7 +58,7 @@ function testMaybeBumpVersion (ctx, filename, scope, expectedVersion) {
       })
     } else {
       it('should return the correct version', function () {
-        expect(info.version).to.be.equal(expectedVersion)
+        expect(info.version).to.equal(expectedVersion)
       })
 
       it(`should add "${filename}" to the list of modified files`, function () {
@@ -105,9 +105,11 @@ describe('Bumper', function () {
 
     bumper = new Bumper({
       ci: [],
-      config: {},
+      config: {isEnabled () {}},
       vcs: {}
     })
+
+    sandbox.stub(bumper.config, 'isEnabled')
   })
 
   afterEach(function () {
@@ -126,6 +128,7 @@ describe('Bumper', function () {
 
     describe('when not a PR build', function () {
       beforeEach(function () {
+        __.set(bumper.config, 'computed.ci.isPr', false)
         return bumper.check()
       })
 
@@ -140,7 +143,7 @@ describe('Bumper', function () {
 
     describe('when it is a PR build', function () {
       beforeEach(function () {
-        bumper.config.isPr = true
+        __.set(bumper.config, 'computed.ci.isPr', true)
         return bumper.check()
       })
 
@@ -161,11 +164,11 @@ describe('Bumper', function () {
       sandbox.stub(utils, 'maybePostComment').returns(Promise.resolve())
     })
 
-    describe('when no baseline coverage', function () {
+    describe('when feature not enabled', function () {
       beforeEach(function (done) {
-        delete bumper.config.baselineCoverage
-        const link = 'https://github.com/ciena-blueplanet/pr-bumper#code-coverage'
-        errorMsg = `No baseline coverage info found!\nSee ${link} for configuration info.`
+        bumper.config.isEnabled.withArgs('coverage').returns(false)
+        const link = 'https://github.com/ciena-blueplanet/pr-bumper#featurescoverage'
+        errorMsg = `Code coverage feature not enabled!\nSee ${link} for configuration info.`
         bumper.checkCoverage()
           .then((resp) => {
             result = resp
@@ -194,9 +197,10 @@ describe('Bumper', function () {
 
     describe('when baseline coverage is not a number', function () {
       beforeEach(function (done) {
-        bumper.config.baselineCoverage = '85.93'
-        const link = 'https://github.com/ciena-blueplanet/pr-bumper#code-coverage'
-        errorMsg = `No baseline coverage info found!\nSee ${link} for configuration info.`
+        bumper.config.isEnabled.withArgs('coverage').returns(true)
+        __.set(bumper.config, 'computed.baselineCoverage', '85.93')
+        const link = 'https://github.com/ciena-blueplanet/pr-bumper#featurescoverage'
+        errorMsg = `Baseline coverage is not a number!\nSee ${link} for configuration info.`
 
         bumper.checkCoverage()
           .then((resp) => {
@@ -226,9 +230,10 @@ describe('Bumper', function () {
 
     describe('when no current coverage found', function () {
       beforeEach(function (done) {
-        bumper.config.baselineCoverage = 85.93
+        bumper.config.isEnabled.withArgs('coverage').returns(true)
+        __.set(bumper.config, 'computed.baselineCoverage', 85.93)
         sandbox.stub(utils, 'getCurrentCoverage').returns(-1)
-        const link = 'https://github.com/ciena-blueplanet/pr-bumper#code-coverage'
+        const link = 'https://github.com/ciena-blueplanet/pr-bumper#featurescoverage'
         errorMsg = `No current coverage info found!\nSee ${link} for configuration info.`
 
         bumper.checkCoverage()
@@ -259,7 +264,8 @@ describe('Bumper', function () {
 
     describe('when coverage drops', function () {
       beforeEach(function (done) {
-        bumper.config.baselineCoverage = 85.93
+        bumper.config.isEnabled.withArgs('coverage').returns(true)
+        __.set(bumper.config, 'computed.baselineCoverage', 85.93)
         sandbox.stub(utils, 'getCurrentCoverage').returns(84.99)
         errorMsg = 'Code Coverage: `84.99%` (dropped `0.94%` from `85.93%`)'
 
@@ -292,7 +298,8 @@ describe('Bumper', function () {
     describe('when coverage stays the same', function () {
       let msg
       beforeEach(function (done) {
-        bumper.config.baselineCoverage = 85.93
+        bumper.config.isEnabled.withArgs('coverage').returns(true)
+        __.set(bumper.config, 'computed.baselineCoverage', 85.93)
         sandbox.stub(utils, 'getCurrentCoverage').returns(85.93)
         msg = 'Code Coverage: `85.93%` (no change)'
 
@@ -329,7 +336,8 @@ describe('Bumper', function () {
     describe('when coverage increases', function () {
       let msg
       beforeEach(function (done) {
-        bumper.config.baselineCoverage = 85.93
+        bumper.config.isEnabled.withArgs('coverage').returns(true)
+        __.set(bumper.config, 'computed.baselineCoverage', 85.93)
         sandbox.stub(utils, 'getCurrentCoverage').returns(88.01)
         msg = 'Code Coverage: `88.01%` (increased `2.08%` from `85.93%`)'
 
@@ -370,7 +378,7 @@ describe('Bumper', function () {
     beforeEach(function () {
       result = null
       error = null
-      bumper.config = {foo: 'bar', prependChangelog: true, dependencySnapshotFile: 'snapshot-file'}
+      bumper.config = {foo: 'bar'}
       bumper.vcs = {foo: 'bar'}
       bumper.ci = {push () {}, getLastCommitMsg () {}}
       info = {scope: 'minor', changelog: '', version: '1.2.0'}
@@ -438,7 +446,7 @@ describe('Bumper', function () {
       })
 
       it('should resolve with the result of the ci.push()', function () {
-        expect(result).to.be.eql('pushed')
+        expect(result).to.equal('pushed')
       })
 
       it('should not reject', function () {
@@ -512,7 +520,7 @@ describe('Bumper', function () {
 
     describe('when not a merge build', function () {
       beforeEach(function (done) {
-        bumper.config.isPr = true
+        __.set(bumper.config, 'computed.ci.isPr', true)
         bumper._getMergedPrInfo.reset()
         bumper.bump()
           .then((res) => {
@@ -626,7 +634,7 @@ describe('Bumper', function () {
       })
 
       it('should resolve with the pr', function () {
-        expect(resolution).to.be.equal('the-pr')
+        expect(resolution).to.equal('the-pr')
       })
     })
 
@@ -643,7 +651,7 @@ describe('Bumper', function () {
       })
 
       it('should reject with the error', function () {
-        expect(rejection).to.be.equal('the-error')
+        expect(rejection).to.equal('the-error')
       })
     })
   })
@@ -654,7 +662,15 @@ describe('Bumper', function () {
         let result
 
         beforeEach(function () {
-          bumper.config = {foo: 'bar', maxScope: 'minor'}
+          bumper.config = {
+            features: {
+              maxScope: {
+                value: 'minor'
+              }
+            },
+            foo: 'bar',
+            isEnabled: sandbox.stub()
+          }
           bumper.vcs = {bar: 'baz'}
 
           sandbox.stub(bumper, '_getLastPr').returns(Promise.resolve('the-pr'))
@@ -662,53 +678,115 @@ describe('Bumper', function () {
           sandbox.stub(utils, 'getChangelogForPr').returns('my-changelog')
         })
 
-        describe('when prependChangelog is set', function () {
+        describe('when maxScope is enabled', function () {
           beforeEach(function () {
-            bumper.config.prependChangelog = true
-            return bumper._getMergedPrInfo().then((res) => {
-              result = res
+            bumper.config.isEnabled.withArgs('maxScope').returns(true)
+          })
+
+          describe('when changelog feature is enabled', function () {
+            beforeEach(function () {
+              bumper.config.isEnabled.withArgs('changelog').returns(true)
+              return bumper._getMergedPrInfo().then((res) => {
+                result = res
+              })
+            })
+
+            it('should get the last PR to be merged', function () {
+              expect(bumper._getLastPr).to.have.callCount(1)
+            })
+
+            it('should gets the scope for the given pr', function () {
+              expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'minor')
+            })
+
+            it('should get the changelog for the given pr', function () {
+              expect(utils.getChangelogForPr).to.have.been.calledWith('the-pr')
+            })
+
+            it('should resolve with the info', function () {
+              expect(result).to.eql({changelog: 'my-changelog', modifiedFiles: [], scope})
             })
           })
 
-          it('should get the last PR to be merged', function () {
-            expect(bumper._getLastPr).to.have.callCount(1)
-          })
+          describe('when changelog feature is not enabled', function () {
+            beforeEach(function () {
+              bumper.config.isEnabled.withArgs('changelog').returns(false)
+              return bumper._getMergedPrInfo().then((res) => {
+                result = res
+              })
+            })
 
-          it('should gets the scope for the given pr', function () {
-            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'minor')
-          })
+            it('should get the last PR to be merged', function () {
+              expect(bumper._getLastPr).to.have.callCount(1)
+            })
 
-          it('should get the changelog for the given pr', function () {
-            expect(utils.getChangelogForPr).to.have.been.calledWith('the-pr')
-          })
+            it('should gets the scope for the given pr', function () {
+              expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'minor')
+            })
 
-          it('should resolve with the info', function () {
-            expect(result).to.be.eql({changelog: 'my-changelog', modifiedFiles: [], scope})
+            it('should not get the changelog for the given pr', function () {
+              expect(utils.getChangelogForPr).to.have.callCount(0)
+            })
+
+            it('should resolve with the info', function () {
+              expect(result).to.eql({changelog: '', modifiedFiles: [], scope})
+            })
           })
         })
 
-        describe('when prependChangelog is not set', function () {
+        describe('when maxScope is disabled', function () {
           beforeEach(function () {
-            bumper.config.prependChangelog = false
-            return bumper._getMergedPrInfo().then((res) => {
-              result = res
+            bumper.config.isEnabled.withArgs('maxScope').returns(false)
+          })
+
+          describe('when changelog feature is enabled', function () {
+            beforeEach(function () {
+              bumper.config.isEnabled.withArgs('changelog').returns(true)
+              return bumper._getMergedPrInfo().then((res) => {
+                result = res
+              })
+            })
+
+            it('should get the last PR to be merged', function () {
+              expect(bumper._getLastPr).to.have.callCount(1)
+            })
+
+            it('should gets the scope for the given pr', function () {
+              expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'major')
+            })
+
+            it('should get the changelog for the given pr', function () {
+              expect(utils.getChangelogForPr).to.have.been.calledWith('the-pr')
+            })
+
+            it('should resolve with the info', function () {
+              expect(result).to.eql({changelog: 'my-changelog', modifiedFiles: [], scope})
             })
           })
 
-          it('should get the last PR to be merged', function () {
-            expect(bumper._getLastPr).to.have.callCount(1)
-          })
+          describe('when changelog feature is not enabled', function () {
+            beforeEach(function () {
+              bumper.config.isEnabled.withArgs('changelog').returns(false)
+              return bumper._getMergedPrInfo().then((res) => {
+                result = res
+              })
+            })
 
-          it('should gets the scope for the given pr', function () {
-            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'minor')
-          })
+            it('should get the last PR to be merged', function () {
+              expect(bumper._getLastPr).to.have.callCount(1)
+            })
 
-          it('should not get the changelog for the given pr', function () {
-            expect(utils.getChangelogForPr).to.have.callCount(0)
-          })
+            it('should gets the scope for the given pr', function () {
+              expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'major')
+            })
 
-          it('should resolve with the info', function () {
-            expect(result).to.be.eql({changelog: '', modifiedFiles: [], scope})
+            it('should not get the changelog for the given pr', function () {
+              expect(utils.getChangelogForPr).to.have.callCount(0)
+            })
+
+            it('should resolve with the info', function () {
+              expect(result).to.eql({changelog: '', modifiedFiles: [], scope})
+            })
           })
         })
       })
@@ -718,7 +796,7 @@ describe('Bumper', function () {
       let result
 
       beforeEach(function () {
-        bumper.config = {foo: 'bar', maxScope: 'patch'}
+        bumper.config = {foo: 'bar', isEnabled: sandbox.stub()}
         bumper.vcs = {bar: 'baz'}
 
         sandbox.stub(bumper, '_getLastPr').returns(Promise.resolve('the-pr'))
@@ -726,9 +804,9 @@ describe('Bumper', function () {
         sandbox.stub(utils, 'getChangelogForPr').returns('my-changelog')
       })
 
-      describe('when prependChangelog is set', function () {
+      describe('and changelog feature is enabled', function () {
         beforeEach(function () {
-          bumper.config.prependChangelog = true
+          bumper.config.isEnabled.withArgs('changelog').returns(true)
           return bumper._getMergedPrInfo().then((res) => {
             result = res
           })
@@ -739,7 +817,7 @@ describe('Bumper', function () {
         })
 
         it('should gets the scope for the given pr', function () {
-          expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'patch')
+          expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'major')
         })
 
         it('should not get the changelog for the given pr', function () {
@@ -747,13 +825,13 @@ describe('Bumper', function () {
         })
 
         it('should resolve with the info', function () {
-          expect(result).to.be.eql({changelog: '', modifiedFiles: [], scope: 'none'})
+          expect(result).to.eql({changelog: '', modifiedFiles: [], scope: 'none'})
         })
       })
 
-      describe('when prependChangelog is not set', function () {
+      describe('and changelog feature is not enabled', function () {
         beforeEach(function () {
-          bumper.config.prependChangelog = false
+          bumper.config.isEnabled.withArgs('changelog').returns(false)
           return bumper._getMergedPrInfo().then((res) => {
             result = res
           })
@@ -764,7 +842,7 @@ describe('Bumper', function () {
         })
 
         it('should gets the scope for the given pr', function () {
-          expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'patch')
+          expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'major')
         })
 
         it('should not get the changelog for the given pr', function () {
@@ -772,7 +850,7 @@ describe('Bumper', function () {
         })
 
         it('should resolve with the info', function () {
-          expect(result).to.be.eql({changelog: '', modifiedFiles: [], scope: 'none'})
+          expect(result).to.eql({changelog: '', modifiedFiles: [], scope: 'none'})
         })
       })
     })
@@ -781,18 +859,35 @@ describe('Bumper', function () {
   describe('._getOpenPrInfo()', function () {
     let result
     beforeEach(function () {
-      bumper.config = {foo: 'bar', prNumber: '123', maxScope: 'minor'}
+      bumper.config = {
+        foo: 'bar',
+        computed: {
+          ci: {
+            prNumber: '123'
+          }
+        },
+        isEnabled: sandbox.stub()
+      }
       bumper.vcs = {getPr () {}}
 
       sandbox.stub(bumper.vcs, 'getPr').returns(Promise.resolve('the-pr'))
       sandbox.stub(utils, 'getScopeForPr').returns('patch')
       sandbox.stub(utils, 'getChangelogForPr').returns('the-changelog')
-      sandbox.spy(utils, 'maybePostCommentOnError')
+
+      sandbox.stub(utils, 'maybePostCommentOnError')
+      utils.maybePostCommentOnError.onCall(0).resolves({
+        pr: 'the-pr',
+        scope: 'the-scope'
+      })
+      utils.maybePostCommentOnError.onCall(1).resolves({
+        changelog: 'the-changelog',
+        scope: 'the-scope'
+      })
     })
 
-    describe('when prependChangelog is set', function () {
+    describe('when optional features are disabled', function () {
       beforeEach(function () {
-        bumper.config.prependChangelog = true
+        bumper.config.isEnabled.returns(false)
         return bumper._getOpenPrInfo().then((res) => {
           result = res
         })
@@ -802,18 +897,22 @@ describe('Bumper', function () {
         expect(bumper.vcs.getPr).to.have.been.calledWith('123')
       })
 
-      it('should get the scope for the given pr', function () {
-        expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'minor')
+      it('should call maybePostCommentOnError() once', function () {
+        expect(utils.maybePostCommentOnError).to.have.callCount(1)
       })
 
-      it('should get the changelog for the given pr', function () {
-        expect(utils.getChangelogForPr).to.have.been.calledWith('the-pr')
+      it('should not look up the scope of the PR', function () {
+        expect(utils.getScopeForPr).to.have.callCount(0)
+      })
+
+      it('should not look up the changelog of the PR', function () {
+        expect(utils.getChangelogForPr).to.have.callCount(0)
       })
 
       it('should resolve with the info', function () {
-        expect(result).to.be.eql({
-          changelog: 'the-changelog',
-          scope: 'patch'
+        expect(result).to.eql({
+          changelog: '',
+          scope: 'the-scope'
         })
       })
 
@@ -833,13 +932,148 @@ describe('Bumper', function () {
 
         describe('when the wrapped function is called', function () {
           let ret
+
           beforeEach(function () {
-            utils.getScopeForPr.reset()
+            ret = args[2]()
+          })
+
+          it('should get the scope', function () {
+            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'major')
+          })
+
+          it('should return the pr and scope', function () {
+            expect(ret).to.eql({
+              pr: 'the-pr',
+              scope: 'patch'
+            })
+          })
+        })
+      })
+    })
+
+    describe('when maxScope is enabled', function () {
+      beforeEach(function () {
+        bumper.config.isEnabled.returns(false)
+        bumper.config.isEnabled.withArgs('maxScope').returns(true)
+        __.set(bumper.config, 'features.maxScope.value', 'minor')
+        return bumper._getOpenPrInfo().then((res) => {
+          result = res
+        })
+      })
+
+      it('should fetch the PR', function () {
+        expect(bumper.vcs.getPr).to.have.been.calledWith('123')
+      })
+
+      it('should call maybePostCommentOnError() once', function () {
+        expect(utils.maybePostCommentOnError).to.have.callCount(1)
+      })
+
+      it('should not look up the scope of the PR', function () {
+        expect(utils.getScopeForPr).to.have.callCount(0)
+      })
+
+      it('should not look up the changelog of the PR', function () {
+        expect(utils.getChangelogForPr).to.have.callCount(0)
+      })
+
+      it('should resolve with the info', function () {
+        expect(result).to.eql({
+          changelog: '',
+          scope: 'the-scope'
+        })
+      })
+
+      describe('the first call to maybePostCommentOnError()', function () {
+        let args
+        beforeEach(function () {
+          args = utils.maybePostCommentOnError.firstCall.args
+        })
+
+        it('should pass in the config', function () {
+          expect(args[0]).to.equal(bumper.config)
+        })
+
+        it('should pass in the vcs', function () {
+          expect(args[1]).to.equal(bumper.vcs)
+        })
+
+        describe('when the wrapped function is called', function () {
+          let ret
+
+          beforeEach(function () {
             ret = args[2]()
           })
 
           it('should get the scope', function () {
             expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'minor')
+          })
+
+          it('should return the pr and scope', function () {
+            expect(ret).to.eql({
+              pr: 'the-pr',
+              scope: 'patch'
+            })
+          })
+        })
+      })
+    })
+
+    describe('when changelog is enabled', function () {
+      beforeEach(function () {
+        bumper.config.isEnabled.returns(false)
+        bumper.config.isEnabled.withArgs('changelog').returns(true)
+        return bumper._getOpenPrInfo().then((res) => {
+          result = res
+        })
+      })
+
+      it('should fetch the PR', function () {
+        expect(bumper.vcs.getPr).to.have.been.calledWith('123')
+      })
+
+      it('should call maybePostCommentOnError() twice', function () {
+        expect(utils.maybePostCommentOnError).to.have.callCount(2)
+      })
+
+      it('should not look up the scope of the PR', function () {
+        expect(utils.getScopeForPr).to.have.callCount(0)
+      })
+
+      it('should not look up the changelog of the PR', function () {
+        expect(utils.getChangelogForPr).to.have.callCount(0)
+      })
+
+      it('should resolve with the info', function () {
+        expect(result).to.eql({
+          changelog: 'the-changelog',
+          scope: 'the-scope'
+        })
+      })
+
+      describe('the first call to maybePostCommentOnError()', function () {
+        let args
+        beforeEach(function () {
+          args = utils.maybePostCommentOnError.firstCall.args
+        })
+
+        it('should pass in the config', function () {
+          expect(args[0]).to.equal(bumper.config)
+        })
+
+        it('should pass in the vcs', function () {
+          expect(args[1]).to.equal(bumper.vcs)
+        })
+
+        describe('when the wrapped function is called', function () {
+          let ret
+
+          beforeEach(function () {
+            ret = args[2]()
+          })
+
+          it('should get the scope', function () {
+            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'major')
           })
 
           it('should return the pr and scope', function () {
@@ -868,7 +1102,6 @@ describe('Bumper', function () {
         describe('when the wrapped function is called', function () {
           let ret
           beforeEach(function () {
-            utils.getChangelogForPr.reset()
             ret = args[2]()
           })
 
@@ -879,37 +1112,9 @@ describe('Bumper', function () {
           it('should return the changelog and scope', function () {
             expect(ret).to.eql({
               changelog: 'the-changelog',
-              scope: 'patch'
+              scope: 'the-scope'
             })
           })
-        })
-      })
-    })
-
-    describe('when prependChangelog is not set', function () {
-      beforeEach(function () {
-        bumper.config.prependChangelog = false
-        return bumper._getOpenPrInfo().then((res) => {
-          result = res
-        })
-      })
-
-      it('should fetch the PR', function () {
-        expect(bumper.vcs.getPr).to.have.been.calledWith('123')
-      })
-
-      it('should get the scope for the given pr', function () {
-        expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'minor')
-      })
-
-      it('should not get the changelog for the given pr', function () {
-        expect(utils.getChangelogForPr).to.have.callCount(0)
-      })
-
-      it('should resolve with the info', function () {
-        expect(result).to.be.eql({
-          changelog: '',
-          scope: 'patch'
         })
       })
     })
@@ -964,7 +1169,7 @@ describe('Bumper', function () {
         modifiedFiles: [],
         scope: 'patch'
       }
-      __.set(bumper.config, 'ci.buildNumber', '12345')
+      __.set(bumper.config, 'computed.ci.buildNumber', '12345')
 
       bumper.ci = {
         add () {},
@@ -1118,7 +1323,7 @@ describe('Bumper', function () {
       info = {
         version: '1.2.3'
       }
-      __.set(bumper.config, 'ci.buildNumber', '12345')
+      __.set(bumper.config, 'computed.ci.buildNumber', '12345')
       bumper.ci = {
         tag () {}
       }
@@ -1140,7 +1345,7 @@ describe('Bumper', function () {
       })
 
       it('should resolve with the result of the tag', function () {
-        expect(result).to.be.equal(info)
+        expect(result).to.equal(info)
       })
     })
 
@@ -1158,7 +1363,7 @@ describe('Bumper', function () {
       })
 
       it('should resolve with the result of the tag', function () {
-        expect(result).to.be.equal(info)
+        expect(result).to.equal(info)
       })
     })
   })
@@ -1172,8 +1377,9 @@ describe('Bumper', function () {
       }
     })
 
-    describe('when no dir is configured', function () {
+    describe('when feature is disabled', function () {
       beforeEach(function () {
+        bumper.config.isEnabled.withArgs('compliance').returns(false)
         return bumper._maybeGenerateDependencyComplianceReport(info)
           .then((r) => {
             result = r
@@ -1194,9 +1400,10 @@ describe('Bumper', function () {
       })
     })
 
-    describe('when an out dir is configured, but scope is "none"', function () {
+    describe('when feature is enabled, but scope is "none"', function () {
       beforeEach(function () {
-        __.set(bumper.config, 'dependencies.output.directory', 'blackduck/')
+        bumper.config.isEnabled.withArgs('compliance').returns(true)
+        __.set(bumper.config, 'features.compliance.output.directory', 'blackduck/')
         return bumper._maybeGenerateDependencyComplianceReport(info)
           .then((r) => {
             result = r
@@ -1217,13 +1424,14 @@ describe('Bumper', function () {
       })
     })
 
-    describe('when an out dir is configured, and scope is not "none"', function () {
+    describe('when feature is enabled, and scope is not "none"', function () {
       let cwd, globalPath
       beforeEach(function () {
         info.scope = 'patch'
         cwd = process.cwd()
         globalPath = path.join(cwd, 'blackduck/')
-        __.set(bumper.config, 'dependencies.output.directory', 'blackduck/')
+        bumper.config.isEnabled.withArgs('compliance').returns(true)
+        __.set(bumper.config, 'features.compliance.output.directory', 'blackduck/')
         return bumper._maybeGenerateDependencyComplianceReport(info)
           .then((r) => {
             result = r
@@ -1255,15 +1463,16 @@ describe('Bumper', function () {
         modifiedFiles: [],
         scope: 'patch'
       }
-      bumper.config.dependencySnapshotFile = 'snapshot-file'
+
+      __.set(bumper.config, 'features.dependencies.snapshotFile', 'snapshot-file')
       execStub.withArgs('npm prune').returns(Promise.resolve('prune-done'))
       execStub.withArgs('npm shrinkwrap --dev').returns(Promise.resolve('shrinkwrap-done'))
       execStub.returns(Promise.resolve('move-done'))
     })
 
-    describe('when no snapshot file defined', function () {
+    describe('when feature is not enabled', function () {
       beforeEach(function () {
-        bumper.config.dependencySnapshotFile = ''
+        bumper.config.isEnabled.withArgs('dependencies').returns(false)
         return bumper._maybeGenerateDependencySnapshot(info)
           .then((resp) => {
             ret = resp
@@ -1292,8 +1501,9 @@ describe('Bumper', function () {
       })
     })
 
-    describe('when scope is "none"', function () {
+    describe('when feature is enabled, but scope is "none"', function () {
       beforeEach(function () {
+        bumper.config.isEnabled.withArgs('dependencies').returns(true)
         info.scope = 'none'
         return bumper._maybeGenerateDependencySnapshot(info)
           .then((resp) => {
@@ -1323,8 +1533,9 @@ describe('Bumper', function () {
       })
     })
 
-    describe('when snapshot file defined and scope is not "none"', function () {
+    describe('when features is enabled and scope is not "none"', function () {
       beforeEach(function () {
+        bumper.config.isEnabled.withArgs('dependencies').returns(true)
         return bumper._maybeGenerateDependencySnapshot(info)
           .then((resp) => {
             ret = resp
@@ -1344,7 +1555,7 @@ describe('Bumper', function () {
       })
 
       it('should add the dependencySnapshotFile to the list of modified files', function () {
-        expect(info.modifiedFiles).to.include(bumper.config.dependencySnapshotFile)
+        expect(info.modifiedFiles).to.include('snapshot-file')
       })
 
       it('should return the info', function () {
@@ -1362,13 +1573,13 @@ describe('Bumper', function () {
         modifiedFiles: [],
         version: '1.2.3'
       }
+      __.set(bumper.config, 'features.changelog.file', 'the-changelog-file')
       prependStub.returns(Promise.resolve('return-value'))
     })
 
-    describe('when prependChangelog is false', function () {
+    describe('when feature is disabled', function () {
       beforeEach(function () {
-        bumper.config.prependChangelog = false
-        bumper.config.changelogFile = 'the-changelog-file'
+        bumper.config.isEnabled.withArgs('changelog').returns(false)
 
         return bumper._maybePrependChangelog(info)
           .then((resp) => {
@@ -1394,12 +1605,11 @@ describe('Bumper', function () {
       })
     })
 
-    describe('when scope is "none"', function () {
+    describe('when feature is enabled, and scope is "none"', function () {
       beforeEach(function () {
         info.scope = 'none'
         delete info.version
-        bumper.config.prependChangelog = true
-        bumper.config.changelogFile = 'the-changelog-file'
+        bumper.config.isEnabled.withArgs('changelog').returns(true)
 
         return bumper._maybePrependChangelog(info)
           .then((resp) => {
@@ -1425,10 +1635,10 @@ describe('Bumper', function () {
       })
     })
 
-    describe('when prependChangelog is true and scope is not "none"', function () {
+    describe('when feature is enabled and scope is not "none"', function () {
       beforeEach(function () {
         info.scope = 'patch'
-        bumper.config.prependChangelog = true
+        bumper.config.isEnabled.withArgs('changelog').returns(true)
         bumper.config.changelogFile = 'the-changelog-file'
 
         return bumper._maybePrependChangelog(info)
@@ -1526,12 +1736,13 @@ describe('Bumper', function () {
       sandbox.stub(utils, 'getCurrentCoverage')
     })
 
-    describe('when no baseline coverage present', function () {
+    describe('when feature is disabled', function () {
       beforeEach(function (done) {
         _pkgJson = {}
         readFileStub.returns(Promise.resolve(JSON.stringify(_pkgJson, null, 2)))
 
         result = error = null
+        bumper.config.isEnabled.withArgs('coverage').returns(false)
         bumper._maybeUpdateBaselineCoverage(info)
           .then((r) => {
             result = r
@@ -1545,7 +1756,7 @@ describe('Bumper', function () {
       })
 
       it('should log a message about why it is not updating coverage', function () {
-        const msg = 'Skipping updating baseline code coverage because no valid coverage found.'
+        const msg = 'Skipping updating baseline code coverage because of config option.'
         expect(logger.log).to.have.been.calledWith(msg)
       })
 
@@ -1574,7 +1785,8 @@ describe('Bumper', function () {
       beforeEach(function (done) {
         _pkgJson = {}
         readFileStub.returns(Promise.resolve(JSON.stringify(_pkgJson, null, 2)))
-        bumper.config.baselineCoverage = 99.93
+        __.set(bumper.config, 'computed.baselineCoverage', 99.93)
+        bumper.config.isEnabled.withArgs('coverage').returns(true)
         utils.getCurrentCoverage.returns(-1)
 
         result = error = null
@@ -1611,9 +1823,62 @@ describe('Bumper', function () {
       })
 
       it('should reject with an appropriate error', function () {
-        const link = 'https://github.com/ciena-blueplanet/pr-bumper#code-coverage'
+        const link = 'https://github.com/ciena-blueplanet/pr-bumper#featurescoverage'
         const msg = `No current coverage info found!\nSee ${link} for configuration info.`
         expect(error).to.equal(msg)
+      })
+    })
+
+    describe('when no baseline coverage present', function () {
+      let location
+      beforeEach(function (done) {
+        _pkgJson = {
+          foo: 'bar'
+        }
+        readFileStub.returns(Promise.resolve(JSON.stringify(_pkgJson, null, 2)))
+        location = path.join(process.cwd(), 'package.json')
+
+        __.set(bumper.config, 'computed.baselineCoverage', 0)
+        bumper.config.isEnabled.withArgs('coverage').returns(true)
+        utils.getCurrentCoverage.returns(99.57)
+        writeFileStub.returns(Promise.resolve('written'))
+        result = error = null
+        bumper._maybeUpdateBaselineCoverage(info, _pkgJson)
+          .then((r) => {
+            result = r
+          })
+          .catch((e) => {
+            error = e
+          })
+          .finally(() => {
+            done()
+          })
+      })
+
+      it('should lookup current coverage', function () {
+        expect(utils.getCurrentCoverage).to.have.callCount(1)
+      })
+
+      it('should read previous contents of the "package.json" file', function () {
+        expect(readFileStub).to.have.been.calledWith(location, 'utf8')
+      })
+
+      it('should write new contents of the "package.json" file', function () {
+        const newPkgJson = __.cloneDeep(_pkgJson)
+        __.set(newPkgJson, 'pr-bumper.coverage', 99.57)
+        expect(writeFileStub).to.have.been.calledWith(location, JSON.stringify(newPkgJson, null, 2))
+      })
+
+      it('should add "package.json" to the list of modified files', function () {
+        expect(info.modifiedFiles).to.include('package.json')
+      })
+
+      it('should resolve with the info', function () {
+        expect(result).to.equal(info)
+      })
+
+      it('should not reject', function () {
+        expect(error).to.equal(null)
       })
     })
 
@@ -1629,7 +1894,8 @@ describe('Bumper', function () {
         readFileStub.returns(Promise.resolve(JSON.stringify(_pkgJson, null, 2)))
         location = path.join(process.cwd(), 'package.json')
 
-        bumper.config.baselineCoverage = 99.15
+        __.set(bumper.config, 'computed.baselineCoverage', 99.15)
+        bumper.config.isEnabled.withArgs('coverage').returns(true)
         utils.getCurrentCoverage.returns(99.57)
         writeFileStub.returns(Promise.resolve('written'))
         result = error = null

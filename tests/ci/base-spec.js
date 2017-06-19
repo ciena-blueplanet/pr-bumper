@@ -10,8 +10,8 @@ chai.use(sinonChai)
 const logger = require('../../lib/logger')
 const CiBase = rewire('../../lib/ci/base')
 
-describe('CiBase', function () {
-  let execStub, revertExecRewire, base, sandbox
+describe('CI / Base', function () {
+  let execStub, revertExecRewire, base, sandbox, config
   beforeEach(function () {
     sandbox = sinon.sandbox.create()
 
@@ -22,7 +22,14 @@ describe('CiBase', function () {
     execStub = sandbox.stub()
     revertExecRewire = CiBase.__set__('exec', execStub)
 
-    base = new CiBase({id: 'config', branch: 'my-branch'}, {id: 'vcs'})
+    config = {
+      computed: {
+        ci: {
+          branch: 'my-branch'
+        }
+      }
+    }
+    base = new CiBase(config, {id: 'vcs'})
   })
 
   afterEach(function () {
@@ -34,11 +41,11 @@ describe('CiBase', function () {
   })
 
   it('should save the config', function () {
-    expect(base.config).to.be.eql({id: 'config', branch: 'my-branch'})
+    expect(base.config).to.equal(config)
   })
 
   it('should save the vcs', function () {
-    expect(base.vcs).to.be.eql({id: 'vcs'})
+    expect(base.vcs).to.eql({id: 'vcs'})
   })
 
   describe('.add()', function () {
@@ -56,7 +63,7 @@ describe('CiBase', function () {
     })
 
     it('should resolve with the result of the git command', function () {
-      expect(result).to.be.equal('added')
+      expect(result).to.equal('added')
     })
   })
 
@@ -75,7 +82,7 @@ describe('CiBase', function () {
     })
 
     it('should resolve with the result of the git command', function () {
-      expect(result).to.be.equal('committed')
+      expect(result).to.equal('committed')
     })
   })
 
@@ -94,7 +101,7 @@ describe('CiBase', function () {
     })
 
     it('should resolve with the result of the git command', function () {
-      expect(result).to.be.equal('Fix all the things')
+      expect(result).to.equal('Fix all the things')
     })
   })
 
@@ -124,7 +131,7 @@ describe('CiBase', function () {
     })
 
     it('should resolve with the result of the git command', function () {
-      expect(result).to.be.equal('pushed')
+      expect(result).to.equal('pushed')
     })
   })
 
@@ -156,7 +163,7 @@ describe('CiBase', function () {
     })
 
     it('should resolve with the result of the git command', function () {
-      expect(result).to.be.equal('executed')
+      expect(result).to.equal('executed')
     })
   })
 

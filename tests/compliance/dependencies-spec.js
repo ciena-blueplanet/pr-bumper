@@ -20,25 +20,32 @@ describe('dependencies', function () {
     sandbox = sinon.sandbox.create()
     sandbox.stub(logger, 'error')
     config = {
-      repo: 'some-test-repo',
-      dependencies: {
-        production: true,
-        output: {
-          directory: 'output-test-dir',
-          ignore: 'output-ignore-file',
-          repos: 'output-repos-file',
-          requirements: 'output-reqs-file'
-        },
-        additionalRepos: [
-          {
-            pattern: '\\s+"(ember\\-frost\\-\\S+)"',
-            url: 'https://github.com/ciena-frost/${REPO_NAME}.git'
+      features: {
+        compliance: {
+          enabled: true,
+          production: true,
+          output: {
+            directory: 'output-test-dir',
+            ignore: 'output-ignore-file',
+            repos: 'output-repos-file',
+            requirements: 'output-reqs-file'
           },
-          {
-            pattern: '\\s+"(frost\\-\\S+)"',
-            url: 'https://bitbucket.ciena.com/scm/bp_frost/${REPO_NAME}.git'
-          }
-        ]
+          additionalRepos: [
+            {
+              pattern: '\\s+"(ember\\-frost\\-\\S+)"',
+              url: 'https://github.com/ciena-frost/${REPO_NAME}.git'
+            },
+            {
+              pattern: '\\s+"(frost\\-\\S+)"',
+              url: 'https://bitbucket.ciena.com/scm/bp_frost/${REPO_NAME}.git'
+            }
+          ]
+        }
+      },
+      vcs: {
+        repository: {
+          name: 'some-test-repo'
+        }
       }
     }
   })
@@ -250,7 +257,7 @@ describe('dependencies', function () {
     })
 
     it('should return the correct repo paths', function () {
-      const addlRepos = config.dependencies.additionalRepos
+      const addlRepos = config.features.compliance.additionalRepos
       const expectedUrl1 = addlRepos[1].url.split('${REPO_NAME}').join(repos[1].split('"').join(''))
       const expectedUrl2 = addlRepos[0].url.split('${REPO_NAME}').join(repos[0].split('"').join(''))
       const expected = `${expectedUrl1}\n${expectedUrl2}\n`

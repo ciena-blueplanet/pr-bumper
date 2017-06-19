@@ -12,7 +12,7 @@ const TeamCity = require('../../lib/ci/teamcity')
 const testUtils = require('./utils')
 const ensureCiBaseMethodIsUsed = testUtils.ensureCiBaseMethodIsUsed
 
-describe('TeamCity', function () {
+describe('CI / TeamCity', function () {
   let teamcity, sandbox
   let ctx = {}
 
@@ -32,11 +32,11 @@ describe('TeamCity', function () {
   })
 
   it('should save the config', function () {
-    expect(teamcity.config).to.be.eql({id: 'config'})
+    expect(teamcity.config).to.eql({id: 'config'})
   })
 
   it('should save the vcs', function () {
-    expect(teamcity.vcs).to.be.eql({id: 'vcs'})
+    expect(teamcity.vcs).to.eql({id: 'vcs'})
   })
 
   it('should extend CiBase', function () {

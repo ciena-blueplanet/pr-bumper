@@ -10,7 +10,7 @@ chai.use(sinonChai)
 const logger = require('../../lib/logger')
 const BitbucketServer = rewire('../../lib/vcs/bitbucket-server')
 
-describe('BitbucketServer', function () {
+describe('VCS / BitbucketServer /', function () {
   let sandbox, bitbucket, config, fetchStub, revertFetchRewire
 
   beforeEach(function () {
@@ -31,15 +31,21 @@ describe('BitbucketServer', function () {
         },
         provider: 'teamcity'
       },
-      owner: 'me',
-      repo: 'my-repo',
+      computed: {
+        vcs: {
+          auth: {
+            username: 'ci-user',
+            password: 'ci user password'
+          }
+        }
+      },
       vcs: {
-        auth: {
-          username: 'ci-user',
-          password: 'ci user password'
-        },
         domain: 'bitbucket.my-domain.com',
-        provider: 'bitbucket-server'
+        provider: 'bitbucket-server',
+        repository: {
+          name: 'my-repo',
+          owner: 'me'
+        }
       }
     }
 

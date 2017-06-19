@@ -10,7 +10,7 @@ chai.use(sinonChai)
 const logger = require('../../lib/logger')
 const GitHub = rewire('../../lib/vcs/github')
 
-describe('GitHub', function () {
+describe('VCS / GitHub /', function () {
   let config, sandbox, github, execStub, fetchStub, revertFetchRewire, revertExecRewire
   beforeEach(function () {
     sandbox = sinon.sandbox.create()
@@ -34,15 +34,23 @@ describe('GitHub', function () {
         },
         provider: 'travis'
       },
-      owner: 'me',
-      repo: 'my-repo',
-      branch: 'my-branch',
-      vcs: {
-        auth: {
-          readToken: 'my-ro-gh-token',
-          writeToken: 'my-gh-token'
+      computed: {
+        ci: {
+          branch: 'my-branch'
         },
-        provider: 'github'
+        vcs: {
+          auth: {
+            readToken: 'my-ro-gh-token',
+            writeToken: 'my-gh-token'
+          }
+        }
+      },
+      vcs: {
+        provider: 'github',
+        repository: {
+          name: 'my-repo',
+          owner: 'me'
+        }
       }
     }
 

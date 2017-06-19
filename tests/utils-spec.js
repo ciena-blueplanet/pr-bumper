@@ -1209,8 +1209,11 @@ Thought this might be #breaking# but on second thought it is a minor change
             isPr: true,
             prNumber: '123'
           }
-        }
+        },
+        isEnabled () {}
       }
+
+      sandbox.stub(config, 'isEnabled')
 
       resolver = {}
       resolver.promise = new Promise((resolve, reject) => {
@@ -1227,6 +1230,7 @@ Thought this might be #breaking# but on second thought it is a minor change
 
     describe('when feature is not enabled', function () {
       beforeEach(function (done) {
+        config.isEnabled.withArgs('comments').returns(false)
         utils.maybePostComment(config, vcs, 'fizz-bang')
           .then((resp) => {
             result = resp
@@ -1256,11 +1260,7 @@ Thought this might be #breaking# but on second thought it is a minor change
     describe('when feature is enabled, but isPr is false', function () {
       beforeEach(function (done) {
         config.computed.ci.isPr = false
-        config.features = {
-          comments: {
-            enabled: true
-          }
-        }
+        config.isEnabled.withArgs('comments').returns(true)
 
         utils.maybePostComment(config, vcs, 'fizz-bang')
           .then((resp) => {
@@ -1294,11 +1294,7 @@ Thought this might be #breaking# but on second thought it is a minor change
         realSkipComments = process.env['SKIP_COMMENTS']
         process.env['SKIP_COMMENTS'] = '1'
         config.computed.ci.isPr = true
-        config.features = {
-          comments: {
-            enabled: true
-          }
-        }
+        config.isEnabled.withArgs('comments').returns(true)
 
         utils.maybePostComment(config, vcs, 'fizz-bang')
           .then((resp) => {
@@ -1337,11 +1333,7 @@ Thought this might be #breaking# but on second thought it is a minor change
     describe('when feature is enabled and isPr is true (and no SKIP_COMMENTS is present)', function () {
       let promise
       beforeEach(function () {
-        config.features = {
-          comments: {
-            enabled: true
-          }
-        }
+        config.isEnabled.withArgs('comments').returns(true)
 
         promise = utils.maybePostComment(config, vcs, 'fizz-bang')
           .then((resp) => {
@@ -1402,11 +1394,7 @@ Thought this might be #breaking# but on second thought it is a minor change
     describe('when feature is enabled and isPr is true, and isError is true', function () {
       let promise
       beforeEach(function () {
-        config.features = {
-          comments: {
-            enabled: true
-          }
-        }
+        config.isEnabled.withArgs('comments').returns(true)
 
         promise = utils.maybePostComment(config, vcs, 'fizz-bang', true)
           .then((resp) => {
@@ -1474,8 +1462,11 @@ Thought this might be #breaking# but on second thought it is a minor change
             isPr: true,
             prNumber: '123'
           }
-        }
+        },
+        isEnabled () {}
       }
+
+      sandbox.stub(config, 'isEnabled')
 
       resolver = {}
       resolver.promise = new Promise((resolve, reject) => {
@@ -1528,7 +1519,7 @@ Thought this might be #breaking# but on second thought it is a minor change
 
       describe('and feature is not enabled', function () {
         beforeEach(function (done) {
-          config.prComments = false
+          config.isEnabled.withArgs('comments').returns(false)
           utils.maybePostCommentOnError(config, vcs, func)
             .then((resp) => {
               result = resp
@@ -1559,11 +1550,7 @@ Thought this might be #breaking# but on second thought it is a minor change
       describe('and feature is enabled but isPr is false', function () {
         beforeEach(function (done) {
           config.computed.ci.isPr = false
-          config.features = {
-            comments: {
-              enabled: true
-            }
-          }
+          config.isEnabled.withArgs('comments').returns(true)
 
           utils.maybePostCommentOnError(config, vcs, func)
             .then((resp) => {
@@ -1596,11 +1583,7 @@ Thought this might be #breaking# but on second thought it is a minor change
         let promise
         beforeEach(function () {
           config.computed.ci.isPr = true
-          config.features = {
-            comments: {
-              enabled: true
-            }
-          }
+          config.isEnabled.withArgs('comments').returns(true)
 
           promise = utils.maybePostCommentOnError(config, vcs, func)
             .then((resp) => {
