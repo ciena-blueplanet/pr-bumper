@@ -56,6 +56,6 @@
     "sinon-chai": "^2.11.0"
   },
   "pr-bumper": {
-    "coverage": 93.64
+    "coverage": 93.01
   }
 }
