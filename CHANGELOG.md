@@ -1,3 +1,7 @@
+# 2.0.1 (2017-06-25)
+* **Fixed** a bug when updating baseline coverage (+test)
+
+
 # 2.0.0 (2017-06-25) (unpublished)
 ## Breaking changes
 * **Refactored** the format of `.pr-bumper.json` to make it easier to identify features and when they are enabled. The new format is documented in the `README.md` (Resolves [#87](https://github.com/ciena-blueplanet/pr-bumper/issues/87)).
