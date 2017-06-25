@@ -253,6 +253,10 @@ describe('Bumper', function () {
         expect(result).to.equal(null)
       })
 
+      it('should look up current coverage', function () {
+        expect(utils.getCurrentCoverage).to.have.been.calledWith(bumper.config)
+      })
+
       it('should maybe post a comment', function () {
         expect(utils.maybePostComment).to.have.been.calledWith(bumper.config, bumper.vcs, errorMsg, true)
       })
@@ -284,6 +288,10 @@ describe('Bumper', function () {
 
       it('should not resolve', function () {
         expect(result).to.equal(null)
+      })
+
+      it('should look up current coverage', function () {
+        expect(utils.getCurrentCoverage).to.have.been.calledWith(bumper.config)
       })
 
       it('should maybe post a comment', function () {
@@ -324,6 +332,10 @@ describe('Bumper', function () {
         expect(error).to.equal(null)
       })
 
+      it('should look up current coverage', function () {
+        expect(utils.getCurrentCoverage).to.have.been.calledWith(bumper.config)
+      })
+
       it('should maybe post a comment', function () {
         expect(utils.maybePostComment).to.have.been.calledWith(bumper.config, bumper.vcs, msg)
       })
@@ -360,6 +372,10 @@ describe('Bumper', function () {
 
       it('should not reject', function () {
         expect(error).to.equal(null)
+      })
+
+      it('should look up current coverage', function () {
+        expect(utils.getCurrentCoverage).to.have.been.calledWith(bumper.config)
       })
 
       it('should maybe post a comment', function () {
@@ -1803,7 +1819,7 @@ describe('Bumper', function () {
       })
 
       it('should lookup current coverage', function () {
-        expect(utils.getCurrentCoverage).to.have.callCount(1)
+        expect(utils.getCurrentCoverage).to.have.been.calledWith(bumper.config)
       })
 
       it('should not read from a file', function () {
@@ -1856,7 +1872,7 @@ describe('Bumper', function () {
       })
 
       it('should lookup current coverage', function () {
-        expect(utils.getCurrentCoverage).to.have.callCount(1)
+        expect(utils.getCurrentCoverage).to.have.been.calledWith(bumper.config)
       })
 
       it('should read previous contents of the "package.json" file', function () {
@@ -1912,7 +1928,7 @@ describe('Bumper', function () {
       })
 
       it('should lookup current coverage', function () {
-        expect(utils.getCurrentCoverage).to.have.callCount(1)
+        expect(utils.getCurrentCoverage).to.have.been.calledWith(bumper.config)
       })
 
       it('should read previous contents of the "package.json" file', function () {

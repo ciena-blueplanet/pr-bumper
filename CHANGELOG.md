@@ -1,3 +1,22 @@
+# 2.0.0 (2017-06-25) (unpublished)
+## Breaking changes
+* **Refactored** the format of `.pr-bumper.json` to make it easier to identify features and when they are enabled. The new format is documented in the `README.md` (Resolves [#87](https://github.com/ciena-blueplanet/pr-bumper/issues/87)).
+
+* **Changed** dependency snapshot feature to be opt-in (like all others), you need to explicitly enable it in `.pr-bumper.json` to use the feature now (Resolves [#84](https://github.com/ciena-blueplanet/pr-bumper/issues/84)).
+
+* **Changed** changelog feature to be opt-in (like all others), you need to explicitly enable it in `.pr-bumper.json` to use the feature now (Resolves [#85](https://github.com/ciena-blueplanet/pr-bumper/issues/85)).
+
+* **Changed** how the code coverage feature is enabled. You now need to explicitly enable it in `.pr-bumper.json`
+
+* **Changed** how the code coverage feature calculates coverage, it now takes into account both the `branches` and the `statements` data, previously it was just `statements` (Resolves [#98](https://github.com/ciena-blueplanet/pr-bumper/issues/98))
+
+## Non-breaking changes
+* **Added** pre-release support, only `patch` bumping (Resolves [#102](https://github.com/ciena-blueplanet/pr-bumper/issues/102))
+
+* **Added** a `maxScope` option in `.pr-bumper.json` to prevent accidental bumps larger than desired in certain branches/projects (Resolves [#101](https://github.com/ciena-blueplanet/pr-bumper/issues/101) as well as [#100](https://github.com/ciena-blueplanet/pr-bumper/issues/100) and [#39](https://github.com/ciena-blueplanet/pr-bumper/issues/39))
+
+* **Added** a configuration option for the coverage feature to allow changing the default location for the current code coverage data (Resolves [#97](https://github.com/ciena-blueplanet/pr-bumper/issues/97)).
+
 # 1.11.2 (2017-06-12)
  * **Updated** secure auth tokens to fix build
  * **Added** CHANGELOG details from last failed build
