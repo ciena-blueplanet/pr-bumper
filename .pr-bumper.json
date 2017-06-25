@@ -1,0 +1,13 @@
+{
+  "features": {
+    "changelog": {
+      "enabled": true
+    },
+    "coverage": {
+      "enabled": true
+    },
+    "dependencies": {
+      "enabled": true
+    }
+  }
+}

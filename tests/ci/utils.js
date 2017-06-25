@@ -26,7 +26,7 @@ module.exports = {
       })
 
       it(`should resolve with the result of the base ${methodName}()`, function () {
-        expect(result).to.be.equal(`${methodName}-finished`)
+        expect(result).to.equal(`${methodName}-finished`)
       })
     })
   }

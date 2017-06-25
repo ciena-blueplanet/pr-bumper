@@ -1,8 +1,9 @@
 language: node_js
 sudo: false
 node_js:
-- '5.0.0'
-- '6.9.1'
+- '6.0.0'
+- '6.11.0'
+- 'stable'
 install:
 - .travis/maybe-install.sh
 before_script:
@@ -24,6 +25,12 @@ env:
   - CXX=g++-4.8
   global:
     secure: FuDCzVzi5GRMBrHdwqxQiQv6g4rAVGW/75SXN9WbciyEOD5pSqxWWFxXMiLVfeUftt1CPuk8zozqlJIkuWQh0FWPsgPjkuhkbuhWmvlIINSdVXptipBrA/izYRoZlTa2e+bO0ng0nPqEV/lETVs18hbGJw+Qts/kMcI3llaM76Lx/2hS/hYLN0mOHv7MEdf09pgeHinZMslr0HJ7Ut+wFZkjGIyTqZ14nfjBlZie82ew7MPfZSPGiU/iuc28Vb4aIdxOLL1k6yFYPlA7fNCKmT3BrTB94qjGyiyQ29cfm4JBCoZIGkTb0GCuhXxPH3SkOICneCjQKdIIJKD5O4UqbzAEgBogD1WCduWAQt0sFdG5k2806nWcSghwJkwQC+spbPMUIxX78NBErtNB2OTyav7FISJSbCP2qsVbi3vEcRcPTabs0/V30wD1neQ0uvGJIHrNCjVBVDIv+g/pGjZ8n5PO0Bg22EE5VauzeFxwuVCkaqBCFR1iGBnhEEI/kuMfUDin5iIwXdl1RkBuX0AyickqzBxd8npxwmm8hXrp3A6SSv4CDl6c/NSBiviociWgomwOiAfenIKEVW1CznrIu8yD2FMCY43XL/n++CSROdhdAP9OsMEKjMpZAnknXN1wruD0QaEKI6+/df4DVYT21YxhW9Bkl0ChsZr0qFphs7g=
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - node_js: 'stable'
+
 deploy:
   provider: npm
   email: npm.ciena@gmail.com
@@ -32,7 +39,7 @@ deploy:
     secure: itCd1OB86RXSdzauJ5vd7N0so4jd6lW51Sb62I919pmDffb7aRgrV6uuhDXVcZWL3Opv3bJ7CyOznu1K6/H/qJM4/4Xh3UHPcoS/dl7Wj8H/8z0SvJu9C2Wg4zb5x/6n0/3kq9yAN147103wKyfDcPb8tx4OS5oUsHaiFho4TiuP1Xn3Y4S0cnZYItpFg+czkwO16Nd0ERrw1sh6xkA2FFVpDcA49fyOOrKS5+ktGvSvvloN2ed+A+qQvaSuLzQCyfdF1s6W8xWgc8k+XWzqqllvUyMuU8sRpYTs+F1ySiovl6v6mVyohELoE7/l/NkOYMXCzjxKbF/EVcL/LVI0PDpifVnJYO4hapV1FyrMu1OTwRvWUNCvYciRfTa6LVTAWMVD6xK0OnRg9Koc9i3OGRDfYkDyK7NqLiXXlVgnWzjoIysi9moWSzYRJlXmZ11KoH/7UQkccgzVhV7vrlRlGbjC2lcU9lS8pEYkRMmTS0mSNg5qi/engMSKpJyiozC3i5yJxmujIQi3P3ZBgtTkg1QAwb1U7rqb7L6UJOApXq/me+e6iJM4ntlNA0c3Jo4nXvXejNRnkoCcueRliTS1CU9PW/eDRNhoW5T/aWoavDa8bbgrajUoK9cOPuR6mAo5Rcc1JIubkZdYjO9honkk3XZkNaCjFfhHBPC+Ph7nYKs=
   on:
     all_branches: true
-    node: '6.9.1'
+    node: '6.11.0'
     tags: true
 notifications:
   slack:

@@ -96,7 +96,7 @@ describe('Cli', function () {
       })
 
       it('should resolve with the result of bump', function () {
-        expect(result).to.be.equal('bumped')
+        expect(result).to.equal('bumped')
       })
 
       it('should not error', function () {
@@ -140,7 +140,7 @@ describe('Cli', function () {
       })
 
       it('should resolve with the result of check', function () {
-        expect(result).to.be.equal('checked')
+        expect(result).to.equal('checked')
       })
 
       it('should not error', function () {
@@ -184,7 +184,7 @@ describe('Cli', function () {
       })
 
       it('should resolve with the result of check', function () {
-        expect(result).to.be.equal('coverage-checked')
+        expect(result).to.equal('coverage-checked')
       })
 
       it('should not error', function () {
@@ -193,9 +193,18 @@ describe('Cli', function () {
     })
 
     describe('check-coverage --skip-comments', function () {
+      let _config
       beforeEach(function () {
         result = ''
         error = ''
+        _config = {
+          id: 'config',
+          features: {
+            comments: {
+              enabled: false
+            }
+          }
+        }
 
         return cli
           .run('check-coverage', true)
@@ -212,23 +221,23 @@ describe('Cli', function () {
       })
 
       it('should get the vcs', function () {
-        expect(cli._getVcs).to.have.been.calledWith({id: 'config', prComments: false})
+        expect(cli._getVcs).to.have.been.calledWith(_config)
       })
 
       it('should get the ci', function () {
-        expect(cli._getCi).to.have.been.calledWith({id: 'config', prComments: false}, {id: 'vcs'})
+        expect(cli._getCi).to.have.been.calledWith(_config, {id: 'vcs'})
       })
 
       it('should get the bumper', function () {
         expect(cli._getBumper).to.have.been.calledWith({
           ci: {id: 'ci'},
-          config: {id: 'config', prComments: false},
+          config: _config,
           vcs: {id: 'vcs'}
         })
       })
 
       it('should resolve with the result of check', function () {
-        expect(result).to.be.equal('coverage-checked')
+        expect(result).to.equal('coverage-checked')
       })
 
       it('should not error', function () {
@@ -252,7 +261,7 @@ describe('Cli', function () {
       })
 
       it('should reject with an error', function () {
-        expect(error).to.be.equal('Invalid command: foo-bar')
+        expect(error).to.equal('Invalid command: foo-bar')
       })
 
       it('should not resolve', function () {
@@ -276,11 +285,11 @@ describe('Cli', function () {
       })
 
       it('should pass along config', function () {
-        expect(ci.config).to.be.eql(config)
+        expect(ci.config).to.eql(config)
       })
 
       it('should pass along vcs', function () {
-        expect(ci.vcs).to.be.eql(vcs)
+        expect(ci.vcs).to.eql(vcs)
       })
 
       it('should create a TeamCity instance', function () {
@@ -295,11 +304,11 @@ describe('Cli', function () {
       })
 
       it('should pass along config', function () {
-        expect(ci.config).to.be.eql(config)
+        expect(ci.config).to.eql(config)
       })
 
       it('should pass along vcs', function () {
-        expect(ci.vcs).to.be.eql(vcs)
+        expect(ci.vcs).to.eql(vcs)
       })
 
       it('should create a Travis instance', function () {
@@ -325,9 +334,12 @@ describe('Cli', function () {
 
     beforeEach(function () {
       config = {
-        vcs: {
-          auth: {}
-        }
+        computed: {
+          vcs: {
+            auth: {}
+          }
+        },
+        vcs: {}
       }
     })
 
@@ -342,7 +354,7 @@ describe('Cli', function () {
       })
 
       it('should pass along config', function () {
-        expect(vcs.config).to.be.eql(config)
+        expect(vcs.config).to.eql(config)
       })
 
       it('should create a BitbucketServer instance', function () {
@@ -357,7 +369,7 @@ describe('Cli', function () {
       })
 
       it('should pass along config', function () {
-        expect(vcs.config).to.be.eql(config)
+        expect(vcs.config).to.eql(config)
       })
 
       it('should create a GitHub instance', function () {
@@ -372,7 +384,7 @@ describe('Cli', function () {
       })
 
       it('should pass along config', function () {
-        expect(vcs.config).to.be.eql(config)
+        expect(vcs.config).to.eql(config)
       })
 
       it('should create a GitHubEnterprise instance', function () {

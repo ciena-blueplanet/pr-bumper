@@ -1,11 +1,15 @@
 'use strict'
 
 const __ = require('lodash')
-const expect = require('chai').expect
+const chai = require('chai')
+const sinonChai = require('sinon-chai')
 const sinon = require('sinon')
 
 const logger = require('../lib/logger')
 const utils = require('../lib/utils')
+
+chai.use(sinonChai)
+const expect = chai.expect
 
 /**
  * Save the existing environment variables into an env object
@@ -26,6 +30,88 @@ function setEnv (env) {
   __.forIn(env, (value, key) => {
     process.env[key] = value
   })
+}
+
+/**
+ * Verifiy that getConfig filled in the proper feature defaults
+ * @param {Object} ctx - the context object for the tests
+ * @param {String[]} propsToSkip - an array of string properties to skip the check for (if they've been overwritten)
+ */
+function verifyFeatureDefaults (ctx, propsToSkip) {
+  if (propsToSkip === undefined) {
+    propsToSkip = []
+  }
+
+  // NOTE: disabling complexity check here b/c it's just complaining about the conditionals around
+  // all the it() blocks now, but they're necessary to test overrides
+  /* eslint-disable complexity */
+  describe('when using feature defaults', function () {
+    let config
+    beforeEach(function () {
+      config = ctx.config
+    })
+
+    if (propsToSkip.indexOf('features.changelog.enabled') === -1) {
+      it('should default changelog feature to disabled', function () {
+        expect(config.features.changelog.enabled).to.equal(false)
+      })
+    }
+
+    if (propsToSkip.indexOf('features.changelog.file') === -1) {
+      it('should default changelog file to "CHANGELOG.md"', function () {
+        expect(config.features.changelog.file).to.equal('CHANGELOG.md')
+      })
+    }
+
+    if (propsToSkip.indexOf('features.comments.enabled') === -1) {
+      it('should default pr comments feature to disabled', function () {
+        expect(config.features.comments.enabled).to.equal(false)
+      })
+    }
+
+    if (propsToSkip.indexOf('features.compliance.enabled') === -1) {
+      it('should default compliance feature to disabled', function () {
+        expect(config.features.compliance.enabled).to.equal(false)
+      })
+    }
+
+    if (propsToSkip.indexOf('features.coverage.enabled') === -1) {
+      it('should default coverage feature to disabled', function () {
+        expect(config.features.coverage.enabled).to.equal(false)
+      })
+    }
+
+    if (propsToSkip.indexOf('features.coverage.file') === -1) {
+      it('should default coverage file to "coverage/coverage-summary.json"', function () {
+        expect(config.features.coverage.file).to.equal('coverage/coverage-summary.json')
+      })
+    }
+
+    if (propsToSkip.indexOf('features.dependencies.enabled') === -1) {
+      it('should default dependency snapshot feature to disabled', function () {
+        expect(config.features.dependencies.enabled).to.equal(false)
+      })
+    }
+
+    if (propsToSkip.indexOf('features.dependencies.snapshotFile') === -1) {
+      it('should default dependency snapshot file to "dependency-snapshot.json"', function () {
+        expect(config.features.dependencies.snapshotFile).to.equal('dependency-snapshot.json')
+      })
+    }
+
+    if (propsToSkip.indexOf('features.maxScope.enabled') === -1) {
+      it('should default maxScope feature to disabled', function () {
+        expect(config.features.maxScope.enabled).to.equal(false)
+      })
+    }
+
+    if (propsToSkip.indexOf('features.maxScope.value') === -1) {
+      it('should default maxScope value to "major"', function () {
+        expect(config.features.maxScope.value).to.equal('major')
+      })
+    }
+  })
+  /* eslint-enable complexity */
 }
 
 /**
@@ -62,21 +148,21 @@ function verifyGitHubTravisDefaults (ctx, propsToSkip) {
       })
     }
 
-    if (propsToSkip.indexOf('owner') === -1) {
+    if (propsToSkip.indexOf('vcs.repository.owner') === -1) {
       it('should have the proper owner', function () {
-        expect(config.owner).to.equal('jdoe')
+        expect(config.vcs.repository.owner).to.equal('jdoe')
       })
     }
 
-    if (propsToSkip.indexOf('branch') === -1) {
+    if (propsToSkip.indexOf('computed.ci.branch') === -1) {
       it('should have the proper branch', function () {
-        expect(config.branch).to.equal('my-branch')
+        expect(config.computed.ci.branch).to.equal('my-branch')
       })
     }
 
-    if (propsToSkip.indexOf('repo') === -1) {
-      it('should have the proper repo', function () {
-        expect(config.repo).to.equal('john-and-jane')
+    if (propsToSkip.indexOf('vcs.repository.name') === -1) {
+      it('should have the proper repository name', function () {
+        expect(config.vcs.repository.name).to.equal('john-and-jane')
       })
     }
 
@@ -92,32 +178,14 @@ function verifyGitHubTravisDefaults (ctx, propsToSkip) {
       })
     }
 
-    if (propsToSkip.indexOf('vcs.auth') === -1) {
+    if (propsToSkip.indexOf('computed.vcs.auth') === -1) {
       it('should have the proper vcs auth', function () {
-        expect(config.vcs.auth).to.eql({
+        expect(config.computed.vcs.auth).to.eql({
           password: undefined,
           readToken: '12345',
           username: undefined,
           writeToken: '54321'
         })
-      })
-    }
-
-    if (propsToSkip.indexOf('dependencySnapshotFile') === -1) {
-      it('should default dependencySnapshotFile to "dependency-snapshot.json"', function () {
-        expect(config.dependencySnapshotFile).to.equal('dependency-snapshot.json')
-      })
-    }
-
-    if (propsToSkip.indexOf('changelogFile') === -1) {
-      it('should default changelogFile to "CHANGELOG.md"', function () {
-        expect(config.changelogFile).to.equal('CHANGELOG.md')
-      })
-    }
-
-    if (propsToSkip.indexOf('prComments') === -1) {
-      it('should default prComments to false', function () {
-        expect(config.prComments).to.equal(false)
       })
     }
   })
@@ -146,16 +214,16 @@ function verifyBitbucketTeamcityOverrides (ctx) {
       expect(config.ci.provider).to.equal('teamcity')
     })
 
-    it('should have the proper owner', function () {
-      expect(config.owner).to.equal('my-project')
+    it('should have the proper repository owner', function () {
+      expect(config.vcs.repository.owner).to.equal('my-project')
     })
 
-    it('should have the proper repo', function () {
-      expect(config.repo).to.equal('my-repo')
+    it('should have the proper repository name', function () {
+      expect(config.vcs.repository.name).to.equal('my-repo')
     })
 
     it('should have the proper branch', function () {
-      expect(config.branch).to.equal('my-branch')
+      expect(config.computed.ci.branch).to.equal('my-branch')
     })
 
     it('should have the proper vcs domain', function () {
@@ -167,24 +235,12 @@ function verifyBitbucketTeamcityOverrides (ctx) {
     })
 
     it('should have the proper vcs auth', function () {
-      expect(config.vcs.auth).to.eql({
+      expect(config.computed.vcs.auth).to.eql({
         password: 'teamcity12345',
         readToken: undefined,
         username: 'teamcity',
         writeToken: undefined
       })
-    })
-
-    it('should default dependencySnapshotFile to "dependency-snapshot.json"', function () {
-      expect(config.dependencySnapshotFile).to.equal('dependency-snapshot.json')
-    })
-
-    it('should default changelogFile to "CHANGELOG.md"', function () {
-      expect(config.changelogFile).to.equal('CHANGELOG.md')
-    })
-
-    it('should default prComments to false', function () {
-      expect(config.prComments).to.equal(false)
     })
   })
 }
@@ -195,6 +251,7 @@ describe('utils', function () {
   beforeEach(function () {
     sandbox = sinon.sandbox.create()
     sandbox.stub(logger, 'log')
+    sandbox.stub(utils, 'readJsonFile')
   })
 
   afterEach(function () {
@@ -231,22 +288,24 @@ describe('utils', function () {
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          config = utils.getConfig(null, {})
-          ctx.config = config
+          utils.readJsonFile.withArgs('.pr-bumper.json').throws()
+          utils.readJsonFile.withArgs('package.json').returns({})
+          ctx.config = config = utils.getConfig()
         })
 
         verifyGitHubTravisDefaults(ctx)
+        verifyFeatureDefaults(ctx)
 
         it('should set isPr to true', function () {
-          expect(config.isPr).to.equal(true)
+          expect(config.computed.ci.isPr).to.equal(true)
         })
 
         it('should set prNumber to the PR number', function () {
-          expect(config.prNumber).to.equal('13')
+          expect(config.computed.ci.prNumber).to.equal('13')
         })
 
         it('should not have a baselineCoverage set', function () {
-          expect(config.baselineCoverage).to.equal(undefined)
+          expect(config.computed.baselineCoverage).to.equal(0)
         })
       })
 
@@ -257,27 +316,29 @@ describe('utils', function () {
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          const pkgJson = {
+          utils.readJsonFile.withArgs('.pr-bumper.json').throws()
+          utils.readJsonFile.withArgs('package.json').returns({
             'pr-bumper': {
               coverage: 85.93
             }
-          }
-          config = utils.getConfig(null, pkgJson)
-          ctx.config = config
+          })
+
+          ctx.config = config = utils.getConfig()
         })
 
         verifyGitHubTravisDefaults(ctx)
+        verifyFeatureDefaults(ctx)
 
         it('should set isPr to true', function () {
-          expect(config.isPr).to.equal(true)
+          expect(config.computed.ci.isPr).to.equal(true)
         })
 
         it('should set prNumber to the PR number', function () {
-          expect(config.prNumber).to.equal('13')
+          expect(config.computed.ci.prNumber).to.equal('13')
         })
 
         it('should set baselineCoverage to the coverage from package.json', function () {
-          expect(config.baselineCoverage).to.equal(85.93)
+          expect(config.computed.baselineCoverage).to.equal(85.93)
         })
       })
 
@@ -288,76 +349,87 @@ describe('utils', function () {
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          config = utils.getConfig(null, {})
-          ctx.config = config
+          utils.readJsonFile.withArgs('.pr-bumper.json').throws()
+          utils.readJsonFile.withArgs('package.json').returns({})
+
+          ctx.config = config = utils.getConfig()
         })
 
         verifyGitHubTravisDefaults(ctx)
+        verifyFeatureDefaults(ctx)
 
         it('should set isPr to false', function () {
-          expect(config.isPr).to.equal(false)
+          expect(config.computed.ci.isPr).to.equal(false)
         })
 
         it('should set prNumber to false', function () {
-          expect(config.prNumber).to.equal('false')
+          expect(config.computed.ci.prNumber).to.equal('false')
         })
 
         it('should not have a baselineCoverage set', function () {
-          expect(config.baselineCoverage).to.equal(undefined)
+          expect(config.computed.baselineCoverage).to.equal(0)
         })
       })
 
       describe('when doing a merge build (with coverage in package.json)', function () {
         beforeEach(function () {
-          const pkgJson = {
-            'pr-bumper': {
-              coverage: 85.93
-            }
-          }
           env.TRAVIS_PULL_REQUEST = 'false'
 
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          config = utils.getConfig(null, pkgJson)
-          ctx.config = config
+          utils.readJsonFile.withArgs('.pr-bumper.json').throws()
+          utils.readJsonFile.withArgs('package.json').returns({
+            'pr-bumper': {
+              coverage: 85.93
+            }
+          })
+
+          ctx.config = config = utils.getConfig()
         })
 
         verifyGitHubTravisDefaults(ctx)
+        verifyFeatureDefaults(ctx)
 
         it('should set isPr to false', function () {
-          expect(config.isPr).to.equal(false)
+          expect(config.computed.ci.isPr).to.equal(false)
         })
 
         it('should set prNumber to false', function () {
-          expect(config.prNumber).to.equal('false')
+          expect(config.computed.ci.prNumber).to.equal('false')
         })
 
         it('should set baselineCoverage to the coverage from package.json', function () {
-          expect(config.baselineCoverage).to.equal(85.93)
+          expect(config.computed.baselineCoverage).to.equal(85.93)
         })
       })
 
       describe('when a partial config is given', function () {
-        let _config
         beforeEach(function () {
-          _config = {
+          saveEnv(Object.keys(env), realEnv)
+          setEnv(env)
+
+          utils.readJsonFile.withArgs('.pr-bumper.json').returns({
             ci: {
               gitUser: {
                 email: 'some.other.user@domain.com',
                 name: 'Some Other User'
               }
+            },
+            features: {
+              changelog: {
+                enabled: true,
+                file: 'CHANGES.md'
+              }
             }
-          }
+          })
+          utils.readJsonFile.withArgs('package.json').returns({})
 
-          saveEnv(Object.keys(env), realEnv)
-          setEnv(env)
-
-          config = utils.getConfig(_config)
-          ctx.config = config
+          ctx.config = config = utils.getConfig()
         })
 
         verifyGitHubTravisDefaults(ctx, ['ci.gitUser'])
+        verifyFeatureDefaults(ctx, ['features.changelog.enabled', 'features.changelog.file'])
 
         it('should use the overwritten git user', function () {
           expect(config.ci.gitUser).to.eql({
@@ -365,21 +437,29 @@ describe('utils', function () {
             name: 'Some Other User'
           })
         })
+
+        it('should use the overwritten changelog settings', function () {
+          expect(config.features.changelog).to.eql({
+            enabled: true,
+            file: 'CHANGES.md'
+          })
+        })
       })
 
       describe('when pr env is missing', function () {
-        let _config
         beforeEach(function () {
           env.TRAVIS_PULL_REQUEST = undefined
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          config = utils.getConfig(_config)
-          ctx.config = config
+          utils.readJsonFile.withArgs('.pr-bumper.json').throws()
+          utils.readJsonFile.withArgs('package.json').returns({})
+
+          ctx.config = config = utils.getConfig()
         })
 
         it('should not consider it a PR', function () {
-          expect(config.isPr).to.equal(false)
+          expect(config.computed.ci.isPr).to.equal(false)
         })
       })
     })
@@ -395,11 +475,15 @@ describe('utils', function () {
               name: 'Bot User'
             }
           },
+          features: {
+            comments: {
+              enabled: true
+            }
+          },
           vcs: {
             domain: 'ghe.domain.com',
             provider: 'github-enterprise'
-          },
-          prComments: true
+          }
         }
 
         _pkgJson = {
@@ -424,11 +508,14 @@ describe('utils', function () {
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          config = utils.getConfig(_config, {})
-          ctx.config = config
+          utils.readJsonFile.withArgs('.pr-bumper.json').returns(_config)
+          utils.readJsonFile.withArgs('package.json').returns({})
+
+          ctx.config = config = utils.getConfig()
         })
 
-        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider', 'prComments'])
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+        verifyFeatureDefaults(ctx, ['features.comments.enabled'])
 
         it('should have the proper gitUser', function () {
           expect(config.ci.gitUser).to.eql({
@@ -446,19 +533,19 @@ describe('utils', function () {
         })
 
         it('should set isPr to true', function () {
-          expect(config.isPr).to.equal(true)
+          expect(config.computed.ci.isPr).to.equal(true)
         })
 
         it('should set prNumber to the PR number', function () {
-          expect(config.prNumber).to.equal('13')
+          expect(config.computed.ci.prNumber).to.equal('13')
         })
 
         it('should not have a baselineCoverage set', function () {
-          expect(config.baselineCoverage).to.equal(undefined)
+          expect(config.computed.baselineCoverage).to.equal(0)
         })
 
-        it('should have the proper prComments value', function () {
-          expect(config.prComments).to.equal(true)
+        it('should enable the comments feature', function () {
+          expect(config.features.comments.enabled).to.equal(true)
         })
       })
 
@@ -466,14 +553,31 @@ describe('utils', function () {
         beforeEach(function () {
           env.TRAVIS_PULL_REQUEST = '13'
 
+          _config.features = {
+            compliance: {
+              enabled: true,
+              production: true,
+              output: {
+                directory: 'foo-bar',
+                requirementsFile: 'requirements.json',
+                reposFile: 'repos-file',
+                ignoreFile: 'ignore-file'
+              },
+              additionalRepos: ['none']
+            }
+          }
+
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          config = utils.getConfig(_config, _pkgJson)
-          ctx.config = config
+          utils.readJsonFile.withArgs('.pr-bumper.json').returns(_config)
+          utils.readJsonFile.withArgs('package.json').returns(_pkgJson)
+
+          ctx.config = config = utils.getConfig()
         })
 
-        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider', 'prComments'])
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+        verifyFeatureDefaults(ctx, ['features.compliance.enabled'])
 
         it('should have the proper gitUser', function () {
           expect(config.ci.gitUser).to.eql({
@@ -491,19 +595,19 @@ describe('utils', function () {
         })
 
         it('should set isPr to true', function () {
-          expect(config.isPr).to.equal(true)
+          expect(config.computed.ci.isPr).to.equal(true)
         })
 
         it('should set prNumber to the PR number', function () {
-          expect(config.prNumber).to.equal('13')
+          expect(config.computed.ci.prNumber).to.equal('13')
         })
 
         it('should set baselineCoverage to the coverage from package.json', function () {
-          expect(config.baselineCoverage).to.equal(98.03)
+          expect(config.computed.baselineCoverage).to.equal(98.03)
         })
 
-        it('should have the proper prComments value', function () {
-          expect(config.prComments).to.equal(true)
+        it('should use the overwritten compliance config', function () {
+          expect(config.features.compliance).to.eql(_config.features.compliance)
         })
       })
 
@@ -514,11 +618,21 @@ describe('utils', function () {
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          config = utils.getConfig(_config, {})
-          ctx.config = config
+          _config.features = {
+            dependencies: {
+              enabled: true,
+              snapshotFile: 'snapshot.json'
+            }
+          }
+
+          utils.readJsonFile.withArgs('.pr-bumper.json').returns(_config)
+          utils.readJsonFile.withArgs('package.json').returns({})
+
+          ctx.config = config = utils.getConfig()
         })
 
-        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider', 'prComments'])
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+        verifyFeatureDefaults(ctx, ['features.dependencies.enabled', 'features.dependencies.snapshotFile'])
 
         it('should have the proper gitUser', function () {
           expect(config.ci.gitUser).to.eql({
@@ -536,19 +650,19 @@ describe('utils', function () {
         })
 
         it('should set isPr to false', function () {
-          expect(config.isPr).to.equal(false)
+          expect(config.computed.ci.isPr).to.equal(false)
         })
 
         it('should set prNumber to false', function () {
-          expect(config.prNumber).to.equal('false')
+          expect(config.computed.ci.prNumber).to.equal('false')
         })
 
         it('should not have a baselineCoverage set', function () {
-          expect(config.baselineCoverage).to.equal(undefined)
+          expect(config.computed.baselineCoverage).to.equal(0)
         })
 
-        it('should have the proper prComments value', function () {
-          expect(config.prComments).to.equal(true)
+        it('should have the proper dependencies feature config', function () {
+          expect(config.features.dependencies).to.eql(_config.features.dependencies)
         })
       })
 
@@ -559,11 +673,21 @@ describe('utils', function () {
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          config = utils.getConfig(_config, _pkgJson)
-          ctx.config = config
+          _config.features = {
+            maxScope: {
+              enabled: true,
+              value: 'patch'
+            }
+          }
+
+          utils.readJsonFile.withArgs('.pr-bumper.json').returns(_config)
+          utils.readJsonFile.withArgs('package.json').returns(_pkgJson)
+
+          ctx.config = config = utils.getConfig()
         })
 
-        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider', 'prComments'])
+        verifyGitHubTravisDefaults(ctx, ['ci.gitUser', 'vcs.domain', 'vcs.provider'])
+        verifyFeatureDefaults(ctx, ['features.maxScope.enabled', 'features.maxScope.value'])
 
         it('should have the proper gitUser', function () {
           expect(config.ci.gitUser).to.eql({
@@ -581,19 +705,19 @@ describe('utils', function () {
         })
 
         it('should set isPr to false', function () {
-          expect(config.isPr).to.equal(false)
+          expect(config.computed.ci.isPr).to.equal(false)
         })
 
         it('should set prNumber to false', function () {
-          expect(config.prNumber).to.equal('false')
+          expect(config.computed.ci.prNumber).to.equal('false')
         })
 
         it('should set baselineCoverage to the coverage from package.json', function () {
-          expect(config.baselineCoverage).to.equal(98.03)
+          expect(config.computed.baselineCoverage).to.equal(98.03)
         })
 
-        it('should have the proper prComments value', function () {
-          expect(config.prComments).to.equal(true)
+        it('should have the proper maxScope config', function () {
+          expect(config.features.maxScope).to.eql(_config.features.maxScope)
         })
       })
     })
@@ -629,13 +753,15 @@ describe('utils', function () {
             },
             provider: 'teamcity'
           },
-          owner: 'my-project',
-          repo: 'my-repo',
           vcs: {
             domain: 'bitbucket.domain.com',
             env: {
               username: 'VCS_USERNAME',
               password: 'VCS_PASSWORD'
+            },
+            repository: {
+              name: 'my-repo',
+              owner: 'my-project'
             },
             provider: 'bitbucket-server'
           }
@@ -649,18 +775,21 @@ describe('utils', function () {
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          config = utils.getConfig(_config)
-          ctx.config = config
+          utils.readJsonFile.withArgs('.pr-bumper.json').returns(_config)
+          utils.readJsonFile.withArgs('package.json').returns({})
+
+          ctx.config = config = utils.getConfig()
         })
 
         verifyBitbucketTeamcityOverrides(ctx)
+        verifyFeatureDefaults(ctx)
 
         it('should set isPr to true', function () {
-          expect(config.isPr).to.equal(true)
+          expect(config.computed.ci.isPr).to.equal(true)
         })
 
         it('should set prNumber to the PR number', function () {
-          expect(config.prNumber).to.equal('13')
+          expect(config.computed.ci.prNumber).to.equal('13')
         })
       })
 
@@ -671,17 +800,21 @@ describe('utils', function () {
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          config = utils.getConfig(_config)
+          utils.readJsonFile.withArgs('.pr-bumper.json').returns(_config)
+          utils.readJsonFile.withArgs('package.json').returns({})
+
+          ctx.config = config = utils.getConfig()
         })
 
         verifyBitbucketTeamcityOverrides(ctx)
+        verifyFeatureDefaults(ctx)
 
         it('should set isPr to false', function () {
-          expect(config.isPr).to.equal(false)
+          expect(config.computed.ci.isPr).to.equal(false)
         })
 
         it('should set prNumber to false', function () {
-          expect(config.prNumber).to.equal('false')
+          expect(config.computed.ci.prNumber).to.equal('false')
         })
       })
 
@@ -692,11 +825,14 @@ describe('utils', function () {
           saveEnv(Object.keys(env), realEnv)
           setEnv(env)
 
-          config = utils.getConfig(_config)
+          utils.readJsonFile.withArgs('.pr-bumper.json').returns(_config)
+          utils.readJsonFile.withArgs('package.json').returns({})
+
+          config = utils.getConfig()
         })
 
         it('should default to master branch', function () {
-          expect(config.branch).to.equal('master')
+          expect(config.computed.ci.branch).to.equal('master')
         })
       })
     })
@@ -704,7 +840,7 @@ describe('utils', function () {
 
   describe('.getValidatedScope()', function () {
     const prUrl = 'my-pr-url'
-    const prNum = '12345'
+    const prNumber = '12345'
     const scopes = {
       fix: 'patch',
       patch: 'patch',
@@ -716,17 +852,81 @@ describe('utils', function () {
     }
 
     __.forIn(scopes, (value, key) => {
-      it(`handles ${key}`, function () {
-        expect(utils.getValidatedScope(key, prNum, prUrl)).to.equal(value)
+      it(`should handle a scope of "${key}"`, function () {
+        const ret = utils.getValidatedScope({
+          scope: key,
+          prNumber,
+          prUrl
+        })
+        expect(ret).to.equal(value)
       })
     })
 
-    it('should throw on invalid scope', function () {
+    it('should throw an error on invalid scope', function () {
       const fn = () => {
-        utils.getValidatedScope('foo-bar', prNum, prUrl)
+        utils.getValidatedScope({
+          scope: 'foo-bar',
+          prNumber,
+          prUrl
+        })
       }
 
-      expect(fn).to.throw('Invalid version-bump scope [foo-bar] found for PR #12345 (my-pr-url)')
+      expect(fn).to.throw('Invalid version-bump scope "foo-bar" found for PR #12345 (my-pr-url)')
+    })
+
+    describe('when max scope is set', function () {
+      const maxScopes = {
+        none: {
+          valid: ['none'],
+          invalid: ['fix', 'patch', 'feature', 'minor', 'breaking', 'major']
+        },
+        patch: {
+          valid: ['none', 'fix', 'patch'],
+          invalid: ['feature', 'minor', 'breaking', 'major']
+        },
+        minor: {
+          valid: ['none', 'fix', 'patch', 'feature', 'minor'],
+          invalid: ['breaking', 'major']
+        },
+        major: {
+          valid: ['none', 'fix', 'patch', 'feature', 'minor', 'breaking', 'major'],
+          invalid: []
+        }
+      }
+
+      Object.keys(maxScopes).forEach((maxScope) => {
+        const {invalid, valid} = maxScopes[maxScope]
+        describe(`with a maxScope of "${maxScope}"`, function () {
+          valid.forEach((scope) => {
+            it(`should be fine when scope is "${scope}"`, function () {
+              const ret = utils.getValidatedScope({
+                scope,
+                maxScope,
+                prNumber,
+                prUrl
+              })
+
+              expect(ret).to.equal(scopes[scope])
+            })
+          })
+
+          invalid.forEach((scope) => {
+            it(`should throw an error when scope is "${scope}"`, function () {
+              const fn = () => {
+                utils.getValidatedScope({
+                  scope,
+                  maxScope,
+                  prNumber,
+                  prUrl
+                })
+              }
+              const prStr = `PR #${prNumber} (${prUrl})`
+              const msg = `Version-bump scope "${scope}" is higher than the maximum "${maxScope}" for ${prStr}`
+              expect(fn).to.throw(msg)
+            })
+          })
+        })
+      })
     })
   })
 
@@ -778,7 +978,32 @@ describe('utils', function () {
       })
 
       it('should call .getValidatedScope() with proper arguments', function () {
-        expect(utils.getValidatedScope.lastCall.args).to.eql(['feature', '12345', 'my-pr-url'])
+        expect(utils.getValidatedScope).to.have.been.calledWith({
+          scope: 'feature',
+          maxScope: 'major',
+          prNumber: '12345',
+          prUrl: 'my-pr-url'
+        })
+      })
+
+      it('should return the result of .getValidatedScope()', function () {
+        expect(scope).to.equal('the-validated-scope')
+      })
+    })
+
+    describe('when given a maxScope', function () {
+      beforeEach(function () {
+        pr.description = 'This is my super-cool #feature#'
+        scope = utils.getScopeForPr(pr, 'minor')
+      })
+
+      it('should call .getValidatedScope() with proper arguments', function () {
+        expect(utils.getValidatedScope).to.have.been.calledWith({
+          scope: 'feature',
+          maxScope: 'minor',
+          prNumber: '12345',
+          prUrl: 'my-pr-url'
+        })
       })
 
       it('should return the result of .getValidatedScope()', function () {
@@ -799,7 +1024,12 @@ describe('utils', function () {
       })
 
       it('should call .getValidatedScope() with proper arguments', function () {
-        expect(utils.getValidatedScope.lastCall.args).to.eql(['minor', '12345', 'my-pr-url'])
+        expect(utils.getValidatedScope).to.have.been.calledWith({
+          scope: 'minor',
+          maxScope: 'major',
+          prNumber: '12345',
+          prUrl: 'my-pr-url'
+        })
       })
     })
 
@@ -837,7 +1067,12 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
 
       it('should call .getValidatedScope() with proper arguments', function () {
-        expect(utils.getValidatedScope.lastCall.args).to.eql(['minor', '12345', 'my-pr-url'])
+        expect(utils.getValidatedScope).to.have.been.calledWith({
+          scope: 'minor',
+          maxScope: 'major',
+          prNumber: '12345',
+          prUrl: 'my-pr-url'
+        })
       })
     })
   })
@@ -918,12 +1153,25 @@ Thought this might be #breaking# but on second thought it is a minor change
   })
 
   describe('.getCurrentCoverage()', function () {
-    let cov, pct
+    let config, coverageSummary, pct
     beforeEach(function () {
-      cov = {
+      config = {
+        features: {
+          coverage: {
+            file: 'path-to-coverage/coverage-file.json'
+          }
+        }
+      }
+
+      coverageSummary = {
         total: {
+          branches: {
+            total: 10,
+            covered: 9
+          },
           statements: {
-            pct: 95.98
+            total: 90,
+            covered: 80
           }
         }
       }
@@ -931,7 +1179,8 @@ Thought this might be #breaking# but on second thought it is a minor change
 
     describe('when no coverage present', function () {
       beforeEach(function () {
-        pct = utils.getCurrentCoverage({})
+        utils.readJsonFile.withArgs('path-to-coverage/coverage-file.json').returns({})
+        pct = utils.getCurrentCoverage(config)
       })
 
       it('should return -1', function () {
@@ -941,11 +1190,12 @@ Thought this might be #breaking# but on second thought it is a minor change
 
     describe('when coverage is present', function () {
       beforeEach(function () {
-        pct = utils.getCurrentCoverage(cov)
+        utils.readJsonFile.withArgs('path-to-coverage/coverage-file.json').returns(coverageSummary)
+        pct = utils.getCurrentCoverage(config)
       })
 
-      it('should return the total line pct', function () {
-        expect(pct).to.equal(95.98)
+      it('should return the total statement and branch pct', function () {
+        expect(pct).to.equal(89.00)
       })
     })
   })
@@ -954,10 +1204,16 @@ Thought this might be #breaking# but on second thought it is a minor change
     let config, resolver, vcs, result, error
     beforeEach(function () {
       config = {
-        isPr: true,
-        prComments: false,
-        prNumber: '123'
+        computed: {
+          ci: {
+            isPr: true,
+            prNumber: '123'
+          }
+        },
+        isEnabled () {}
       }
+
+      sandbox.stub(config, 'isEnabled')
 
       resolver = {}
       resolver.promise = new Promise((resolve, reject) => {
@@ -972,9 +1228,9 @@ Thought this might be #breaking# but on second thought it is a minor change
       result = error = null
     })
 
-    describe('when prComments is false', function () {
+    describe('when feature is not enabled', function () {
       beforeEach(function (done) {
-        config.prComments = false
+        config.isEnabled.withArgs('comments').returns(false)
         utils.maybePostComment(config, vcs, 'fizz-bang')
           .then((resp) => {
             result = resp
@@ -1001,10 +1257,11 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
     })
 
-    describe('when prComments is true, but isPr is false', function () {
+    describe('when feature is enabled, but isPr is false', function () {
       beforeEach(function (done) {
-        config.isPr = false
-        config.prComments = true
+        config.computed.ci.isPr = false
+        config.isEnabled.withArgs('comments').returns(true)
+
         utils.maybePostComment(config, vcs, 'fizz-bang')
           .then((resp) => {
             result = resp
@@ -1031,13 +1288,14 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
     })
 
-    describe('when prComments is true, and isPr is true, but SKIP_COMMENTS is in env', function () {
+    describe('when feature is enabled, and isPr is true, but SKIP_COMMENTS is in env', function () {
       let realSkipComments
       beforeEach(function (done) {
         realSkipComments = process.env['SKIP_COMMENTS']
         process.env['SKIP_COMMENTS'] = '1'
-        config.isPr = true
-        config.prComments = true
+        config.computed.ci.isPr = true
+        config.isEnabled.withArgs('comments').returns(true)
+
         utils.maybePostComment(config, vcs, 'fizz-bang')
           .then((resp) => {
             result = resp
@@ -1072,10 +1330,11 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
     })
 
-    describe('and prComments is true and isPr is true', function () {
+    describe('when feature is enabled and isPr is true (and no SKIP_COMMENTS is present)', function () {
       let promise
       beforeEach(function () {
-        config.prComments = true
+        config.isEnabled.withArgs('comments').returns(true)
+
         promise = utils.maybePostComment(config, vcs, 'fizz-bang')
           .then((resp) => {
             result = resp
@@ -1087,7 +1346,7 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
 
       it('should post a comment', function () {
-        expect(vcs.postComment).to.have.been.calledWith(config.prNumber, 'fizz-bang')
+        expect(vcs.postComment).to.have.been.calledWith(config.computed.ci.prNumber, 'fizz-bang')
       })
 
       it('should not reject yet', function () {
@@ -1132,10 +1391,11 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
     })
 
-    describe('and prComments is true and isPr is true, and isError is true', function () {
+    describe('when feature is enabled and isPr is true, and isError is true', function () {
       let promise
       beforeEach(function () {
-        config.prComments = true
+        config.isEnabled.withArgs('comments').returns(true)
+
         promise = utils.maybePostComment(config, vcs, 'fizz-bang', true)
           .then((resp) => {
             result = resp
@@ -1147,7 +1407,7 @@ Thought this might be #breaking# but on second thought it is a minor change
       })
 
       it('should post a comment', function () {
-        expect(vcs.postComment).to.have.been.calledWith(config.prNumber, '## ERROR\nfizz-bang')
+        expect(vcs.postComment).to.have.been.calledWith(config.computed.ci.prNumber, '## ERROR\nfizz-bang')
       })
 
       it('should not reject yet', function () {
@@ -1197,10 +1457,16 @@ Thought this might be #breaking# but on second thought it is a minor change
     let config, resolver, vcs, func, result, error
     beforeEach(function () {
       config = {
-        isPr: true,
-        prComments: false,
-        prNumber: '123'
+        computed: {
+          ci: {
+            isPr: true,
+            prNumber: '123'
+          }
+        },
+        isEnabled () {}
       }
+
+      sandbox.stub(config, 'isEnabled')
 
       resolver = {}
       resolver.promise = new Promise((resolve, reject) => {
@@ -1251,9 +1517,9 @@ Thought this might be #breaking# but on second thought it is a minor change
         func.throws(new Error('Uh oh!'))
       })
 
-      describe('and prComments is false', function () {
+      describe('and feature is not enabled', function () {
         beforeEach(function (done) {
-          config.prComments = false
+          config.isEnabled.withArgs('comments').returns(false)
           utils.maybePostCommentOnError(config, vcs, func)
             .then((resp) => {
               result = resp
@@ -1281,10 +1547,11 @@ Thought this might be #breaking# but on second thought it is a minor change
         })
       })
 
-      describe('and prComments is true but isPr is false', function () {
+      describe('and feature is enabled but isPr is false', function () {
         beforeEach(function (done) {
-          config.isPr = false
-          config.prComments = true
+          config.computed.ci.isPr = false
+          config.isEnabled.withArgs('comments').returns(true)
+
           utils.maybePostCommentOnError(config, vcs, func)
             .then((resp) => {
               result = resp
@@ -1315,8 +1582,9 @@ Thought this might be #breaking# but on second thought it is a minor change
       describe('and prComments is true and isPr is true', function () {
         let promise
         beforeEach(function () {
-          config.isPr = true
-          config.prComments = true
+          config.computed.ci.isPr = true
+          config.isEnabled.withArgs('comments').returns(true)
+
           promise = utils.maybePostCommentOnError(config, vcs, func)
             .then((resp) => {
               result = resp
@@ -1332,7 +1600,7 @@ Thought this might be #breaking# but on second thought it is a minor change
         })
 
         it('should post a comment', function () {
-          expect(vcs.postComment).to.have.been.calledWith(config.prNumber, '## ERROR\nUh oh!')
+          expect(vcs.postComment).to.have.been.calledWith(config.computed.ci.prNumber, '## ERROR\nUh oh!')
         })
 
         it('should not reject yet', function () {
