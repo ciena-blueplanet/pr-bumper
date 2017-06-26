@@ -4,7 +4,7 @@
   "description": "Bump the version of a package based on a GitHub Pull Request",
   "scripts": {
     "lint": "eslint *.js bin lib tests",
-    "test": "npm run-script lint && npm run-script utest",
+    "test": "yarn run lint && yarn run utest",
     "utest": "istanbul cover _mocha tests tests/ci tests/vcs tests/compliance --report lcov --report json-summary"
   },
   "bin": {

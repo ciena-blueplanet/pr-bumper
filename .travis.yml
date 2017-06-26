@@ -2,7 +2,7 @@ language: node_js
 sudo: false
 node_js:
 - '6.0.0'
-- '6.11.0'
+- '8.1.2'
 - 'stable'
 install:
 - .travis/maybe-install.sh
@@ -39,7 +39,7 @@ deploy:
     secure: itCd1OB86RXSdzauJ5vd7N0so4jd6lW51Sb62I919pmDffb7aRgrV6uuhDXVcZWL3Opv3bJ7CyOznu1K6/H/qJM4/4Xh3UHPcoS/dl7Wj8H/8z0SvJu9C2Wg4zb5x/6n0/3kq9yAN147103wKyfDcPb8tx4OS5oUsHaiFho4TiuP1Xn3Y4S0cnZYItpFg+czkwO16Nd0ERrw1sh6xkA2FFVpDcA49fyOOrKS5+ktGvSvvloN2ed+A+qQvaSuLzQCyfdF1s6W8xWgc8k+XWzqqllvUyMuU8sRpYTs+F1ySiovl6v6mVyohELoE7/l/NkOYMXCzjxKbF/EVcL/LVI0PDpifVnJYO4hapV1FyrMu1OTwRvWUNCvYciRfTa6LVTAWMVD6xK0OnRg9Koc9i3OGRDfYkDyK7NqLiXXlVgnWzjoIysi9moWSzYRJlXmZ11KoH/7UQkccgzVhV7vrlRlGbjC2lcU9lS8pEYkRMmTS0mSNg5qi/engMSKpJyiozC3i5yJxmujIQi3P3ZBgtTkg1QAwb1U7rqb7L6UJOApXq/me+e6iJM4ntlNA0c3Jo4nXvXejNRnkoCcueRliTS1CU9PW/eDRNhoW5T/aWoavDa8bbgrajUoK9cOPuR6mAo5Rcc1JIubkZdYjO9honkk3XZkNaCjFfhHBPC+Ph7nYKs=
   on:
     all_branches: true
-    node: '6.11.0'
+    node: '8.1.2'
     tags: true
 notifications:
   slack:
