@@ -7,7 +7,7 @@ then
   exit 0
 fi
 
-if [ "$TRAVIS_NODE_VERSION" != "${PUBLISH_NODE_VERSION:-6.11.0}" ]
+if [ "$TRAVIS_NODE_VERSION" != "${PUBLISH_NODE_VERSION:-8.1.2}" ]
 then
   echo "Skipping pr-bumper bump step for TRAVIS_NODE_VERSION [${TRAVIS_NODE_VERSION}]"
   exit 0
