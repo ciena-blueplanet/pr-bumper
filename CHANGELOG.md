@@ -1,3 +1,7 @@
+# 3.0.0 (2017-06-26)
+* **Upgraded** to `node@8.1.2` by default for `.travis/` scripts
+* **Added** `node@8.1.2` build to travis matrix
+
 # 2.0.1 (2017-06-25)
 * **Fixed** a bug when updating baseline coverage (+test)
 
