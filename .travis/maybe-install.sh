@@ -16,6 +16,13 @@ else
   npm install
 fi
 
+# If the install fails, make sure to fail the whole script
+ret=$?
+if [ $ret ]
+then
+  exit $ret
+fi
+
 # If bower configuration and bower command are present install bower dependencies
 if [ -f bower.json ]
 then
