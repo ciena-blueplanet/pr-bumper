@@ -1,3 +1,7 @@
+# 3.1.2 (2017-06-27)
+* **Fixed** a bug in `.travis/maybe-install.sh` where the `npm install` or `yarn install` could fail and the script would still pass. 
+
+
 # 3.1.1 (2017-06-27)
 * **Updated** CI tokens to hopefully fix publish. 
 
