@@ -1,3 +1,7 @@
+# 3.1.1 (2017-06-27)
+* **Updated** CI tokens to hopefully fix publish. 
+
+
 # 3.1.0 (2017-06-27)
 * **Added** `yarn` support to `maybe-install.sh`, it will now use `yarn install` instead of `npm install` if `yarn.lock` is present. 
 
