@@ -8,7 +8,13 @@ then
   exit 0
 fi
 
-npm install
+# If yarn.lock present, use yarn, otherwise use npm
+if [ -f yarn.lock ]
+then
+  yarn install
+else
+  npm install
+fi
 
 # If bower configuration and bower command are present install bower dependencies
 if [ -f bower.json ]
