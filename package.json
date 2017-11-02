@@ -3,9 +3,9 @@
   "version": "3.1.2",
   "description": "Bump the version of a package based on a GitHub Pull Request",
   "scripts": {
-    "lint": "eslint *.js bin lib tests",
-    "test": "yarn run lint && yarn run utest",
-    "utest": "istanbul cover _mocha tests tests/ci tests/vcs tests/compliance --report lcov --report json-summary"
+    "build": "nodely -s ./src -o ./lib",
+    "lint": "eslint *.js bin src __tests__",
+    "test": "yarn run lint && jest"
   },
   "bin": {
     "pr-bumper": "./bin/cli.js"
@@ -46,16 +46,15 @@
     "versiony": "^2.0.1"
   },
   "devDependencies": {
-    "chai": "^3.4.1",
     "eslint": "^3.5.0",
     "eslint-config-frost-standard": "^5.0.0",
-    "istanbul": "^0.4.2",
-    "mocha": "^2.3.4",
-    "rewire": "^2.5.1",
-    "sinon": "^2.3.4",
-    "sinon-chai": "^2.11.0"
+    "jest-cli": "^21.2.1",
+    "nodely": "^0.0.5"
+  },
+  "jest": {
+    "testRegex": "/__tests__/.*-test\\.js$"
   },
   "pr-bumper": {
-    "coverage": 93.01
+    "coverage": 99.57
   }
 }

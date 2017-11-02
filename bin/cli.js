@@ -5,7 +5,8 @@
 const program = require('commander')
 const pkgJson = require('../package.json')
 const Bumper = require('../lib/bumper')
-const Cli = require('../lib/cli')
+const Cli = require('../lib/cli').default
+
 const cli = new Cli()
 
 program

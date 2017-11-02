@@ -1,0 +1,11 @@
+{
+  "extends": ["../node_modules/eslint-config-frost-standard/tests/.eslintrc"],
+  "globals": {
+    "afterEach": false,
+    "beforeEach": false,
+    "expect": false,
+    "jest": false,
+    "xdescribe": false,
+    "xit": false
+  }
+}
