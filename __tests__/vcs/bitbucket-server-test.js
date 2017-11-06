@@ -202,7 +202,7 @@ describe('VCS / BitbucketServer /', () => {
       expect(fetch).toHaveBeenCalledWith(url, {
         method: 'POST',
         body: JSON.stringify({text: 'Missing PR scope!'}),
-        headers: {'Content-Type': 'application/json'}
+        headers: ['Content-Type', 'application/json']
       })
     })
 

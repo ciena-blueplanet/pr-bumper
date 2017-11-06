@@ -1,11 +1,104 @@
+/**
+ * @flow
+ */
+
 /* eslint no-useless-escape: 0 */
 
 import fs from 'fs'
 import __ from 'lodash'
+import nullthrows from 'nullthrows'
 import path from 'path'
 
 import logger from './logger'
-import './typedefs'
+import type {Config, PullRequest, Vcs} from './typedefs'
+
+const CONFIG_DEFAULTS: Config = Object.freeze({
+  ci: {
+    env: {
+      branch: 'TRAVIS_BRANCH',
+      buildNumber: 'TRAVIS_BUILD_NUMBER',
+      pr: 'TRAVIS_PULL_REQUEST',
+      repoSlug: 'TRAVIS_REPO_SLUG'
+    },
+    gitUser: {
+      email: 'travis.ci.ciena@gmail.com',
+      name: 'Travis CI'
+    },
+    provider: 'travis'
+  },
+  // This is where we put everything we calculate/compute based on other settings (@job13er 2017-06-16)
+  computed: {
+    baselineCoverage: 0,
+    ci: {
+      buildNumber: '',
+      branch: '',
+      isPr: false,
+      prNumber: ''
+    },
+    vcs: {
+      auth: {
+        username: '',
+        password: ''
+      }
+    }
+  },
+  features: {
+    changelog: {
+      enabled: false,
+      file: 'CHANGELOG.md'
+    },
+    comments: {
+      enabled: false
+    },
+    compliance: {
+      additionalRepos: [],
+      enabled: false,
+      production: false,
+      output: {
+        directory: undefined,
+        ignoreFile: 'ignore',
+        reposFile: 'repos',
+        requirementsFile: 'js-requirements.json'
+      }
+    },
+    coverage: {
+      enabled: false,
+      file: 'coverage/coverage-summary.json'
+    },
+    dependencies: {
+      enabled: false,
+      snapshotFile: 'dependency-snapshot.json'
+    },
+    maxScope: {
+      enabled: false,
+      value: 'major'
+    }
+  },
+
+  /**
+   * Check if given feature is enabled
+   * @param {String} featureName - the name of the feature to check
+   * @returns {Boolean} true if feature enabled, else false
+   */
+  isEnabled (featureName: string) {
+    return __.get(this, `features.${featureName}.enabled`) || false
+  },
+
+  vcs: {
+    domain: 'github.com',
+    env: {
+      password: '',
+      readToken: 'RO_GH_TOKEN',
+      username: '',
+      writeToken: 'GITHUB_TOKEN'
+    },
+    provider: 'github',
+    repository: {
+      name: '',
+      owner: ''
+    }
+  }
+})
 
 /**
  * Walk the properties of an object (recursively) while converting it to a flat representation of the leaves of the
@@ -15,8 +108,8 @@ import './typedefs'
  * @param {Object} object - the complex, nested object of default values currently being processed
  * @param {Object} leaves - the simple key-value mapping of object path -> value
  */
-function walkObject (prefix, object, leaves) {
-  Object.keys(object).forEach(key => {
+function walkObject (prefix: string, object: Object, leaves: Object): void { // eslint-disable-line
+  Object.keys(object).forEach((key: string) => {
     const value = object[key]
     const fullPrefix = (prefix) ? prefix + '.' + key : key
     if (__.isObject(value) && !__.isArray(value)) {
@@ -33,7 +126,7 @@ function walkObject (prefix, object, leaves) {
  * @returns {Number} the index of the # CHANGELOG section (or -1)
  * @throws Error if there is more than one matching line
  */
-function getChangelogSectionIndex (lines) {
+function getChangelogSectionIndex (lines: string[]): number {
   const validSectionHeaders = [
     '#changelog',
     '# changelog'
@@ -59,8 +152,9 @@ function getChangelogSectionIndex (lines) {
  * @param {*} defaultValue - value to return if key not in env, or if it is 'undefined'
  * @returns {*} whatever is at process.env[key] with the one exception of "undefined" being translated to undefined
  */
-function getEnv (key, defaultValue) {
-  let value = process.env[key]
+function getEnv (key: string, defaultValue?: string): string | null | void {
+  let value: ?string = process.env[key]
+
   if (value === 'undefined') {
     value = undefined
   }
@@ -72,14 +166,16 @@ function getEnv (key, defaultValue) {
  * Process the environment variable sections in the config and fill in the computed properties within it
  * @param {Config} config - the config object to process (will be mutated in-place)
  */
-function processEnv (config) {
+function processEnv (config: Config): void {
   // Grab the CI stuff from env
-  config.computed.ci.buildNumber = getEnv(config.ci.env.buildNumber)
-  config.computed.ci.prNumber = getEnv(config.ci.env.pr, 'false')
+  config.computed.ci.buildNumber = nullthrows(getEnv(config.ci.env.buildNumber))
+  config.computed.ci.prNumber = nullthrows(getEnv(config.ci.env.pr, 'false'))
   config.computed.ci.isPr = config.computed.ci.prNumber !== 'false'
-  config.computed.ci.branch = getEnv(config.ci.env.branch, 'master')
+  config.computed.ci.branch = nullthrows(getEnv(config.ci.env.branch, 'master'))
 
-  logger.log(`pr-bumper::config: prNumber [${config.computed.ci.prNumber}], isPr [${config.computed.ci.isPr}]`)
+  const isPrStr = config.computed.ci.isPr ? 'true' : 'false'
+
+  logger.log(`pr-bumper::config: prNumber [${config.computed.ci.prNumber}], isPr [${isPrStr}]`)
 
   // Fill in the owner/repo from the repo slug in env if necessary
   const repoSlug = getEnv(config.ci.env.repoSlug)
@@ -97,10 +193,10 @@ function processEnv (config) {
 
   // Grab the VCS stuff from the env
   config.computed.vcs.auth = {
-    password: getEnv(config.vcs.env.password),
-    readToken: getEnv(config.vcs.env.readToken),
-    username: getEnv(config.vcs.env.username),
-    writeToken: getEnv(config.vcs.env.writeToken)
+    password: ((getEnv(config.vcs.env.password): any): string),
+    readToken: ((getEnv(config.vcs.env.readToken): any): string),
+    username: ((getEnv(config.vcs.env.username): any): string),
+    writeToken: ((getEnv(config.vcs.env.writeToken): any): string)
   }
 }
 
@@ -108,115 +204,33 @@ function processEnv (config) {
  * Read in the config from a file and apply defaults
  * @returns {Config} the config object
  */
-export function getConfig () {
-  let config = {}
+export function getConfig (): Config {
+  const leaves = {}
+  let object = {}
 
   try {
-    config = readJsonFile('.pr-bumper.json')
+    object = readJsonFile('.pr-bumper.json')
   } catch (e) {
     logger.log('No .pr-bumper.json found, using defaults')
   }
-  const leaves = {}
-  const defaults = {
-    ci: {
-      env: {
-        branch: 'TRAVIS_BRANCH',
-        buildNumber: 'TRAVIS_BUILD_NUMBER',
-        pr: 'TRAVIS_PULL_REQUEST',
-        repoSlug: 'TRAVIS_REPO_SLUG'
-      },
-      gitUser: {
-        email: 'travis.ci.ciena@gmail.com',
-        name: 'Travis CI'
-      },
-      provider: 'travis'
-    },
-    // This is where we put everything we calculate/compute based on other settings (@job13er 2017-06-16)
-    computed: {
-      baselineCoverage: 0,
-      ci: {
-        buildNumber: '',
-        branch: '',
-        isPr: false,
-        prNumber: ''
-      },
-      vcs: {
-        auth: {
-          username: '',
-          password: ''
-        }
-      }
-    },
-    features: {
-      changelog: {
-        enabled: false,
-        file: 'CHANGELOG.md'
-      },
-      comments: {
-        enabled: false
-      },
-      compliance: {
-        enabled: false,
-        production: false,
-        output: {
-          directory: undefined,
-          requirementsFile: 'js-requirements.json',
-          reposFile: 'repos',
-          ignoreFile: 'ignore'
-        },
-        additionalRepos: []
-      },
-      coverage: {
-        enabled: false,
-        file: 'coverage/coverage-summary.json'
-      },
-      dependencies: {
-        enabled: false,
-        snapshotFile: 'dependency-snapshot.json'
-      },
-      maxScope: {
-        enabled: false,
-        value: 'major'
-      }
-    },
-    vcs: {
-      domain: 'github.com',
-      env: {
-        readToken: 'RO_GH_TOKEN',
-        writeToken: 'GITHUB_TOKEN',
-        username: '',
-        password: ''
-      },
-      provider: 'github',
-      repository: {
-        name: '',
-        owner: ''
-      }
-    }
-  }
 
-  walkObject('', defaults, leaves)
-  Object.keys(leaves).forEach(key => {
+  walkObject('', CONFIG_DEFAULTS, leaves)
+
+  Object.keys(leaves).forEach((key: string) => {
     const value = leaves[key]
-    if (__.get(config, key) === undefined) {
-      __.set(config, key, value)
+    if (__.get(object, key) === undefined) {
+      __.set(object, key, value)
     }
   })
+
+  const config: Config = ((object: any): Config) // eslint-disable-line
 
   processEnv(config)
 
   const pkgJson = readJsonFile('package.json')
+
   if (pkgJson && pkgJson['pr-bumper'] && pkgJson['pr-bumper'].coverage) {
     config.computed.baselineCoverage = pkgJson['pr-bumper'].coverage
-  }
-
-  /**
-   * Check if given feature is enabled
-   * @param {String} featureName - the name of the feature to check
-   * @returns {Boolean} true if feature enabled, else false
-   */
-  config.isEnabled = function (featureName) {
-    return __.get(this, `features.${featureName}.enabled`) || false
   }
 
   return config
@@ -226,17 +240,17 @@ export function getConfig () {
  * Make sure scope is one of 'patch', 'minor', 'major', 'none' (or their aliases)
  *
  * @param {Object} params - the params object
- * @param {String} params.scope - the scope to check
- * @param {String} params.maxScope - the maximum scope allowed
- * @param {String} params.prNumber - the # of the PR
- * @param {String} params.prUrl - the url of the PR
  * @returns {String} the validated scope
  * @throws Error if scope is invalid
  */
-export function getValidatedScope (params) {
-  params = Object.assign({maxScope: 'major'}, params)
+export function getValidatedScope (params: {|
+  maxScope: string, // the maximum scope allowed
+  prNumber: number, // the # of the PR
+  prUrl: string, // the url of the PR
+  scope: string, // the scope to check
+|}): string {
   const scope = params.scope
-  const maxScope = params.maxScope
+  const maxScope = params.maxScope || 'major'
   const prNumber = params.prNumber
   const prUrl = params.prUrl
 
@@ -278,7 +292,7 @@ export function getValidatedScope (params) {
  * @returns {String} the scope of the PR (from the pr description)
  * @throws Error if there is not a single, valid scope in the PR description
  */
-export function getScopeForPr (pr, maxScope = 'major') {
+export function getScopeForPr (pr: PullRequest, maxScope: string = 'major'): string {
   const matches = pr.description.match(/#[A-Za-z]+#/g)
   const prLink = `[PR #${pr.number}](${pr.url})`
 
@@ -322,7 +336,7 @@ export function getScopeForPr (pr, maxScope = 'major') {
  * @param {PullRequest} pr - the PR object
  * @returns {String} the changelog of the PR (from the pr description, if one exists, else '')
  */
-export function getChangelogForPr (pr) {
+export function getChangelogForPr (pr: PullRequest): string {
   const lines = pr.description.split('\n')
   const index = getChangelogSectionIndex(lines)
   let changelog = ''
@@ -347,8 +361,9 @@ export function getChangelogForPr (pr) {
  * @param {Config} config - the config object
  * @returns {Number} the coverage line percentage
  */
-export function getCurrentCoverage (config) {
-  const coverageSummary = readJsonFile(config.features.coverage.file)
+export function getCurrentCoverage (config: Config): number {
+  const file = nullthrows(config.features.coverage.file)
+  const coverageSummary = readJsonFile(file)
   const totalStatements = __.get(coverageSummary, 'total.statements.total') || -1
 
   if (totalStatements === -1) {
@@ -372,11 +387,11 @@ export function getCurrentCoverage (config) {
  * @param {Boolean} isError - if true, prefix the msg with an ## ERROR heading
  * @returns {Promise} a promise resolved when success, rejected on error
  */
-export function maybePostComment (config, vcs, msg, isError) {
+export function maybePostComment (config: Config, vcs: Vcs, msg: string, isError?: boolean): Promise<*> {
   if (!process.env['SKIP_COMMENTS'] && config.computed.ci.isPr && config.isEnabled('comments')) {
     const comment = isError ? `## ERROR\n${msg}` : msg
     return vcs.postComment(config.computed.ci.prNumber, comment)
-      .catch(err => {
+      .catch((err: Error) => {
         const newMessage = `Received error: ${err.message} while trying to post PR comment: ${comment}`
         throw new Error(newMessage)
       })
@@ -387,12 +402,12 @@ export function maybePostComment (config, vcs, msg, isError) {
 
 /**
  * Maybe post a comment to the PR, if the function given throws an error, and prComments is enabled
- * @param {Object} config - the config for a bumper instance
+ * @param {Config} config - the config for a bumper instance
  * @param {Vcs} vcs - the vcs instance for a bumper instance
  * @param {Function} func - the function to execute and check for errors on
  * @returns {Promise} a promise resolved if all goes well, rejected if an error is thrown
  */
-export function maybePostCommentOnError (config, vcs, func) {
+export function maybePostCommentOnError (config: Config, vcs: Vcs, func: () => mixed): Promise<*> {
   let ret
   try {
     ret = func()
@@ -402,7 +417,7 @@ export function maybePostCommentOnError (config, vcs, func) {
         .then(() => {
           throw e
         })
-        .catch(err => {
+        .catch((err: Error) => {
           if (err !== e) {
             const msg = `Received error: ${err.message} while trying to post PR comment about error: ${e.message}`
             throw new Error(msg)
@@ -422,7 +437,7 @@ export function maybePostCommentOnError (config, vcs, func) {
  * @param {String} filename - the name of the file to read
  * @returns {Object} the json object
  */
-export function readJsonFile (filename) {
+export function readJsonFile (filename: string): Object { // eslint-disable-line
   const fullPath = path.join(process.cwd(), filename)
   return JSON.parse(fs.readFileSync(fullPath, {encoding: 'utf8'}))
 }

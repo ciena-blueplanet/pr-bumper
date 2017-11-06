@@ -1,5 +1,5 @@
 jest.mock('../src/compliance/dependencies')
-jest.mock('../src/exec')
+jest.mock('../src/child_process')
 jest.mock('../src/fs')
 jest.mock('../src/logger')
 jest.mock('../src/prepend-file')
@@ -11,8 +11,9 @@ import path from 'path'
 import Promise from 'promise'
 
 import Bumper from '../src/bumper'
+import Cancel from '../src/cancel'
+import {exec} from '../src/child_process'
 import {run} from '../src/compliance/dependencies'
-import exec from '../src/exec'
 import {readFile, writeFile} from '../src/fs'
 import logger from '../src/logger'
 import prepend from '../src/prepend-file'
@@ -535,7 +536,7 @@ describe('Bumper', () => {
       })
 
       it('should reject with a Cancel', () => {
-        expect(error).toBeInstanceOf(Bumper.Cancel)
+        expect(error).toBeInstanceOf(Cancel)
       })
 
       it('should reject with proper message', () => {
@@ -1758,7 +1759,7 @@ describe('Bumper', () => {
       })
 
       it('should push the change', () => {
-        expect(bumper.ci.push).toHaveBeenCalledWith(bumper.vcs)
+        expect(bumper.ci.push).toHaveBeenCalled()
       })
 
       it('should resolve with the info', () => {

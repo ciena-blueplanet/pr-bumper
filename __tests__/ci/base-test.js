@@ -1,8 +1,8 @@
-jest.mock('../../src/exec')
+jest.mock('../../src/child_process')
 jest.mock('../../src/logger')
 
+import {exec} from '../../src/child_process'
 import CiBase from '../../src/ci/base'
-import exec from '../../src/exec'
 import logger from '../../src/logger'
 
 describe('CI / Base', () => {

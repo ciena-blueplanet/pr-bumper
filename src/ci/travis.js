@@ -1,4 +1,8 @@
-import exec from '../exec'
+/**
+ * @flow
+ */
+
+import {exec} from '../child_process'
 import logger from '../logger'
 import '../typedefs'
 import CiBase from './base'
@@ -14,10 +18,10 @@ export default class Travis extends CiBase {
    * Push local changes to GitHub
    * @returns {Promise} a promise resolved with the result of the push
    */
-  push () {
+  push (): Promise<*> {
     const branch = this.config.computed.ci.branch
     return this.vcs.addRemoteForPush()
-      .then(remoteName => {
+      .then((remoteName: string) => {
         logger.log(`Pushing ci-${branch} to ${remoteName}`)
         return exec(`git push ${remoteName} ci-${branch}:refs/heads/${branch} --tags`)
       })
@@ -27,7 +31,7 @@ export default class Travis extends CiBase {
    * Prepare the git env within travis-ci
    * @returns {Promise} - a promise resolved with the results of the git commands
    */
-  setupGitEnv () {
+  setupGitEnv (): Promise<*> {
     const branch = this.config.computed.ci.branch
     return super.setupGitEnv()
       .then(() => {

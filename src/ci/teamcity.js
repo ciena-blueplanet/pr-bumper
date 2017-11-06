@@ -1,3 +1,7 @@
+/**
+ * @flow
+ */
+
 import '../typedefs'
 import CiBase from './base'
 

@@ -7,8 +7,8 @@ node_js:
 install:
 - .travis/maybe-install.sh
 before_script:
-- .travis/maybe-check-scope.sh
 - npm run build
+- .travis/maybe-check-scope.sh
 script:
 - .travis/maybe-test.sh
 - .travis/maybe-check-coverage.sh

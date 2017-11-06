@@ -1,3 +1,8 @@
+/**
+ * @flow
+ */
+
+import {type Stats} from 'fs'
 import _ from 'lodash'
 import path from 'path'
 import Promise from 'promise'
@@ -5,6 +10,7 @@ import Promise from 'promise'
 import {mkdir, readFile, stat, writeFile} from '../fs'
 import logger from '../logger'
 import {find as findLicenses} from '../nlf'
+import type {Config} from '../typedefs'
 
 const LICENSE_PATTERN = /\b(Apache|ISC|MIT)\b/i
 
@@ -14,7 +20,7 @@ const LICENSE_PATTERN = /\b(Apache|ISC|MIT)\b/i
  *   `filePath` strings on itPacket Used Resources
  * @returns {String} - a simple string tag for what the license is
  */
-export function _parseLicense (licenseObject) {
+export function _parseLicense (licenseObject: Object): string {
   const text = licenseObject.text || licenseObject.filePath
   const match = text.match(LICENSE_PATTERN)
 
@@ -34,7 +40,7 @@ export function _parseLicense (licenseObject) {
  * @param {Object} licenseSources - the section of the nlf config with license data
  * @returns {String} - some pithy string summary of what the licenses are (e.g. "MIT, BSD")
  */
-export function _getLicense (licenseSources) {
+export function _getLicense (licenseSources: Object): string {
   const output = []
 
   if (licenseSources.package.sources.length > 0) {
@@ -55,10 +61,10 @@ export function _getLicense (licenseSources) {
  * @param {String} directoryPath - a directory for where we're putting stuff
  * @returns {Promise} a promise for the directory existing
  */
-export function ensureDirectory (directoryPath) {
+export function ensureDirectory (directoryPath: string): Promise<*> {
   logger.log('...checking directory')
   return stat(directoryPath)
-    .then(stats => {
+    .then((stats: Stats) => {
       if (stats.isDirectory()) {
         return true
       }
@@ -76,14 +82,14 @@ export function ensureDirectory (directoryPath) {
  * @param {Config} config - the .pr-bumper.json config
  * @returns {Promise} A promise for a string
  */
-export function getNpmLicenseData (cwd, npmOutputFilePath, config) {
+export function getNpmLicenseData (cwd: string, npmOutputFilePath: string, config: Config): Promise<*> {
   logger.log('...getting license data')
 
   return findLicenses({
     directory: cwd,
     production: config.features.compliance.production
   })
-    .then(packageLicenseData => {
+    .then((packageLicenseData: Object) => {
       let versionData = []
       for (let packageLicenseDatum of packageLicenseData) {
         if (packageLicenseDatum.licenseSources === undefined) {
@@ -99,7 +105,7 @@ export function getNpmLicenseData (cwd, npmOutputFilePath, config) {
         .then(() => {
           return `successfully wrote ${npmOutputFilePath}`
         })
-        .catch(error => {
+        .catch((error: Error) => {
           logger.error(`(1) ERROR: writing ${npmOutputFilePath}`, error)
           throw error
         })
@@ -112,20 +118,21 @@ export function getNpmLicenseData (cwd, npmOutputFilePath, config) {
  * @param {Config} config - the .pr-bumper.json config
  * @returns {Promise} A promise for a string of repository URLs
  */
-export function getPackageData (cwd, config) {
+export function getPackageData (cwd: string, config: Config): Promise<*> {
   logger.log('...getting package data')
   const filename = path.join(cwd, 'package.json')
   return readFile(filename, 'utf8')
-    .then(result => {
-      const data = _.filter(result.split('\n').map(line => {
+    .then((result: Object) => {
+      const data = _.filter(result.split('\n').map((line: string) => {
         let url
-        _.each(config.features.compliance.additionalRepos, repo => {
+        _.each(config.features.compliance.additionalRepos, (repo: Object) => {
           const regex = new RegExp(repo.pattern)
           let matches = regex.exec(line)
           if (matches !== null) {
-            if (matches[1] === config.vcs.repository.repo) {
+            if (matches[1] === config.vcs.repository.name) {
               url = undefined
             } else {
+              // eslint-disable-next-line
               url = repo.url.split('${REPO_NAME}').join(matches[1])
             }
           }
@@ -143,7 +150,7 @@ export function getPackageData (cwd, config) {
  * @param {Config} config - the .pr-bumper.json config
  * @returns {Promise} - a promise for everything to be done
  */
-export function main (cwd, directoryPath, config) {
+export function main (cwd: string, directoryPath: string, config: Config): Promise<*> {
   const npmOutputFilePath = path.join(directoryPath, config.features.compliance.output.requirementsFile)
   const reposFilePath = path.join(directoryPath, config.features.compliance.output.reposFile)
   const ignoreFile = path.join(directoryPath, config.features.compliance.output.ignoreFile)
@@ -151,43 +158,42 @@ export function main (cwd, directoryPath, config) {
   return ensureDirectory(directoryPath)
     .then(() => {
       return Promise.all([
-
         getNpmLicenseData(cwd, npmOutputFilePath, config),
 
         getPackageData(cwd, config)
-          .then(packageText => {
+          .then((packageText: string) => {
             return writeFile(reposFilePath, packageText)
               .then(() => {
                 return `successfully wrote ${reposFilePath}`
               })
-              .catch(error => {
+              .catch((error: Error) => {
                 logger.error(`(1) ERROR: writing ${reposFilePath}`, error)
                 throw error
               })
           })
-          .catch(error => {
+          .catch((error: Error) => {
             logger.error(`(2) ERROR: writing ${reposFilePath}`, error)
             throw error
           }),
 
         readFile(path.join(cwd, '.gitignore'))
-          .then(text => {
+          .then((text: string) => {
             return writeFile(ignoreFile, text)
               .then(() => {
                 return `successfully wrote ${ignoreFile}`
               })
-              .catch(error => {
+              .catch((error: Error) => {
                 logger.error(`(1) ERROR: writing ${ignoreFile}`, error)
                 throw error
               })
           })
-          .catch(error => {
+          .catch((error: Error) => {
             logger.error(`(2) ERROR: writing ${ignoreFile}`, error)
             throw error
           })
       ])
     })
-    .catch(error => {
+    .catch((error: Error) => {
       logger.error('something bad happened', error)
       throw error
     })
@@ -200,13 +206,13 @@ export function main (cwd, directoryPath, config) {
  * @param {Config} config - the .pr-bumper.json config
  * @returns {Object} a promise
  */
-export function run (cwd, directoryPath, config) {
+export function run (cwd: string, directoryPath: string, config: Config): Promise<*> {
   logger.log('Generating dependency report...')
   return main(cwd, directoryPath, config)
-    .then(output => {
+    .then((output: string[]) => {
       logger.log('...finished.')
-      for (var i = 0, len = output.length; i < len; i++) {
-        var line = output[i]
+      for (let i = 0, len = output.length; i < len; i++) {
+        let line = output[i]
         if (line && line.startsWith('successfully')) {
           logger.log('✔︎', line)
         } else {
@@ -214,7 +220,7 @@ export function run (cwd, directoryPath, config) {
         }
       }
     })
-    .catch(error => {
+    .catch((error: Error) => {
       logger.log(error)
       throw error
     })

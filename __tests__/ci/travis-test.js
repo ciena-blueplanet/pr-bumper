@@ -1,9 +1,9 @@
-jest.mock('../../src/exec')
+jest.mock('../../src/child_process')
 jest.mock('../../src/logger')
 
+import {exec} from '../../src/child_process'
 import CiBase from '../../src/ci/base'
 import Travis from '../../src/ci/travis'
-import exec from '../../src/exec'
 import logger from '../../src/logger'
 import {ensureCiBaseMethodIsUsed} from './utils'
 

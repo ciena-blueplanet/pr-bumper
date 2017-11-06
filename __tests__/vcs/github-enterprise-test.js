@@ -1,9 +1,9 @@
 jest.mock('node-fetch')
-jest.mock('../../src/exec')
+jest.mock('../../src/child_process')
 jest.mock('../../src/logger')
 
 import fetch from 'node-fetch'
-import exec from '../../src/exec'
+import {exec} from '../../src/child_process'
 import GitHubEnterprise from '../../src/vcs/github-enterprise'
 
 describe('VCS / GitHub Enterprise /', () => {
@@ -211,7 +211,7 @@ describe('VCS / GitHub Enterprise /', () => {
       expect(fetch).toHaveBeenCalledWith(url, {
         method: 'POST',
         body: JSON.stringify({body: 'Missing PR scope!'}),
-        headers: {'Content-Type': 'application/json'}
+        headers: ['Content-Type', 'application/json']
       })
     })
 

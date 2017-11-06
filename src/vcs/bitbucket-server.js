@@ -1,15 +1,18 @@
-// not using const to enable rewiring during test
-import fetch from 'node-fetch'
+/**
+ * @flow
+ */
+
+import fetch, {type Response} from 'node-fetch'
 
 import logger from '../logger'
-import '../typedefs'
+import type {BitbucketPullRequest, Config, PullRequest} from '../typedefs'
 
 /**
  * Convert a Bitbucket PR to a PR representation
  * @param {BitbucketPullRequest} bbPr - the API response from a Bitbucket API looking for a PR
  * @returns {PullRequest} a pull request in standard format
  */
-function convertPr (bbPr) {
+function convertPr (bbPr: BitbucketPullRequest): PullRequest {
   return {
     description: bbPr.description,
     headSha: bbPr.fromRef.latestCommit,
@@ -25,10 +28,13 @@ function convertPr (bbPr) {
  * @implements {Vcs}
  */
 export default class BitbucketServer {
+  baseUrl: string
+  config: Config
+
   /**
    * @param {Config} config - the configuration object
    */
-  constructor (config) {
+  constructor (config: Config): void {
     this.config = config
 
     const password = this.config.computed.vcs.auth.password
@@ -43,7 +49,7 @@ export default class BitbucketServer {
    *
    * @returns {Promise} - a promise resolved with the name of the remote to be used for pushing
    */
-  addRemoteForPush () {
+  addRemoteForPush (): Promise<string> {
     // nothing to do
     return Promise.resolve('origin')
   }
@@ -53,7 +59,7 @@ export default class BitbucketServer {
    * @param {String} prNumber - the PR number (i.e. 31)
    * @returns {PrPromise} a promise resolved with the PR object from the API
    */
-  getPr (prNumber) {
+  getPr (prNumber: string): Promise<PullRequest> {
     const owner = this.config.vcs.repository.owner
     const repo = this.config.vcs.repository.name
     const url = `${this.baseUrl}/projects/${owner}/repos/${repo}/pull-requests/${prNumber}`
@@ -62,15 +68,15 @@ export default class BitbucketServer {
     logger.log(`About to send GET to ${safeUrl}`)
 
     return fetch(url)
-      .then(resp => {
+      .then((resp: Response) => {
         if (!resp.ok) {
-          return resp.json().then(json => {
+          return resp.json().then((json: *) => {
             throw new Error(`${resp.status}: ${JSON.stringify(json)}`)
           })
         }
         return resp.json()
       })
-      .then(bbPr => {
+      .then((bbPr: BitbucketPullRequest) => {
         return convertPr(bbPr)
       })
   }
@@ -81,7 +87,7 @@ export default class BitbucketServer {
    * @param {String} comment - the comment body
    * @returns {Promise} a promise resolved with result of posting the comment
    */
-  postComment (prNumber, comment) {
+  postComment (prNumber: string, comment: string): Promise<*> {
     const owner = this.config.vcs.repository.owner
     const repo = this.config.vcs.repository.name
     const url = `${this.baseUrl}/projects/${owner}/repos/${repo}/pull-requests/${prNumber}/comments`
@@ -89,13 +95,13 @@ export default class BitbucketServer {
     logger.log(`About to send POST to ${safeUrl}`)
 
     return fetch(url, {
-      method: 'POST',
       body: JSON.stringify({text: comment}),
-      headers: {'Content-Type': 'application/json'}
+      headers: ['Content-Type', 'application/json'],
+      method: 'POST'
     })
-      .then(resp => {
+      .then((resp: Response) => {
         if (!resp.ok) {
-          return resp.json().then(json => {
+          return resp.json().then((json: *) => {
             throw new Error(`${resp.status}: ${JSON.stringify(json)}`)
           })
         }

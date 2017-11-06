@@ -34,10 +34,12 @@ describe('dependencies', () => {
           additionalRepos: [
             {
               pattern: '\\s+"(ember\\-frost\\-\\S+)"',
+              // eslint-disable-next-line
               url: 'https://github.com/ciena-frost/${REPO_NAME}.git'
             },
             {
               pattern: '\\s+"(frost\\-\\S+)"',
+              // eslint-disable-next-line
               url: 'https://bitbucket.ciena.com/scm/bp_frost/${REPO_NAME}.git'
             }
           ]
@@ -207,6 +209,7 @@ describe('dependencies', () => {
     })
 
     it('should function as expeced when it fails to write file', () => {
+      // eslint-disable-next-line
       writeFile.mockImplementation(() => Promise.reject('some error'))
       return getNpmLicenseData('/some/path', '/some/output/path', config).catch(() => {
         expect(logger.error).toHaveBeenCalledWith('(1) ERROR: writing /some/output/path', 'some error')
@@ -248,7 +251,9 @@ describe('dependencies', () => {
 
     it('should return the correct repo paths', () => {
       const addlRepos = config.features.compliance.additionalRepos
+      // eslint-disable-next-line
       const expectedUrl1 = addlRepos[1].url.split('${REPO_NAME}').join(repos[1].split('"').join(''))
+      // eslint-disable-next-line
       const expectedUrl2 = addlRepos[0].url.split('${REPO_NAME}').join(repos[0].split('"').join(''))
       const expected = `${expectedUrl1}\n${expectedUrl2}\n`
       return getPackageData('/some/path', config).then(paths => {

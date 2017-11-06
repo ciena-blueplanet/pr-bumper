@@ -1,11 +1,16 @@
+/**
+ * @flow
+ */
+
 import __ from 'lodash'
+import nullthrows from 'nullthrows'
 import Promise from 'promise'
 
 import Bumper from './bumper'
 import TeamCity from './ci/teamcity'
 import Travis from './ci/travis'
 import logger from './logger'
-import './typedefs'
+import type {Ci, Config, Vcs} from './typedefs'
 import * as utils from './utils'
 import BitbucketServer from './vcs/bitbucket-server'
 import GitHub from './vcs/github'
@@ -18,7 +23,7 @@ export default class Cli {
    * @param {Boolean} [skipComments] - true if the command line options specified we need to skip pr comments
    * @returns {Promise} a promise resolved when command finishes, or rejected with failure
    */
-  run (cmd, skipComments) {
+  run (cmd: string, skipComments: boolean): Promise<*> {
     const config = utils.getConfig()
     if (skipComments) {
       __.set(config, 'features.comments.enabled', false)
@@ -38,6 +43,7 @@ export default class Cli {
         return bumper.checkCoverage()
 
       default:
+        // eslint-disable-next-line
         return Promise.reject(`Invalid command: ${cmd}`)
     }
   }
@@ -46,12 +52,13 @@ export default class Cli {
    * Simple wrapper around creation of bumper to make it easier to test
    *
    * @param {Object} params - params obj
-   * @param {Config} params.config - the config object
-   * @param {Vcs} params.vcs - the vcs instance
-   * @param {Ci} params.ci - the ci instance
    * @returns {Bumper} the bumper intance
    */
-  _getBumper (params) {
+  _getBumper (params: {|
+    ci: Ci,
+    config: Config,
+    vcs: Vcs
+  |}): Object {
     return new Bumper(params)
   }
 
@@ -62,8 +69,8 @@ export default class Cli {
    * @returns {Ci} the ci instance
    * @throws Error when invalid provider given
    */
-  _getCi (config, vcs) {
-    const provider = config.ci.provider
+  _getCi (config: Config, vcs: Vcs): Ci {
+    const provider = nullthrows(config.ci.provider)
 
     logger.log(`Detected CI provider: ${provider} `)
 
@@ -85,7 +92,7 @@ export default class Cli {
    * @returns {Vcs} the vcs instance
    * @throws Error when invalid provider given
    */
-  _getVcs (config) {
+  _getVcs (config: Config): Vcs {
     const provider = config.vcs.provider
 
     logger.log(`Detected VCS provider: ${provider} `)

@@ -1,14 +1,19 @@
+/**
+ * @flow
+ */
+
 import __ from 'lodash'
 import path from 'path'
 import Promise from 'promise'
 import versiony from 'versiony'
 
+import Cancel from './cancel'
+import {exec} from './child_process'
 import * as dependencies from './compliance/dependencies'
-import exec from './exec'
 import {readFile, writeFile} from './fs'
 import logger from './logger'
 import prepend from './prepend-file'
-import './typedefs'
+import type {Ci, Config, PrInfo, PullRequest, Vcs} from './typedefs'
 import * as utils from './utils'
 
 const pkgJson = require('../package.json')
@@ -19,7 +24,7 @@ const pkgJson = require('../package.json')
  * @param {String[]} info.modifiedFiles - the list of modified files so far
  * @param {String} filename - the filename to add to info.modifiedFiles if it's not already there
  */
-function addModifiedFile (info, filename) {
+function addModifiedFile (info: PrInfo, filename: string): void {
   if (info.modifiedFiles.indexOf(filename) === -1) {
     info.modifiedFiles.push(filename)
   }
@@ -29,17 +34,11 @@ function addModifiedFile (info, filename) {
  * Perform the patch bump, either using .patch() or .preRelease() (the latter if there's a pre-release tag)
  * @param {*} v - the versiony instance
  */
-function performPatch (v) {
+function performPatch (v: Object): void {
   if (v.model.hasPreRelease()) {
     v.preRelease()
   } else {
     v.patch()
-  }
-}
-
-class Cancel {
-  constructor (message) {
-    this.message = message
   }
 }
 
@@ -48,6 +47,10 @@ class Cancel {
  * @class
  */
 export default class Bumper {
+  ci: Ci
+  config: Config
+  vcs: Vcs
+
   // = Public Methods ===================================================================
 
   /**
@@ -56,7 +59,7 @@ export default class Bumper {
    * @param {Vcs} params.vcs - the vcs instance to use
    * @param {Ci} params.ci - the ci instance to use
    */
-  constructor (params) {
+  constructor (params: Object): void {
     this.config = params.config
     this.vcs = params.vcs
     this.ci = params.ci
@@ -64,17 +67,16 @@ export default class Bumper {
 
   /**
    * Bump the version based on the last merged PR's version-bump comment
-   * @param {Object} options the cli options
    * @returns {Promise} a promise resolved with the results of the push
    */
-  bump () {
+  bump (): Promise<*> {
     if (__.get(this.config, 'computed.ci.isPr')) {
       logger.log('Not a merge build, skipping bump')
       return Promise.resolve()
     }
 
     return this.ci.getLastCommitMsg()
-      .then(commitMessage => {
+      .then((commitMessage: string) => {
         if (commitMessage.startsWith(`[${pkgJson.name}]`)) {
           throw new Cancel(`Skipping bump on ${pkgJson.name} commit.`)
         }
@@ -83,28 +85,28 @@ export default class Bumper {
       .then(() => {
         return this._getMergedPrInfo()
       })
-      .then(info => {
+      .then((info: PrInfo) => {
         return this._maybeBumpVersion(info, 'package.json')
       })
-      .then(info => {
+      .then((info: PrInfo) => {
         return this._maybePrependChangelog(info)
       })
-      .then(info => {
+      .then((info: PrInfo) => {
         return this._maybeGenerateDependencySnapshot(info)
       })
-      .then(info => {
+      .then((info: PrInfo) => {
         return this._maybeGenerateDependencyComplianceReport(info)
       })
-      .then(info => {
+      .then((info: PrInfo) => {
         return this._maybeUpdateBaselineCoverage(info)
       })
-      .then(info => {
+      .then((info: PrInfo) => {
         return this._maybeCommitChanges(info)
       })
-      .then(info => {
+      .then((info: PrInfo) => {
         return this._maybeCreateTag(info)
       })
-      .then(info => {
+      .then((info: PrInfo) => {
         return this._maybePushChanges(info)
       })
   }
@@ -113,14 +115,14 @@ export default class Bumper {
    * Check a PR for a version-bump comment
    * @returns {Promise} a promise resolved when complete or rejected on error
    */
-  check () {
+  check (): Promise<*> {
     if (!this.config.computed.ci.isPr) {
       logger.log('Not a PR build, skipping check')
       return Promise.resolve()
     }
 
     return this._getOpenPrInfo()
-      .then(info => {
+      .then((info: PrInfo) => {
         logger.log(`Found a ${info.scope} bump for the current PR`)
       })
   }
@@ -129,7 +131,7 @@ export default class Bumper {
    * Check a build to see if coverage decreased
    * @returns {Promise} a promise resolved when complete or rejected on error
    */
-  checkCoverage () {
+  checkCoverage (): Promise<*> {
     const link = 'https://github.com/ciena-blueplanet/pr-bumper#featurescoverage'
     if (!this.config.isEnabled('coverage')) {
       const msg = `Code coverage feature not enabled!\nSee ${link} for configuration info.`
@@ -181,7 +183,7 @@ export default class Bumper {
    * @param {Number} pct - the current coverage percentage
    * @returns {String} the message to log to the user explaining what happened with coverage
    */
-  _getCoverageMsg (base, pct) {
+  _getCoverageMsg (base: number, pct: number): string {
     const pctStr = pct.toFixed(2)
     const baseStr = base.toFixed(2)
     if (pct > base) {
@@ -196,17 +198,21 @@ export default class Bumper {
    * Grab the most recent PR
    * @returns {PrPromise} a promise resolved with the most recent PR
    */
-  _getLastPr () {
-    return exec('git log -10 --oneline').then(stdout => {
+  _getLastPr (): Promise<PullRequest> {
+    return exec('git log -10 --oneline').then((stdout: string) => {
       // the --oneline format for `git log` puts each commit on a single line, with the hash and then
       // the commit message, so we first split on \n to get an array of commits
       const commits = stdout.split('\n')
 
       // The commit that represents the merging of the PR will include the text 'Merge pull request' so
       // we find that one
-      const mergeCommit = __.find(commits, commit => {
+      const mergeCommit = __.find(commits, (commit: string) => {
         return commit.indexOf('Merge pull request') !== -1
       })
+
+      if (typeof mergeCommit !== 'string') {
+        throw new Error('Failed to find pull request merge commit')
+      }
 
       // The format of the auto-generated commit line will look something like:
       // 'edf85e0 Merge pull request #30 from job13er/remove-newline'
@@ -222,9 +228,9 @@ export default class Bumper {
    * Get the PR scope for the current (merged) pull request
    * @returns {Promise} a promise - resolved with PR info (changelog and scope) or rejected on error
    */
-  _getMergedPrInfo () {
+  _getMergedPrInfo (): Promise<PrInfo> {
     return this._getLastPr()
-      .then(pr => {
+      .then((pr: PullRequest) => {
         let maxScope = 'major'
         if (this.config.isEnabled('maxScope')) {
           maxScope = this.config.features.maxScope.value
@@ -244,10 +250,10 @@ export default class Bumper {
    * Get the pr scope for the current (open) pull request
    * @returns {Promise} a promise - resolved with PR info (changelog and scope) or rejected on error
    */
-  _getOpenPrInfo () {
+  _getOpenPrInfo (): Promise<PrInfo> {
     const vcs = this.vcs
     return vcs.getPr(this.config.computed.ci.prNumber)
-      .then(pr => {
+      .then((pr: PullRequest) => {
         let scope
         return utils.maybePostCommentOnError(this.config, this.vcs, () => {
           let maxScope = 'major'
@@ -258,7 +264,7 @@ export default class Bumper {
           return {pr, scope}
         })
       })
-      .then(data => {
+      .then((data: Object) => {
         const pr = data.pr
         const scope = data.scope
 
@@ -281,7 +287,7 @@ export default class Bumper {
    * @param {String} pkgJsonFile - the full file path to the package.json to bump
    * @returns {PrInfo} the pr info object passed in
    */
-  _maybeBumpVersion (info, pkgJsonFile) {
+  _maybeBumpVersion (info: PrInfo, pkgJsonFile: string): PrInfo {
     if (info.scope === 'none') {
       return info
     }
@@ -315,7 +321,7 @@ export default class Bumper {
    * @param {PrInfo} info - the info for the PR being bumped
    * @returns {Promise} - a promise resolved with the results of the git commands
    */
-  _maybeCommitChanges (info) {
+  _maybeCommitChanges (info: PrInfo): Promise<*> {
     if (info.modifiedFiles.length === 0) {
       logger.log('Skipping commit because no files were changed.')
       return Promise.resolve(info)
@@ -347,7 +353,7 @@ export default class Bumper {
    * @param {PrInfo} info - the info for the PR being bumped
    * @returns {Promise} - a promise resolved with the results of the git commands
    */
-  _maybeCreateTag (info) {
+  _maybeCreateTag (info: PrInfo): Promise<*> {
     if (info.scope === 'none') {
       logger.log('Skipping tag creation because of "none" scope.')
       return Promise.resolve(info)
@@ -365,7 +371,7 @@ export default class Bumper {
    * @param {PrInfo} info - the info for the PR being bumped
    * @returns {Promise} a Promise
    */
-  _maybeGenerateDependencyComplianceReport (info) {
+  _maybeGenerateDependencyComplianceReport (info: PrInfo): Promise<*> {
     if (!this.config.isEnabled('compliance')) {
       logger.log('Skipping generating dependency compliance report because of config option.')
       return Promise.resolve(info)
@@ -392,7 +398,7 @@ export default class Bumper {
    * @param {PrInfo} info - the info for the PR being bumped
    * @returns {Promise} a promise resolved when operation completes
    */
-  _maybeGenerateDependencySnapshot (info) {
+  _maybeGenerateDependencySnapshot (info: PrInfo): Promise<*> {
     // We need to do the prune b/c of the following issue with npm-shrinkwrap
     // https://github.com/SaltwaterC/aws2js/issues/58, apparently one of our deps
     // installs things w/o having them in package.json, causing npm shrinkwrap to barf
@@ -426,7 +432,7 @@ export default class Bumper {
    * @param {PrInfo} info - the pr info
    * @returns {Promise} - a promise resolved when changelog has been prepended
    */
-  _maybePrependChangelog (info) {
+  _maybePrependChangelog (info: PrInfo): Promise<*> {
     if (!this.config.isEnabled('changelog')) {
       logger.log('Skipping prepending changelog because of config option.')
       return Promise.resolve(info)
@@ -454,13 +460,13 @@ export default class Bumper {
    * @param {PrInfo} info - the info for the PR being bumped
    * @returns {Promise} - a promise resolved with the results of the git commands
    */
-  _maybePushChanges (info) {
+  _maybePushChanges (info: PrInfo): Promise<*> {
     if (info.modifiedFiles.length === 0) {
       logger.log('Skipping push because nothing changed.')
       return Promise.resolve(info)
     }
 
-    return this.ci.push(this.vcs)
+    return this.ci.push()
       .then(() => {
         return info
       })
@@ -471,7 +477,7 @@ export default class Bumper {
    * @param {PrInfo} info - the info for the PR being bumped
    * @returns {Promise} a Promise
    **/
-  _maybeUpdateBaselineCoverage (info) {
+  _maybeUpdateBaselineCoverage (info: PrInfo): Promise<*> {
     if (!this.config.isEnabled('coverage')) {
       logger.log('Skipping updating baseline code coverage because of config option.')
       return Promise.resolve(info)
@@ -487,13 +493,13 @@ export default class Bumper {
     const pkgJsonPath = path.join(process.cwd(), 'package.json')
 
     return readFile(pkgJsonPath, 'utf8')
-      .then(contents => {
+      .then((contents: string) => {
         const pkgJsonContents = JSON.parse(contents)
         // We want to write out the coverage info, even if it didn't exist yet (@job13er 2017-06-19)
         __.set(pkgJsonContents, 'pr-bumper.coverage', pct)
         return JSON.stringify(pkgJsonContents, null, 2)
       })
-      .then(data => {
+      .then((data: string) => {
         return writeFile(pkgJsonPath, data)
       })
       .then(() => {
@@ -502,5 +508,3 @@ export default class Bumper {
       })
   }
 }
-
-Bumper.Cancel = Cancel

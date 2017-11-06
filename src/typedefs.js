@@ -1,128 +1,100 @@
+/**
+ * @flow
+ */
+
 // ==========================================================================================================
 // Configuration
 // ==========================================================================================================
 
 /**
- * The CI Env config
- * @typedef CiEnv
- *
- * @property {String} buildNumber - the environment variable that will hold the build number
- * @property {String} pr - the environment variable that will hold the PR number (if it's a PR build)
- * @property {String} repoSlug - the environment variable that will hold the repo slug (owner/repo)
- */
-
-/**
- * The git user
- * @typedef GitUser
- *
- * @property {String} email - the github user email to use for commits
- * @property {String} name - the github user name to use for commits
- */
-
-/**
- * The CI (continuous integration) config
- * @typedef CiConfig
- *
- * @property {String} buildNumber - the number of the build (in a string) pulled from the env
- * @property {CiEnv} env - the environment variables used by the CI system
- * @property {GitUser} gitUser - the user to configure git with for making commits
- * @property {String} provider - the CI provider (one of "travis" or "teamcity" for now)
- */
-
-/**
  * The VCS Auth config (pulled from the environment using VcsEnv)
- * @typedef VcsAuth
- *
- * @property {String} password - the actual vcs password
- * @property {String} readToken - the actual vcs read token
- * @property {String} username - the actual vcs username
- * @property {String} writeToken - the actual vcs read/write token
  */
-
-/**
- * The configuration that is computed at runtime based on other options/env in .pr-bumper.json
- * @typedef ComputedConfig
- *
- * @property {Number} baselineCoverage - the basline coverage read from package.json
- * @property {Object} ci - the wrapper for the CI computed config
- * @property {String} ci.buildNumber - the identifier for the current build
- * @property {String} ci.branch - the branch being built, or targeted by the pr build
- * @property {Boolean} ci.isPr - true if this is a PR build
- * @property {String} ci.prNumber - the number of the PR
- * @property {Object} vcs - the wrapper for VCS computed config
- * @property {VcsAuth} vcs.auth - the auth settings pulled from environment
- */
-
-/**
- * The VCS Env config
- * @typedef VcsEnv
- *
- * @property {String} password - the name of the environment variable that holds the vcs password
- * @property {String} readToken - the name of the environment variable that holds the vcs read-only token
- * @property {String} username - the name of the environemnt variable that holds the vcs username
- * @property {String} writeToken - the name of the environment variable that holds the vcs read-write token
- */
-
-/**
- * The Vcs config
- * @typedef VcsConfig
- *
- * @property {VcsAuth} auth - the auth info pulled from the env given
- * @property {String} domain - the domain for version control system (defaults to github.com for GitHub)
- * @property {VcsEnv} env - the environment variables that can be used to interact with the VCS
- * @property {String} provider - the VCS provider ("github", "bitbucket-server" or "github-enterprise" right now)
- * @property {Object} repository - wrapper for info about the repository
- * @property {String} repository.name - the name of the repository
- * @property {String} repository.owner - the organization/user/project that owns the repository
- */
-
-/**
- * The config for all features
- * @typedef FeaturesConfig
- *
- * @property {Object} changelog - wrapper for the changelog feature
- * @property {Boolean} [changelog.enabled=false] - true if changelog feature is enabled
- * @property {String} [changelog.file='CHANGELOG.md'] - the file to use for changelog tracking
- *
- * @property {Object} comments - wrapper for the pr comments feature
- * @property {Boolean} [comments.enabled=false] - true if comments feature is enabled
- *
- * @property {Object} compliance - wrapper for the complaince feature
- * @property {Boolean} [comments.enabled=false] - true if compliance feature is enabled
- * TODO: add more documentation on the other pieces of this (@job13er 2017-06-19)
- *
- * @property {Object} coverage - wrapper for the code coverage feature
- * @property {Boolean} [coverage.enabled=false] - true if coverage feature is enabled
- * @property {String} [coverage.file='coverage/coverage-summary.json'] - the file that holds the json summary coverage
- *
- * @property {Object} dependencies - wrapper for the dependency snapshot feature
- * @property {Boolean} [dependencies.enabled=false] - true if dependencies feature is enabled
- * @property {String} [dependencies.snapshotFile='dependency-snapshot.json'] - the file to dump dependencies to
- *
- * @property {Object} maxScope - the wrapper for the max bump scope feature
- * @property {Boolean} [maxScope.enabled=false] - true if the feature is enabled
- * @property {String} [maxScope.value='major'] - the maximum scope allowed when the feature is enabled
- */
-
-/**
- * The function to check if a feature is enabled
- * @typedef {Function} isEnabledFunc
- *
- * @param {String} featureName - the name of the feature to check for
- * @returns {Boolean} true if the feature is enabled, else false
- */
+export type VcsAuth = {|
+  password: string, // the actual vcs password
+  readToken?: string, // the actual vcs read token
+  username: string, // the actual vcs username
+  writeToken?: string // the actual vcs read/write token
+|}
 
 /**
  * The configuration object that can be customized with .pr-bumper.json
- * @typedef Config
- *
- * @property {CiConfig} ci - the CI build configuration
- * @property {ComputedConfig} computed - the wrapper for all config options computed from env
- * @property {FeaturesConfig} features - the wrapper for all feature configuration
- * @property {VcsConfig} vcs - the VCS configuration
- *
- * @property {isEnabledFunc} isEnabled - check if a given feature is enabled
  */
+export type Config = {|
+  ci: {|
+    buildNumber?: string, // the number of the build (in a string) pulled from the env
+    env: {|
+      branch: string,
+      buildNumber: string, // the environment variable that will hold the build number
+      pr: string, // the environment variable that will hold the PR number (if it's a PR build)
+      repoSlug: string // the environment variable that will hold the repo slug (owner/repo)
+    |},
+    gitUser: {|
+      email: string, // the github user email to use for commits
+      name: string // the github user name to use for commits
+    |},
+    provider?: string // the CI provider (one of "travis" or "teamcity" for now)
+  |},
+  computed: {|
+    baselineCoverage: number, // the basline coverage read from package.json
+    ci: {|
+      buildNumber: string, // the identifier for the current build
+      branch: string, // the branch being built, or targeted by the pr build
+      isPr: boolean, // true if this is a PR build
+      prNumber: string // the number of the PR
+    |},
+    vcs: {|
+      auth: VcsAuth, // the auth settings pulled from environment
+    |}
+  |},
+  features: {|
+    changelog: {|
+      enabled: boolean, // true if changelog feature is enabled
+      file: string, // the file to use for changelog tracking
+    |},
+    comments: {|
+      enabled: boolean, // true if comments feature is enabled
+    |},
+    compliance: {|
+      additionalRepos: string[],
+      enabled: boolean, // true if compliance feature is enabled
+      output: {|
+        directory?: string,
+        ignoreFile: string,
+        reposFile: string,
+        requirementsFile: string
+      |},
+      production: boolean,
+    |},
+    coverage: {|
+      enabled: boolean, // true if coverage feature is enabled
+      file?: string, // the file that holds the json summary coverage
+    |},
+    dependencies: {|
+      enabled: boolean, // true if dependencies feature is enabled
+      snapshotFile?: string, // the file to dump dependencies to
+    |},
+    maxScope: {|
+      enabled: boolean, // true if maxScope feature is enabled
+      value?: string, // the maximum scope allowed when the feature is enabled
+    |},
+  |},
+  isEnabled: (featureName: string) => boolean, // check if a given feature is enabled
+  vcs: {|
+    auth?: VcsAuth, // the auth info pulled from the env given
+    domain: string, // the domain for version control system (defaults to github.com for GitHub)
+    env: {|
+      password: string, // the name of the environment variable that holds the vcs password
+      readToken: string, // the name of the environment variable that holds the vcs read-only token
+      username: string, // the name of the environemnt variable that holds the vcs username
+      writeToken: string // the name of the environment variable that holds the vcs read-write token
+    |},
+    provider: string, // the VCS provider ("github", "bitbucket-server" or "github-enterprise" right now)
+    repository: {|
+      name: string, // the name of the repository
+      owner: string // the organization/user/project that owns the repository
+    |}
+  |}
+|}
 
 // ==========================================================================================================
 // Version Control
@@ -130,96 +102,100 @@
 
 /**
  * The representation of a commit within the GitHub API
- * @typedef GitHubCommit
- * @property {String} sha - the SHA hash for the commit
  */
+export type GitHubCommit = {|
+  sha: string // the SHA hash for the commit
+|}
 
 /**
  * The shape of the PR pulled from GitHub's `/repos/:owner/:repo/pulls` API
  * {@link https://developer.github.com/v3/pulls/}
- *
- * @typedef GitHubPullRequest
- * @property {Number} number - the PR #
- * @property {String} body - the description of the PR
- * @property {String} html_url - the URL for the web interface of the PR
- * @property {GitHubCommit} head - representation of the tip commit from the branch being merged
- * @property {GitHubCommit} base - representation of the tip commit from the branch being merged into
  */
+export type GitHubPullRequest = {|
+  number: number, // the PR #
+  body: string, // the description of the PR
+  html_url: string, // the URL for the web interface of the PR
+  head: GitHubCommit, // representation of the tip commit from the branch being merged
+  base: GitHubCommit // representation of the tip commit from the branch being merged into
+|}
 
 /**
  * The representation of a reference within the Bitbucket Server API
- * @typedef BitbucketRef
- * @property {String} id - the id of the git ref
- * @property {String} latestCommit - the SHA hash for the latest commit in the git ref
  */
+export type BitbucketRef = {|
+  id: string, // the id of the git ref
+  latestCommit: string // the SHA hash for the latest commit in the git ref
+|}
 
 /**
  * An object to wrap a Bitbucket link
- * @typedef BitbucketLink
- * @property {String} href - the actual link
  */
+export type BitbucketLink = {|
+  href: string // the actual link
+|}
+
+export type BitbucketLinks = {|
+  self: BitbucketLink[] // the array of links to this pr
+|}
 
 /**
  * The shape of the PR pulled from Bitbucket's `/projects/:owner/repos/:repo/pull-requests` API
  * {@link https://developer.atlassian.com/static/rest/bitbucket-server/4.6.0/bitbucket-rest.html#idp1756896}
- *
- * @typedef BitbucketPullRequest
- * @property {Number} id - the PR #
- * @property {String} description - the description of the PR
- * @property {BitbucketRef} fromRef - the ref of the source of the pr
- * @property {BitbucketRef} toRef - the ref of the destination of the pr
- * @property {Object} links - http links
- * @property {BitbucketLink[]} links.self - the array of links to this pr
  */
+export type BitbucketPullRequest = {|
+  description: string, // the description of the PR
+  fromRef: BitbucketRef, // the ref of the source of the pr
+  id: number, // the PR #
+  links: BitbucketLinks, // http links
+  toRef: BitbucketRef // the ref of the destination of the pr
+|}
 
 /**
  * Generic Pull Request representation
- *
- * @typedef PullRequest
- * @property {Number} number - the PR #
- * @property {String} description - the description of the PR
- * @property {String} url - the URL for the web interface of the PR
- * @property {String} headCommitSha - SHA for the head commit of the incoming branch for the PR
  */
+export type PullRequest = {|
+  description: string, // the description of the PR
+  headSha: string, // SHA for the head commit of the incoming branch for the PR
+  number: number, // the PR #
+  url: string // the URL for the web interface of the PR
+|}
 
 /**
  * Generic Pull Request info (used for updating package.json and CHANGELOG.md files)
- *
- * @typedef PrInfo
- * @property {String} scope - the scope of the PR
- * @property {String} version - the new version after bumping based on scope
- * @property {String} changelog - the changelog text
  */
-
-/**
- * A Promise that will be resolved with a PullRequest
- *
- * @typedef PrPromise
- */
+export type PrInfo = {|
+  changelog: string, // the changelog text
+  modifiedFiles: string[],
+  scope: string, // the scope of the PR
+  version: string // the new version after bumping based on scope
+|}
 
 /**
  * Generic interface for a version control system (i.e. github.com)
- *
- * @interface Vcs
  */
+export interface Vcs {
+  /**
+   * Sometimes, based on the CI system, one might need to create a git remote to
+   * be able to push, this method provides a hook to do just that.
+   * @return Promise - a promise resolved with the result of the git command
+   */
+  addRemoteForPush(): Promise<*>,
 
-/**
- * Sometimes, based on the CI system, one might need to create a git remote to
- * be able to push, this method provides a hook to do just that.
- *
- * @function
- * @name Vcs#addRemoteForPush
- * @return Promise - a promise resolved with the result of the git command
- */
+  /**
+   * Push local changes to the remote server
+   * @param {String} prNumber - the number of the pull request being fetched
+   * @return Promise - a promise resolved with a pull request object
+   */
+  getPr(prNumber: string): Promise<PullRequest>,
 
-/**
- * Push local changes to the remote server
- *
- * @function
- * @name Vcs#getPr
- * @param {String} prNumber - the number of the pull request being fetched
- * @return PrPromise - a promise resolved with a pull request object
- */
+  /**
+   * Post a comment to the given PR
+   * @param {String} prNumber - the PR number (i.e. 31)
+   * @param {String} comment - the comment body
+   * @returns {Promise} a promise resolved with result of posting the comment
+   */
+  postComment(prNumber: string, comment: string): Promise<*>
+}
 
 // ==========================================================================================================
 // Continuous Integration
@@ -227,50 +203,46 @@
 
 /**
  * Generic interface for a CI system (i.e. travis)
- *
- * @interface Ci
  */
+export interface Ci {
+  /**
+   * Add changed files
+   * @param {String[]} files - the files to add
+   * @returns {Promise} - a promise resolved with result of git commands
+   */
+  add(files: string[]): Promise<*>,
 
-/**
- * Add changed files
- *
- * @function
- * @name Ci#add
- * @param {String[]} files - the files to add
- * @returns {Promise} - a promise resolved with result of git commands
- */
+  /**
+   * Commit local changes
+   * @param {String} summary - the git commit summary
+   * @param {String} message - the detailed commit message
+   * @returns {Promise} - a promise resolved with result of git commands
+   */
+  commit(summary: string, message: string): Promise<*>,
 
-/**
- * Commit local changes
- *
- * @function
- * @name Ci#commit
- * @param {String} summary - the git commit summary
- * @param {String} message - the detailed commit message
- * @returns {Promise} - a promise resolved with result of git commands
- */
+  /**
+   * Get the most recent commit message summary
+   * @returns {Promise} - a promise resolved with result of git command
+   */
+  getLastCommitMsg(): Promise<*>,
 
-/**
- * Push local changes to the remote server
- *
- * @function
- * @name Ci#push
- * @returns {Promise} - a promise resolved with result of git commands
- */
+  /**
+   * Push local changes to the remote server
+   * @returns {Promise} - a promise resolved with result of git commands
+   */
+  push(): Promise<*>,
 
-/**
- * Setup the local git environment (make sure you're in a proper branch, with proper user attribution, etc
- *
- * @function
- * @name Ci#setupGitEnv
- * @returns {Promise} - a promise resolved with result of git commands
- */
+  /**
+   * Setup the local git environment (make sure you're in a proper branch, with proper user attribution, etc
+   * @returns {Promise} - a promise resolved with result of git commands
+   */
+  setupGitEnv(): Promise<*>,
 
-/**
- * Create a local tag
- *
- * @function
- * @name Ci#tag
- * @param {String} name - the name of the tag to create
- * @returns {Promise} - a promise resolved with result of git commands
- */
+  /**
+   * Create a local tag
+   * @param {String} name - the name of the tag to create
+   * @param {String} message - commit message of the tag being created
+   * @returns {Promise} - a promise resolved with result of git commands
+   */
+  tag(name: string, message: string): Promise<*>
+}
