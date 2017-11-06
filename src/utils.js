@@ -112,7 +112,7 @@ function walkObject (prefix: string, object: Object, leaves: Object): void { // 
   Object.keys(object).forEach((key: string) => {
     const value = object[key]
     const fullPrefix = (prefix) ? prefix + '.' + key : key
-    if (__.isObject(value) && !__.isArray(value)) {
+    if (__.isObject(value) && !__.isArray(value) && !__.isFunction(value)) {
       walkObject(fullPrefix, value, leaves)
     } else {
       leaves[fullPrefix] = value
