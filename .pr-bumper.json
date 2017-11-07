@@ -4,7 +4,8 @@
       "enabled": true
     },
     "coverage": {
-      "enabled": true
+      "enabled": true,
+      "file": "coverage/coverage-final.json"
     },
     "dependencies": {
       "enabled": true

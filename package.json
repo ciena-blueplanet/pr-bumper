@@ -56,6 +56,7 @@
     "nodely": "^0.0.5"
   },
   "jest": {
+    "collectCoverage": true,
     "testRegex": "/__tests__/.*-test\\.js$"
   },
   "pr-bumper": {
