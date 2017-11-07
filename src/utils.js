@@ -9,10 +9,11 @@ import __ from 'lodash'
 import nullthrows from 'nullthrows'
 import path from 'path'
 
+import deepFreeze from './deep-freeze'
 import logger from './logger'
 import type {Config, PullRequest, Vcs} from './typedefs'
 
-const CONFIG_DEFAULTS: Config = Object.freeze({
+const CONFIG_DEFAULTS: Config = deepFreeze({
   ci: {
     env: {
       branch: 'TRAVIS_BRANCH',

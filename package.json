@@ -57,6 +57,13 @@
   },
   "jest": {
     "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src/**/*.js"
+    ],
+    "coverageReporters": [
+      "json-summary",
+      "lcov"
+    ],
     "testRegex": "/__tests__/.*-test\\.js$"
   },
   "pr-bumper": {
