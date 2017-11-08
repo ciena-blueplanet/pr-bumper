@@ -4,8 +4,9 @@
 
 const program = require('commander')
 const pkgJson = require('../package.json')
-const Bumper = require('../lib/bumper')
-const Cli = require('../lib/cli')
+const Cancel = require('../lib/cancel')
+const Cli = require('../lib/cli').default
+
 const cli = new Cli()
 
 program
@@ -18,7 +19,7 @@ program
       .catch((error) => {
         const msg = (error.message) ? error.message : error
         console.log(`${pkgJson.name}: ERROR: ${msg}`)
-        if (error instanceof Bumper.Cancel) {
+        if (error instanceof Cancel) {
           process.exit(0)
         }
         process.exit(1)
