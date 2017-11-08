@@ -37,6 +37,7 @@
   "homepage": "https://github.com/ciena-blueplanet/pr-bumper#readme",
   "dependencies": {
     "commander": "^2.9.0",
+    "freezly": "0.0.1",
     "lodash": "^4.0.1",
     "nlf": "^1.4.1",
     "node-fetch": "^1.3.3",
