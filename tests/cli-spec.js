@@ -13,8 +13,10 @@ const Cli = require('../lib/cli')
 
 const TeamCity = require('../lib/ci/teamcity')
 const Travis = require('../lib/ci/travis')
+const Bamboo = require('../lib/ci/bamboo')
 
 const BitbucketServer = require('../lib/vcs/bitbucket-server')
+const BitbucketCloud = require('../lib/vcs/bitbucket-cloud')
 const GitHub = require('../lib/vcs/github')
 const GitHubEnterprise = require('../lib/vcs/github-enterprise')
 
@@ -316,6 +318,25 @@ describe('Cli', function () {
       })
     })
 
+    describe('with bamboo provider', function () {
+      beforeEach(function () {
+        config.ci.provider = 'bamboo'
+        ci = cli._getCi(config, vcs)
+      })
+
+      it('should pass along config', function () {
+        expect(ci.config).to.eql(config)
+      })
+
+      it('should pass along vcs', function () {
+        expect(ci.vcs).to.eql(vcs)
+      })
+
+      it('should create a Travis instance', function () {
+        expect(ci).to.be.an.instanceof(Bamboo)
+      })
+    })
+
     describe('with invalid provider', function () {
       beforeEach(function () {
         config.ci.provider = 'unknown provider'
@@ -359,6 +380,25 @@ describe('Cli', function () {
 
       it('should create a BitbucketServer instance', function () {
         expect(vcs).to.be.an.instanceof(BitbucketServer)
+      })
+    })
+
+    describe('with bitbucket-cloud provider', function () {
+      beforeEach(function () {
+        config.vcs.provider = 'bitbucket-cloud'
+        config.vcs.auth = {
+          username: 'foo',
+          password: 'bar'
+        }
+        vcs = cli._getVcs(config)
+      })
+
+      it('should pass along config', function () {
+        expect(vcs.config).to.eql(config)
+      })
+
+      it('should create a BitbucketCloud instance', function () {
+        expect(vcs).to.be.an.instanceof(BitbucketCloud)
       })
     })
 
