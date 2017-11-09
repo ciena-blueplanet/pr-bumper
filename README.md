@@ -70,14 +70,16 @@ will know exactly what to do before the build fails.
 
 ## Integrations
 [github-url]: https://github.com
-[bitbucket-url]: https://bitbucket.org/product/server
+[bitbucket-url]: https://bitbucket.org/product
+[bitbucket-server-url]: https://bitbucket.org/product/server
 [travis-url]: https://travis-ci.org
 [teamcity-url]: https://www.jetbrains.com/teamcity/
+[bamboo-url]: https://www.atlassian.com/software/bamboo
 
-`pr-bumper` currently supports pull requests on [GitHub][github-url], and [Bitbucket Server][bitbucket-url]
+`pr-bumper` currently supports pull requests on [GitHub][github-url], [Bitbucket][bitbucket-url], and [Bitbucket Server][bitbucket-server-url]
 
 It is also optimized to work with [Travis CI][travis-url] out-of-the box, but can be configured to work with
-[TeamCity][teamcity-url] as well using the [`.pr-bumper.json`](#pr-bumperjson) config file.
+[TeamCity][teamcity-url] or [Bamboo][bamboo-url] as well using the [`.pr-bumper.json`](#pr-bumperjson) config file.
 
 ## Installation
 
@@ -193,7 +195,7 @@ of a pull request (on a pr build).
 
 The default is `TRAVIS_BRANCH` which is already set in Travis CI.
 
-If you're using a `provider` of `teamcity`, you'll want to specify your own value here (e.g. `TEAMCITY_BRANCH`).
+If you're using a `provider` of `teamcity` or `bamboo`, you'll want to specify your own value here (e.g. `TEAMCITY_BRANCH`).
 
 Don't forget you'll need to update your build step in TeamCity to set the variable as well:
 
@@ -206,7 +208,7 @@ The name of the environment variable that holds the number of the current build.
 
 The default is `TRAVIS_BUILD_NUMBER` which is already set in Travis CI.
 
-If you're using a `provider` of `teamcity`, you'll want to specify your own value here (e.g. `TEAMCITY_BUILD_NUMBER`)
+If you're using a `provider` of `teamcity` or `bamboo`, you'll want to specify your own value here (e.g. `TEAMCITY_BUILD_NUMBER`)
 
 Don't forget you'll need to update your build step in TeamCity to set the variable as well:
 
@@ -220,7 +222,7 @@ merge build)
 
 The default is `TRAVIS_PULL_REQUEST` which is already set in Travis CI.
 
-If you're using a `provider` of `teamcity`, you'll want to specify your own value here (e.g. `TEAMCITY_PULL_REQUEST`)
+If you're using a `provider` of `teamcity` or `bamboo`, you'll want to specify your own value here (e.g. `TEAMCITY_PULL_REQUEST`)
 
 Don't forget you'll need to update your build step in TeamCity to set the variable as well:
 
@@ -255,7 +257,7 @@ You guessed it, the email address of the git user.
 Surprisingly enough, the name of the git user.
 
 #### `ci.provider`
-`pr-bumper` currently supports two CI providers: `travis` (the default) and `teamcity`. When using `travis`, the only
+`pr-bumper` currently supports `travis` (the default), `teamcity` and `bamboo`. When using `travis`, the only
 thing you'll probably want to configure is the `ci.gitUser`
 
 ### `features`
@@ -545,10 +547,10 @@ about that build. The build for the tag is where the actual deployment to npm wi
 one of the scripts doesn't do exactly what you need, then copy it directly into your project, modify it, and update
 the Travis config to run you modified copy instead.*
 
-### Bitbucket Server / TeamCity
-You can now configure `pr-bumper` to work with something other than Travis CI and GitHub.
-The only other configuration that has been tested is TeamCity and Bitbucket Server.
-Example TeamCity and Bitbucket Server configuration:
+### Bitbucket / Bitbucket Server / TeamCity
+You can now configure `pr-bumper` to work with something other than Travis CI, GitHub and Bamboo.
+The only other configuration that has been tested is TeamCity, Bitbucket and Bitbucket Server.
+Example TeamCity, Bitbucket and Bitbucket Server configuration:
 
   ```json
   {
@@ -580,3 +582,4 @@ Example TeamCity and Bitbucket Server configuration:
     }
   }
   ```
+For Bitbucket `vcs.domain =  "api.bitbucket.org"`.

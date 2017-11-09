@@ -16,7 +16,7 @@ const Travis = require('../lib/ci/travis')
 const Bamboo = require('../lib/ci/bamboo')
 
 const BitbucketServer = require('../lib/vcs/bitbucket-server')
-const BitbucketCloud = require('../lib/vcs/bitbucket-cloud')
+const Bitbucket = require('../lib/vcs/bitbucket')
 const GitHub = require('../lib/vcs/github')
 const GitHubEnterprise = require('../lib/vcs/github-enterprise')
 
@@ -383,9 +383,9 @@ describe('Cli', function () {
       })
     })
 
-    describe('with bitbucket-cloud provider', function () {
+    describe('with bitbucket provider', function () {
       beforeEach(function () {
-        config.vcs.provider = 'bitbucket-cloud'
+        config.vcs.provider = 'bitbucket'
         config.vcs.auth = {
           username: 'foo',
           password: 'bar'
@@ -397,8 +397,8 @@ describe('Cli', function () {
         expect(vcs.config).to.eql(config)
       })
 
-      it('should create a BitbucketCloud instance', function () {
-        expect(vcs).to.be.an.instanceof(BitbucketCloud)
+      it('should create a Bitbucket instance', function () {
+        expect(vcs).to.be.an.instanceof(Bitbucket)
       })
     })
 

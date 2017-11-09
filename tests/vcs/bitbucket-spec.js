@@ -8,9 +8,9 @@ const expect = chai.expect
 chai.use(sinonChai)
 
 const logger = require('../../lib/logger')
-const BitbucketCloud = rewire('../../lib/vcs/bitbucket-cloud')
+const Bitbucket = rewire('../../lib/vcs/bitbucket')
 
-describe('VCS / BitbucketCloud /', function () {
+describe('VCS / Bitbucket /', function () {
   let sandbox, bitbucket, config, fetchStub, revertFetchRewire
 
   beforeEach(function () {
@@ -21,7 +21,7 @@ describe('VCS / BitbucketCloud /', function () {
 
     // stub out the top-level 'fetch'
     fetchStub = sandbox.stub()
-    revertFetchRewire = BitbucketCloud.__set__('fetch', fetchStub)
+    revertFetchRewire = Bitbucket.__set__('fetch', fetchStub)
 
     config = {
       ci: {
@@ -41,7 +41,7 @@ describe('VCS / BitbucketCloud /', function () {
       },
       vcs: {
         domain: 'api.bitbucket.org',
-        provider: 'bitbucket-cloud',
+        provider: 'bitbucket',
         repository: {
           name: 'repo',
           owner: 'owner'
@@ -49,7 +49,7 @@ describe('VCS / BitbucketCloud /', function () {
       }
     }
 
-    bitbucket = new BitbucketCloud(config)
+    bitbucket = new Bitbucket(config)
   })
 
   afterEach(function () {
