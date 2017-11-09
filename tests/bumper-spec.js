@@ -3,6 +3,7 @@
 const chai = require('chai')
 const cpExec = require('child_process').exec
 const __ = require('lodash')
+const fs = require('fs')
 const path = require('path')
 const Promise = require('promise')
 const rewire = require('rewire')
@@ -468,6 +469,35 @@ describe('Bumper', function () {
       it('should not reject', function () {
         expect(error).to.equal(null)
       })
+
+      describe('when package-lock exists', function () {
+        let madeLock = false
+        beforeEach(function (done) {
+          if (!fs.existsSync('package-lock.json')) {
+            fs.writeFileSync('package-lock.json', '')
+            madeLock = true
+          }
+          bumper.ci.getLastCommitMsg.returns(Promise.resolve('foo bar'))
+          bumper.bump()
+            .then((res) => {
+              result = res
+            })
+            .catch((err) => {
+              error = err
+            })
+            .finally(() => {
+              done()
+            })
+        })
+        afterEach(function () {
+          if (madeLock) {
+            fs.unlinkSync('package-lock.json')
+          }
+        })
+        it('should maybe bump the version', function () {
+          expect(bumper._maybeBumpVersion).to.have.been.calledWith(info, 'package-lock.json')
+        })
+      })
     })
 
     describe(`when last commit was from ${pkgJson.name}`, function () {
@@ -609,65 +639,134 @@ describe('Bumper', function () {
       })
 
       sandbox.stub(bumper.vcs, 'getPr').returns(getPrPromise)
-
-      // actual results of git log -10 --oneline on pr-bumper repo
-      const gitLog =
-        '98a148c Added some more tests, just a few more to go\n' +
-        '1b1bd97 Added some real unit tests\n' +
-        'edf85e0 Merge pull request #30 from job13er/remove-newline\n' +
-        'fa066f2 Removed newline from parsed PR number\n' +
-        'fc416cc Merge pull request #29 from job13er/make-bumping-more-robust\n' +
-        '67db358 Fix for #26 by reading PR # from git commit\n' +
-        '4a61a20 Automated version bump\n' +
-        '7db44e1 Merge pull request #24 from sandersky/master\n' +
-        'f571451 add pullapprove config\n' +
-        '4398a26 address PR concerns\n'
-
-      execStub.returns(Promise.resolve(gitLog))
-      promise = bumper._getLastPr()
-        .then((pr) => {
-          resolution = pr
-          return pr
-        })
-        .catch((err) => {
-          rejection = err
-          throw err
-        })
     })
 
-    it('should call git log', function () {
-      expect(execStub).to.have.been.calledWith('git log -10 --oneline')
-    })
-
-    describe('when getPr succeeds', function () {
+    describe('git log', function () {
       beforeEach(function () {
-        getPrResolver.resolve('the-pr')
-        return promise
+        // actual results of git log -10 --oneline on pr-bumper repo
+        const gitLog =
+          '98a148c Added some more tests, just a few more to go\n' +
+          '1b1bd97 Added some real unit tests\n' +
+          'edf85e0 Merge pull request #30 from job13er/remove-newline\n' +
+          'fa066f2 Removed newline from parsed PR number\n' +
+          'fc416cc Merge pull request #29 from job13er/make-bumping-more-robust\n' +
+          '67db358 Fix for #26 by reading PR # from git commit\n' +
+          '4a61a20 Automated version bump\n' +
+          '7db44e1 Merge pull request #24 from sandersky/master\n' +
+          'f571451 add pullapprove config\n' +
+          '4398a26 address PR concerns\n'
+
+        execStub.returns(Promise.resolve(gitLog))
+        promise = bumper._getLastPr()
+          .then((pr) => {
+            resolution = pr
+            return pr
+          })
+          .catch((err) => {
+            rejection = err
+            throw err
+          })
       })
 
-      it('should parse out the PR number from the git log and passes it to vcs.getPr()', function () {
-        expect(bumper.vcs.getPr).to.have.been.calledWith('30')
+      it('should call git log', function () {
+        expect(execStub).to.have.been.calledWith('git log -10 --oneline')
       })
 
-      it('should resolve with the pr', function () {
-        expect(resolution).to.equal('the-pr')
-      })
-    })
+      describe('when getPr succeeds', function () {
+        beforeEach(function () {
+          getPrResolver.resolve('the-pr')
+          return promise
+        })
 
-    describe('when getPr fails', function () {
-      beforeEach(function (done) {
-        getPrResolver.reject('the-error')
-        promise.catch(() => {
-          done()
+        it('should parse out the PR number from the git log and passes it to vcs.getPr()', function () {
+          expect(bumper.vcs.getPr).to.have.been.calledWith('30')
+        })
+
+        it('should resolve with the pr', function () {
+          expect(resolution).to.equal('the-pr')
         })
       })
 
-      it('should parse out the PR number from the git log and passes it to vcs.getPr()', function () {
-        expect(bumper.vcs.getPr).to.have.been.calledWith('30')
+      describe('when getPr fails', function () {
+        beforeEach(function (done) {
+          getPrResolver.reject('the-error')
+          promise.catch(() => {
+            done()
+          })
+        })
+
+        it('should parse out the PR number from the git log and passes it to vcs.getPr()', function () {
+          expect(bumper.vcs.getPr).to.have.been.calledWith('30')
+        })
+
+        it('should reject with the error', function () {
+          expect(rejection).to.equal('the-error')
+        })
+      })
+    })
+
+    describe('bitbucket git log', function () {
+      beforeEach(function () {
+        // bitbucket merges PRs differently
+        const gitLog =
+          '98a148c Added some more tests, just a few more to go\n' +
+          '1b1bd97 Added some real unit tests\n' +
+          '10b394e Merged in feature/branch-name (pull request #300)' +
+          'fa066f2 Removed newline from parsed PR number\n' +
+          'fc416cc Automated version bump\n' +
+          '67db358 Fix for #26 by reading PR # from git commit\n' +
+          '4a61a20 Automated version bump\n' +
+          '7db44e1 Automated version bump\n' +
+          'f571451 add pullapprove config\n' +
+          '4398a26 address PR concerns\n'
+
+        execStub.returns(Promise.resolve(gitLog))
+
+        promise = bumper._getLastPr()
+          .then((pr) => {
+            resolution = pr
+            return pr
+          })
+          .catch((err) => {
+            rejection = err
+            throw err
+          })
       })
 
-      it('should reject with the error', function () {
-        expect(rejection).to.equal('the-error')
+      it('should call git log', function () {
+        expect(execStub).to.have.been.calledWith('git log -10 --oneline')
+      })
+
+      describe('when getPr succeeds', function () {
+        beforeEach(function () {
+          getPrResolver.resolve('the-pr')
+          return promise
+        })
+
+        it('should parse out the PR number from the git log and passes it to vcs.getPr()', function () {
+          expect(bumper.vcs.getPr).to.have.been.calledWith('300')
+        })
+
+        it('should resolve with the pr', function () {
+          expect(resolution).to.equal('the-pr')
+        })
+      })
+
+      describe('when getPr fails', function () {
+        beforeEach(function (done) {
+          getPrResolver.reject('the-error')
+          promise.catch(() => {
+            done()
+          })
+        })
+
+        it('should parse out the PR number from the git log and passes it to vcs.getPr()', function () {
+          expect(bumper.vcs.getPr).to.have.been.calledWith('300')
+        })
+
+        it('should reject with the error', function () {
+          expect(rejection).to.equal('the-error')
+        })
       })
     })
   })
