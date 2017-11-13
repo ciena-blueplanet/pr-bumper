@@ -1,3 +1,8 @@
+# 3.2.0 (2017-11-13)
+Support for `ci.provider: "bamboo"`
+Support for `vcs.provider: "bitbucket-cloud"`
+Support `package-lock.json`
+
 # 3.1.2 (2017-06-27)
 * **Fixed** a bug in `.travis/maybe-install.sh` where the `npm install` or `yarn install` could fail and the script would still pass. 
 
