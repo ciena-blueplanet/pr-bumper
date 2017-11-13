@@ -471,12 +471,8 @@ describe('Bumper', function () {
       })
 
       describe('when package-lock exists', function () {
-        let madeLock = false
         beforeEach(function (done) {
-          if (!fs.existsSync('package-lock.json')) {
-            fs.writeFileSync('package-lock.json', '')
-            madeLock = true
-          }
+          sandbox.stub(fs, 'existsSync').returns(true)
           bumper.ci.getLastCommitMsg.returns(Promise.resolve('foo bar'))
           bumper.bump()
             .then((res) => {
@@ -488,11 +484,6 @@ describe('Bumper', function () {
             .finally(() => {
               done()
             })
-        })
-        afterEach(function () {
-          if (madeLock) {
-            fs.unlinkSync('package-lock.json')
-          }
         })
         it('should maybe bump the version', function () {
           expect(bumper._maybeBumpVersion).to.have.been.calledWith(info, 'package-lock.json')
@@ -753,11 +744,9 @@ describe('Bumper', function () {
       })
 
       describe('when getPr fails', function () {
-        beforeEach(function (done) {
+        beforeEach(function () {
           getPrResolver.reject('the-error')
-          promise.catch(() => {
-            done()
-          })
+          return promise.catch(() => {})
         })
 
         it('should parse out the PR number from the git log and passes it to vcs.getPr()', function () {

@@ -195,7 +195,7 @@ of a pull request (on a pr build).
 
 The default is `TRAVIS_BRANCH` which is already set in Travis CI.
 
-If you're using a `provider` of `teamcity` or `bamboo`, you'll want to specify your own value here (e.g. `TEAMCITY_BRANCH`).
+If you're using a `provider` of `teamcity`, you'll want to specify your own value here (e.g. `TEAMCITY_BRANCH`).
 
 Don't forget you'll need to update your build step in TeamCity to set the variable as well:
 
@@ -208,7 +208,7 @@ The name of the environment variable that holds the number of the current build.
 
 The default is `TRAVIS_BUILD_NUMBER` which is already set in Travis CI.
 
-If you're using a `provider` of `teamcity` or `bamboo`, you'll want to specify your own value here (e.g. `TEAMCITY_BUILD_NUMBER`)
+If you're using a `provider` of `teamcity`, you'll want to specify your own value here (e.g. `TEAMCITY_BUILD_NUMBER`)
 
 Don't forget you'll need to update your build step in TeamCity to set the variable as well:
 
@@ -547,10 +547,10 @@ about that build. The build for the tag is where the actual deployment to npm wi
 one of the scripts doesn't do exactly what you need, then copy it directly into your project, modify it, and update
 the Travis config to run you modified copy instead.*
 
-### Bitbucket / Bitbucket Server / TeamCity
-You can now configure `pr-bumper` to work with something other than Travis CI, GitHub and Bamboo.
-The only other configuration that has been tested is TeamCity, Bitbucket and Bitbucket Server.
-Example TeamCity, Bitbucket and Bitbucket Server configuration:
+### Bitbucket / TeamCity
+You can now configure `pr-bumper` to work with something other than Travis CI and GitHub.
+The only other configuration that has been tested is TeamCity and Bitbucket Server.
+Example TeamCity and Bitbucket Server configuration:
 
   ```json
   {
@@ -582,4 +582,35 @@ Example TeamCity, Bitbucket and Bitbucket Server configuration:
     }
   }
   ```
-For Bitbucket `vcs.domain =  "api.bitbucket.org"`.
+
+Example Bamboo and Bitbucket configuration:
+```json
+  {
+    "config": {
+      "ci": {
+        "env": {
+          "branch": "$bamboo_BRANCH",
+          "buildNumber": "$bamboo_BUILD_NUMBER",
+          "pr": "$bamboo_PULL_REQUEST"
+        },
+        "gitUser": {
+          "email": "ci-user",
+          "name": "ci-user@my-company-domain.com"
+        },
+        "provider": "bamboo",
+        "repository": {
+          "owner": "my-bitbucket-project",
+          "name": "my-bitbucket-repository"
+        }
+      },
+      "vcs": {
+        "domain": "api.bitbucket.org",
+        "env": {
+          "username": "$bamboo_BITBUCKET_USERNAME",
+          "password": "$bamboo_BITBUCKET_PASSWORD"
+        },
+        "provider": "bitbucket"
+      }
+    }
+  }
+  ```
