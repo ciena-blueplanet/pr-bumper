@@ -155,7 +155,7 @@ describe('VCS / Bitbucket /', function () {
         err = {
           message: 'Uh oh'
         }
-        sandbox.stub(resp, 'json').returns(Promise.resolve(err))
+        sandbox.stub(resp, 'json').returns(err)
 
         promise.catch(() => {
           done()
@@ -169,7 +169,7 @@ describe('VCS / Bitbucket /', function () {
       })
 
       it('should reject with the proper error', function () {
-        expect(rejection).to.be.eql(new Error(`400: ${JSON.stringify(err)}`))
+        expect(rejection).to.be.eql(new Error(`https://api.bitbucket.org/2.0/repositories/owner/repo/pullrequests/5 400: ${JSON.stringify(err)}`))
       })
     })
 
