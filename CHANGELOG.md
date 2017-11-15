@@ -1,3 +1,6 @@
+# 3.2.1 (2017-11-15)
+Adding `safeUrl` to bitbucket error messages
+
 # 3.2.0 (2017-11-13)
 Support for `ci.provider: "bamboo"`
 Support for `vcs.provider: "bitbucket-cloud"`
