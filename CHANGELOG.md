@@ -1,3 +1,6 @@
+# 3.2.2 (2017-12-11)
+* **Fixed** edge case bug where coverage info includes a `0`. 
+
 # 3.2.1 (2017-11-15)
 Adding `safeUrl` to bitbucket error messages
 
