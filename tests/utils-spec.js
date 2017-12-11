@@ -1198,6 +1198,28 @@ Thought this might be #breaking# but on second thought it is a minor change
         expect(pct).to.equal(89.00)
       })
     })
+
+    describe('when coverage is present (but no branches)', function () {
+      beforeEach(function () {
+        utils.readJsonFile.withArgs('path-to-coverage/coverage-file.json').returns({
+          total: {
+            branches: {
+              total: 0,
+              covered: 0
+            },
+            statements: {
+              total: 100,
+              covered: 80
+            }
+          }
+        })
+        pct = utils.getCurrentCoverage(config)
+      })
+
+      it('should return the total statement and branch pct', function () {
+        expect(pct).to.equal(80.00)
+      })
+    })
   })
 
   describe('.maybePostComment()', function () {
