@@ -84,7 +84,7 @@ It is also optimized to work with [Travis CI][travis-url] out-of-the box, but ca
 ## Installation
 
   ```bash
-  npm install -g pr-bumper@^2.0.0
+  npm install -g pr-bumper
   ```
 
 ## Usage
