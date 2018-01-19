@@ -516,7 +516,7 @@ Add the following snippet to your `.travis.yml` file to integrate `pr-bumper`
 
   ```yaml
   before_install:
-    - npm install -g pr-bumper@^2.0.0
+    - npm install -g pr-bumper@^3.0.0
 
   install:
     - $(npm root -g)/pr-bumper/.travis/maybe-install.sh
