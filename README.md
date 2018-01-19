@@ -84,8 +84,11 @@ It is also optimized to work with [Travis CI][travis-url] out-of-the box, but ca
 ## Installation
 
   ```bash
-  npm install -g pr-bumper
+  npm install -g pr-bumper@^3.0.0
   ```
+
+The specific version range is important so that you don't pick up a breaking major version bump without meaning to, for example in your CI script.
+
 
 ## Usage
 You can check for the existence of a valid directive in the current (open) pr (during the pr build) by using
