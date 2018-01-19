@@ -1,5 +1,5 @@
 # 3.2.3 (2018-01-19)
-* **Fixed** edge case bug where coverage info includes a `0`. 
+* Updated README.md to remove `@^2.0.0` from NPM intallation instructions 
 
 # 3.2.2 (2017-12-11)
 * **Fixed** edge case bug where coverage info includes a `0`. 
