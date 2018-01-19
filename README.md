@@ -44,8 +44,8 @@ then `pr-bumper` will be able to do a `patch` bump to increment the last number 
 | 1.2.3            | `#none#`                  | 1.2.3          |
 | 1.2.3-alpha.4    | `#none#`                  | 1.2.3-alpha.4  |
 | 1.2.3            | `#patch#` or `#fix#`      | 1.2.4          |
-| 1.2.3-alpha.4    | `#patch#` or `#fix#`      | 1.2.4-alpha.5  |
-| 1.2.3-a.b.9      | `#patch#` or `#fix#`      | 1.2.4-a.b.10   |
+| 1.2.3-alpha.4    | `#patch#` or `#fix#`      | 1.2.3-alpha.5  |
+| 1.2.3-a.b.9      | `#patch#` or `#fix#`      | 1.2.3-a.b.10   |
 | 1.2.3            | `#minor#` or `#feature#`  | 1.3.0          |
 | 1.2.3-alpha.4    | `#minor#` or `#feature#`  | 1.3.0          |
 | 1.2.3            | `#major#` or `#breaking#` | 2.0.0          |
