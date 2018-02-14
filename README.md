@@ -163,7 +163,7 @@ Here are the defaults that are provided by `pr-bumper` and can be overwritten by
       "maxScope": {
         "enabled": false,
         "value": "major"
-      },
+      }
     },
     "vcs": {
       "domain": "github.com",
