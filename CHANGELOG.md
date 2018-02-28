@@ -1,3 +1,9 @@
+# 3.3.0 (2018-02-28)
+
+* **Added** ability to specify multiple spaces after bullets in GFM markdown, as some markdown lint standards prefer to have a couple spaces between bullets and the list content rather than just a single space.
+* **Fixed** lint warnings.
+
+
 # 3.2.3 (2018-01-19)
 * Updated README.md to remove `@^2.0.0` from NPM intallation instructions 
 

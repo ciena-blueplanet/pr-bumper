@@ -1,6 +1,6 @@
 {
   "name": "pr-bumper",
-  "version": "3.2.3",
+  "version": "3.3.0",
   "description": "Bump the version of a package based on a GitHub Pull Request",
   "scripts": {
     "lint": "eslint *.js bin lib tests",
@@ -56,6 +56,6 @@
     "sinon-chai": "^2.11.0"
   },
   "pr-bumper": {
-    "coverage": 93.54
+    "coverage": 90.83
   }
 }
