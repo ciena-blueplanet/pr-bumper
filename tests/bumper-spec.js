@@ -763,7 +763,7 @@ describe('Bumper', function () {
   describe('._getMergedPrInfo()', function () {
     ;['major', 'minor', 'patch'].forEach(function (scope) {
       describe(`when scope is ${scope}`, function () {
-        let result
+        let result, pr
 
         beforeEach(function () {
           bumper.config = {
@@ -777,7 +777,8 @@ describe('Bumper', function () {
           }
           bumper.vcs = {bar: 'baz'}
 
-          sandbox.stub(bumper, '_getLastPr').returns(Promise.resolve('the-pr'))
+          pr = {number: 123, url: 'pr-url'}
+          sandbox.stub(bumper, '_getLastPr').returns(Promise.resolve(pr))
           sandbox.stub(utils, 'getScopeForPr').returns(scope)
           sandbox.stub(utils, 'getChangelogForPr').returns('my-changelog')
         })
@@ -800,15 +801,21 @@ describe('Bumper', function () {
             })
 
             it('should gets the scope for the given pr', function () {
-              expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'minor')
+              expect(utils.getScopeForPr).to.have.been.calledWith(pr, 'minor')
             })
 
             it('should get the changelog for the given pr', function () {
-              expect(utils.getChangelogForPr).to.have.been.calledWith('the-pr')
+              expect(utils.getChangelogForPr).to.have.been.calledWith(pr)
             })
 
             it('should resolve with the info', function () {
-              expect(result).to.deep.equal({changelog: 'my-changelog', modifiedFiles: [], scope})
+              expect(result).to.deep.equal({
+                changelog: 'my-changelog',
+                modifiedFiles: [],
+                number: 123,
+                scope,
+                url: 'pr-url'
+              })
             })
           })
 
@@ -825,7 +832,7 @@ describe('Bumper', function () {
             })
 
             it('should gets the scope for the given pr', function () {
-              expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'minor')
+              expect(utils.getScopeForPr).to.have.been.calledWith(pr, 'minor')
             })
 
             it('should not get the changelog for the given pr', function () {
@@ -833,7 +840,13 @@ describe('Bumper', function () {
             })
 
             it('should resolve with the info', function () {
-              expect(result).to.deep.equal({changelog: '', modifiedFiles: [], scope})
+              expect(result).to.deep.equal({
+                changelog: '',
+                modifiedFiles: [],
+                number: 123,
+                scope,
+                url: 'pr-url'
+              })
             })
           })
         })
@@ -856,15 +869,21 @@ describe('Bumper', function () {
             })
 
             it('should gets the scope for the given pr', function () {
-              expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'major')
+              expect(utils.getScopeForPr).to.have.been.calledWith(pr, 'major')
             })
 
             it('should get the changelog for the given pr', function () {
-              expect(utils.getChangelogForPr).to.have.been.calledWith('the-pr')
+              expect(utils.getChangelogForPr).to.have.been.calledWith(pr)
             })
 
             it('should resolve with the info', function () {
-              expect(result).to.deep.equal({changelog: 'my-changelog', modifiedFiles: [], scope})
+              expect(result).to.deep.equal({
+                changelog: 'my-changelog',
+                modifiedFiles: [],
+                number: 123,
+                scope,
+                url: 'pr-url'
+              })
             })
           })
 
@@ -881,7 +900,7 @@ describe('Bumper', function () {
             })
 
             it('should gets the scope for the given pr', function () {
-              expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'major')
+              expect(utils.getScopeForPr).to.have.been.calledWith(pr, 'major')
             })
 
             it('should not get the changelog for the given pr', function () {
@@ -889,7 +908,13 @@ describe('Bumper', function () {
             })
 
             it('should resolve with the info', function () {
-              expect(result).to.deep.equal({changelog: '', modifiedFiles: [], scope})
+              expect(result).to.deep.equal({
+                changelog: '',
+                modifiedFiles: [],
+                number: 123,
+                scope,
+                url: 'pr-url'
+              })
             })
           })
         })
@@ -897,13 +922,14 @@ describe('Bumper', function () {
     })
 
     describe('when scope is none', function () {
-      let result
+      let result, pr
 
       beforeEach(function () {
         bumper.config = {foo: 'bar', isEnabled: sandbox.stub()}
         bumper.vcs = {bar: 'baz'}
 
-        sandbox.stub(bumper, '_getLastPr').returns(Promise.resolve('the-pr'))
+        pr = {number: 123, url: 'pr-url'}
+        sandbox.stub(bumper, '_getLastPr').returns(Promise.resolve(pr))
         sandbox.stub(utils, 'getScopeForPr').returns('none')
         sandbox.stub(utils, 'getChangelogForPr').returns('my-changelog')
       })
@@ -921,7 +947,7 @@ describe('Bumper', function () {
         })
 
         it('should gets the scope for the given pr', function () {
-          expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'major')
+          expect(utils.getScopeForPr).to.have.been.calledWith(pr, 'major')
         })
 
         it('should not get the changelog for the given pr', function () {
@@ -929,7 +955,13 @@ describe('Bumper', function () {
         })
 
         it('should resolve with the info', function () {
-          expect(result).to.deep.equal({changelog: '', modifiedFiles: [], scope: 'none'})
+          expect(result).to.deep.equal({
+            changelog: '',
+            modifiedFiles: [],
+            number: 123,
+            scope: 'none',
+            url: 'pr-url'
+          })
         })
       })
 
@@ -946,7 +978,7 @@ describe('Bumper', function () {
         })
 
         it('should gets the scope for the given pr', function () {
-          expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'major')
+          expect(utils.getScopeForPr).to.have.been.calledWith(pr, 'major')
         })
 
         it('should not get the changelog for the given pr', function () {
@@ -954,14 +986,20 @@ describe('Bumper', function () {
         })
 
         it('should resolve with the info', function () {
-          expect(result).to.deep.equal({changelog: '', modifiedFiles: [], scope: 'none'})
+          expect(result).to.deep.equal({
+            changelog: '',
+            modifiedFiles: [],
+            number: 123,
+            scope: 'none',
+            url: 'pr-url'
+          })
         })
       })
     })
   })
 
   describe('._getOpenPrInfo()', function () {
-    let result
+    let result, pr
     beforeEach(function () {
       bumper.config = {
         foo: 'bar',
@@ -974,18 +1012,18 @@ describe('Bumper', function () {
       }
       bumper.vcs = {getPr () {}}
 
-      sandbox.stub(bumper.vcs, 'getPr').returns(Promise.resolve('the-pr'))
+      pr = {number: 123, url: 'pr-url'}
+      sandbox.stub(bumper.vcs, 'getPr').returns(Promise.resolve(pr))
       sandbox.stub(utils, 'getScopeForPr').returns('patch')
       sandbox.stub(utils, 'getChangelogForPr').returns('the-changelog')
 
       sandbox.stub(utils, 'maybePostCommentOnError')
-      utils.maybePostCommentOnError.onCall(0).resolves({
-        pr: 'the-pr',
-        scope: 'the-scope'
-      })
+      utils.maybePostCommentOnError.onCall(0).resolves({pr, scope: 'the-scope'})
       utils.maybePostCommentOnError.onCall(1).resolves({
         changelog: 'the-changelog',
-        scope: 'the-scope'
+        number: 123,
+        scope: 'the-scope',
+        url: 'pr-url'
       })
     })
 
@@ -1016,7 +1054,9 @@ describe('Bumper', function () {
       it('should resolve with the info', function () {
         expect(result).to.deep.equal({
           changelog: '',
-          scope: 'the-scope'
+          number: 123,
+          scope: 'the-scope',
+          url: 'pr-url'
         })
       })
 
@@ -1042,13 +1082,11 @@ describe('Bumper', function () {
           })
 
           it('should get the scope', function () {
-            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'major')
+            expect(utils.getScopeForPr).to.have.been.calledWith(pr, 'major')
           })
 
           it('should return the pr and scope', function () {
-            expect(ret).to.deep.equal({
-              pr: 'the-pr',
-              scope: 'patch'
+            expect(ret).to.deep.equal({pr, scope: 'patch'
             })
           })
         })
@@ -1084,7 +1122,9 @@ describe('Bumper', function () {
       it('should resolve with the info', function () {
         expect(result).to.deep.equal({
           changelog: '',
-          scope: 'the-scope'
+          number: 123,
+          scope: 'the-scope',
+          url: 'pr-url'
         })
       })
 
@@ -1110,25 +1150,23 @@ describe('Bumper', function () {
           })
 
           it('should get the scope', function () {
-            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'minor')
+            expect(utils.getScopeForPr).to.have.been.calledWith(pr, 'minor')
           })
 
           it('should return the pr and scope', function () {
-            expect(ret).to.deep.equal({
-              pr: 'the-pr',
-              scope: 'patch'
-            })
+            expect(ret).to.deep.equal({pr, scope: 'patch'})
           })
         })
       })
     })
 
     describe('when changelog is enabled', function () {
-      beforeEach(function () {
+      beforeEach(function (done) {
         bumper.config.isEnabled.returns(false)
         bumper.config.isEnabled.withArgs('changelog').returns(true)
         return bumper._getOpenPrInfo().then((res) => {
           result = res
+          done()
         })
       })
 
@@ -1151,7 +1189,9 @@ describe('Bumper', function () {
       it('should resolve with the info', function () {
         expect(result).to.deep.equal({
           changelog: 'the-changelog',
-          scope: 'the-scope'
+          number: 123,
+          scope: 'the-scope',
+          url: 'pr-url'
         })
       })
 
@@ -1177,14 +1217,11 @@ describe('Bumper', function () {
           })
 
           it('should get the scope', function () {
-            expect(utils.getScopeForPr).to.have.been.calledWith('the-pr', 'major')
+            expect(utils.getScopeForPr).to.have.been.calledWith(pr, 'major')
           })
 
           it('should return the pr and scope', function () {
-            expect(ret).to.deep.equal({
-              pr: 'the-pr',
-              scope: 'patch'
-            })
+            expect(ret).to.deep.equal({pr, scope: 'patch'})
           })
         })
       })
@@ -1210,13 +1247,15 @@ describe('Bumper', function () {
           })
 
           it('should get the changelog', function () {
-            expect(utils.getChangelogForPr).to.have.been.calledWith('the-pr')
+            expect(utils.getChangelogForPr).to.have.been.calledWith(pr)
           })
 
-          it('should return the changelog and scope', function () {
+          it('should return the changelog and scope, plus pr info', function () {
             expect(ret).to.deep.equal({
               changelog: 'the-changelog',
-              scope: 'the-scope'
+              number: 123,
+              scope: 'the-scope',
+              url: 'pr-url'
             })
           })
         })
