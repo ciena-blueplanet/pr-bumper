@@ -1011,175 +1011,353 @@ describe('utils', function () {
       })
     })
 
-    describe('when GFM checkbox syntax is present with single space in bullets', function () {
-      describe('when no scope checked', function () {
-        beforeEach(function () {
-          pr.description = `
-  ### Check the scope of this pr:
-  - [ ] #none# - documentation fixes and/or test additions
-  - [ ] #patch# - bugfix, dependency update
-  - [ ] #minor# - new feature, backwards compatible
-  - [ ] #major# - major feature, probably breaking API
-  - [ ] #breaking# - any change that breaks the API`
+    describe('when GFM checkbox syntax is present with hyphen bullets', function () {
+      describe('when single space in bullets', function () {
+        describe('when no scope checked', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    - [ ] #none# - documentation fixes and/or test additions
+    - [ ] #patch# - bugfix, dependency update
+    - [ ] #minor# - new feature, backwards compatible
+    - [ ] #major# - major feature, probably breaking API
+    - [ ] #breaking# - any change that breaks the API`
+          })
+
+          it('should throw an error', function () {
+            const fn = () => {
+              utils.getScopeForPr(pr)
+            }
+
+            expect(fn).to.throw('No version-bump scope found for [PR #12345](my-pr-url)')
+          })
         })
 
-        it('should throw an error', function () {
-          const fn = () => {
-            utils.getScopeForPr(pr)
-          }
+        describe('when one scope checked', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    - [ ] #none# - documentation fixes and/or test additions
+    - [ ] #patch# - bugfix, dependency update
+    - [x] #minor# - new feature, backwards compatible
+    - [ ] #major# - major feature, probably breaking API
+    - [ ] #breaking# - any change that breaks the API`
+            scope = utils.getScopeForPr(pr)
+          })
 
-          expect(fn).to.throw('No version-bump scope found for [PR #12345](my-pr-url)')
+          it('should call .getValidatedScope() with proper arguments', function () {
+            expect(utils.getValidatedScope).to.have.been.calledWith({
+              scope: 'minor',
+              maxScope: 'major',
+              prNumber: '12345',
+              prUrl: 'my-pr-url'
+            })
+          })
         })
-      })
 
-      describe('when one scope checked', function () {
-        beforeEach(function () {
-          pr.description = `
-  ### Check the scope of this pr:
-  - [ ] #none# - documentation fixes and/or test additions
-  - [ ] #patch# - bugfix, dependency update
-  - [x] #minor# - new feature, backwards compatible
-  - [ ] #major# - major feature, probably breaking API
-  - [ ] #breaking# - any change that breaks the API`
-          scope = utils.getScopeForPr(pr)
+        describe('when multiple scopes checked', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    - [x] #patch# - bugfix, dependency update
+    - [ ] #minor# - new feature, backwards compatible
+    - [x] #major# - major feature, probably breaking API
+    - [ ] #breaking# - any change that breaks the API`
+          })
+
+          it('should throw an error', function () {
+            const fn = () => {
+              utils.getScopeForPr(pr)
+            }
+
+            expect(fn).to.throw('Too many version-bump scopes found for [PR #12345](my-pr-url)')
+          })
         })
 
-        it('should call .getValidatedScope() with proper arguments', function () {
-          expect(utils.getValidatedScope).to.have.been.calledWith({
-            scope: 'minor',
-            maxScope: 'major',
-            prNumber: '12345',
-            prUrl: 'my-pr-url'
+        describe('when one scope checked and other scopes mentioned', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    - [ ] #patch# - bugfix, dependency update
+    - [x] #minor# - new feature, backwards compatible
+    - [ ] #major# - major feature, probably breaking API
+    - [ ] #breaking# - any change that breaks the API
+
+    Thought this might be #breaking# but on second thought it is a minor change
+    `
+            scope = utils.getScopeForPr(pr)
+          })
+
+          it('should call .getValidatedScope() with proper arguments', function () {
+            expect(utils.getValidatedScope).to.have.been.calledWith({
+              scope: 'minor',
+              maxScope: 'major',
+              prNumber: '12345',
+              prUrl: 'my-pr-url'
+            })
           })
         })
       })
 
-      describe('when multiple scopes checked', function () {
-        beforeEach(function () {
-          pr.description = `
-  ### Check the scope of this pr:
-  - [x] #patch# - bugfix, dependency update
-  - [ ] #minor# - new feature, backwards compatible
-  - [x] #major# - major feature, probably breaking API
-  - [ ] #breaking# - any change that breaks the API`
+      describe('when multiple spaces in bullets', function () {
+        describe('when no scope checked', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    -  [ ] #none# - documentation fixes and/or test additions
+    -  [ ] #patch# - bugfix, dependency update
+    -  [ ] #minor# - new feature, backwards compatible
+    -  [ ] #major# - major feature, probably breaking API
+    -  [ ] #breaking# - any change that breaks the API`
+          })
+
+          it('should throw an error', function () {
+            const fn = () => {
+              utils.getScopeForPr(pr)
+            }
+
+            expect(fn).to.throw('No version-bump scope found for [PR #12345](my-pr-url)')
+          })
         })
 
-        it('should throw an error', function () {
-          const fn = () => {
-            utils.getScopeForPr(pr)
-          }
+        describe('when one scope checked', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    -  [ ] #none# - documentation fixes and/or test additions
+    -  [ ] #patch# - bugfix, dependency update
+    -  [x] #minor# - new feature, backwards compatible
+    -  [ ] #major# - major feature, probably breaking API
+    -  [ ] #breaking# - any change that breaks the API`
+            scope = utils.getScopeForPr(pr)
+          })
 
-          expect(fn).to.throw('Too many version-bump scopes found for [PR #12345](my-pr-url)')
+          it('should call .getValidatedScope() with proper arguments', function () {
+            expect(utils.getValidatedScope).to.have.been.calledWith({
+              scope: 'minor',
+              maxScope: 'major',
+              prNumber: '12345',
+              prUrl: 'my-pr-url'
+            })
+          })
         })
-      })
 
-      describe('when one scope checked and other scopes mentioned', function () {
-        beforeEach(function () {
-          pr.description = `
-  ### Check the scope of this pr:
-  - [ ] #patch# - bugfix, dependency update
-  - [x] #minor# - new feature, backwards compatible
-  - [ ] #major# - major feature, probably breaking API
-  - [ ] #breaking# - any change that breaks the API
+        describe('when multiple scopes checked', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    -  [x] #patch# - bugfix, dependency update
+    -  [ ] #minor# - new feature, backwards compatible
+    -  [x] #major# - major feature, probably breaking API
+    -  [ ] #breaking# - any change that breaks the API`
+          })
 
-  Thought this might be #breaking# but on second thought it is a minor change
-  `
-          scope = utils.getScopeForPr(pr)
+          it('should throw an error', function () {
+            const fn = () => {
+              utils.getScopeForPr(pr)
+            }
+
+            expect(fn).to.throw('Too many version-bump scopes found for [PR #12345](my-pr-url)')
+          })
         })
 
-        it('should call .getValidatedScope() with proper arguments', function () {
-          expect(utils.getValidatedScope).to.have.been.calledWith({
-            scope: 'minor',
-            maxScope: 'major',
-            prNumber: '12345',
-            prUrl: 'my-pr-url'
+        describe('when one scope checked and other scopes mentioned', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    -  [ ] #patch# - bugfix, dependency update
+    -  [x] #minor# - new feature, backwards compatible
+    -  [ ] #major# - major feature, probably breaking API
+    -  [ ] #breaking# - any change that breaks the API
+
+    Thought this might be #breaking# but on second thought it is a minor change
+    `
+            scope = utils.getScopeForPr(pr)
+          })
+
+          it('should call .getValidatedScope() with proper arguments', function () {
+            expect(utils.getValidatedScope).to.have.been.calledWith({
+              scope: 'minor',
+              maxScope: 'major',
+              prNumber: '12345',
+              prUrl: 'my-pr-url'
+            })
           })
         })
       })
     })
 
-    describe('when GFM checkbox syntax is present with multiple spaces in bullets', function () {
-      describe('when no scope checked', function () {
-        beforeEach(function () {
-          pr.description = `
-  ### Check the scope of this pr:
-  -  [ ] #none# - documentation fixes and/or test additions
-  -  [ ] #patch# - bugfix, dependency update
-  -  [ ] #minor# - new feature, backwards compatible
-  -  [ ] #major# - major feature, probably breaking API
-  -  [ ] #breaking# - any change that breaks the API`
+    describe('when GFM checkbox syntax is present with asterisk bullets', function () {
+      describe('when single space in bullets', function () {
+        describe('when no scope checked', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    * [ ] #none# - documentation fixes and/or test additions
+    * [ ] #patch# - bugfix, dependency update
+    * [ ] #minor# - new feature, backwards compatible
+    * [ ] #major# - major feature, probably breaking API
+    * [ ] #breaking# - any change that breaks the API`
+          })
+
+          it('should throw an error', function () {
+            const fn = () => {
+              utils.getScopeForPr(pr)
+            }
+
+            expect(fn).to.throw('No version-bump scope found for [PR #12345](my-pr-url)')
+          })
         })
 
-        it('should throw an error', function () {
-          const fn = () => {
-            utils.getScopeForPr(pr)
-          }
+        describe('when one scope checked', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    * [ ] #none# - documentation fixes and/or test additions
+    * [ ] #patch# - bugfix, dependency update
+    * [x] #minor# - new feature, backwards compatible
+    * [ ] #major# - major feature, probably breaking API
+    * [ ] #breaking# - any change that breaks the API`
+            scope = utils.getScopeForPr(pr)
+          })
 
-          expect(fn).to.throw('No version-bump scope found for [PR #12345](my-pr-url)')
+          it('should call .getValidatedScope() with proper arguments', function () {
+            expect(utils.getValidatedScope).to.have.been.calledWith({
+              scope: 'minor',
+              maxScope: 'major',
+              prNumber: '12345',
+              prUrl: 'my-pr-url'
+            })
+          })
         })
-      })
 
-      describe('when one scope checked', function () {
-        beforeEach(function () {
-          pr.description = `
-  ### Check the scope of this pr:
-  -  [ ] #none# - documentation fixes and/or test additions
-  -  [ ] #patch# - bugfix, dependency update
-  -  [x] #minor# - new feature, backwards compatible
-  -  [ ] #major# - major feature, probably breaking API
-  -  [ ] #breaking# - any change that breaks the API`
-          scope = utils.getScopeForPr(pr)
+        describe('when multiple scopes checked', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    * [x] #patch# - bugfix, dependency update
+    * [ ] #minor# - new feature, backwards compatible
+    * [x] #major# - major feature, probably breaking API
+    * [ ] #breaking# - any change that breaks the API`
+          })
+
+          it('should throw an error', function () {
+            const fn = () => {
+              utils.getScopeForPr(pr)
+            }
+
+            expect(fn).to.throw('Too many version-bump scopes found for [PR #12345](my-pr-url)')
+          })
         })
 
-        it('should call .getValidatedScope() with proper arguments', function () {
-          expect(utils.getValidatedScope).to.have.been.calledWith({
-            scope: 'minor',
-            maxScope: 'major',
-            prNumber: '12345',
-            prUrl: 'my-pr-url'
+        describe('when one scope checked and other scopes mentioned', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    * [ ] #patch# - bugfix, dependency update
+    * [x] #minor# - new feature, backwards compatible
+    * [ ] #major# - major feature, probably breaking API
+    * [ ] #breaking# - any change that breaks the API
+
+    Thought this might be #breaking# but on second thought it is a minor change
+    `
+            scope = utils.getScopeForPr(pr)
+          })
+
+          it('should call .getValidatedScope() with proper arguments', function () {
+            expect(utils.getValidatedScope).to.have.been.calledWith({
+              scope: 'minor',
+              maxScope: 'major',
+              prNumber: '12345',
+              prUrl: 'my-pr-url'
+            })
           })
         })
       })
 
-      describe('when multiple scopes checked', function () {
-        beforeEach(function () {
-          pr.description = `
-  ### Check the scope of this pr:
-  -  [x] #patch# - bugfix, dependency update
-  -  [ ] #minor# - new feature, backwards compatible
-  -  [x] #major# - major feature, probably breaking API
-  -  [ ] #breaking# - any change that breaks the API`
+      describe('when multiple spaces in bullets', function () {
+        describe('when no scope checked', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    *  [ ] #none# - documentation fixes and/or test additions
+    *  [ ] #patch# - bugfix, dependency update
+    *  [ ] #minor# - new feature, backwards compatible
+    *  [ ] #major# - major feature, probably breaking API
+    *  [ ] #breaking# - any change that breaks the API`
+          })
+
+          it('should throw an error', function () {
+            const fn = () => {
+              utils.getScopeForPr(pr)
+            }
+
+            expect(fn).to.throw('No version-bump scope found for [PR #12345](my-pr-url)')
+          })
         })
 
-        it('should throw an error', function () {
-          const fn = () => {
-            utils.getScopeForPr(pr)
-          }
+        describe('when one scope checked', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    *  [ ] #none# - documentation fixes and/or test additions
+    *  [ ] #patch# - bugfix, dependency update
+    *  [x] #minor# - new feature, backwards compatible
+    *  [ ] #major# - major feature, probably breaking API
+    *  [ ] #breaking# - any change that breaks the API`
+            scope = utils.getScopeForPr(pr)
+          })
 
-          expect(fn).to.throw('Too many version-bump scopes found for [PR #12345](my-pr-url)')
+          it('should call .getValidatedScope() with proper arguments', function () {
+            expect(utils.getValidatedScope).to.have.been.calledWith({
+              scope: 'minor',
+              maxScope: 'major',
+              prNumber: '12345',
+              prUrl: 'my-pr-url'
+            })
+          })
         })
-      })
 
-      describe('when one scope checked and other scopes mentioned', function () {
-        beforeEach(function () {
-          pr.description = `
-  ### Check the scope of this pr:
-  -  [ ] #patch# - bugfix, dependency update
-  -  [x] #minor# - new feature, backwards compatible
-  -  [ ] #major# - major feature, probably breaking API
-  -  [ ] #breaking# - any change that breaks the API
+        describe('when multiple scopes checked', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    *  [x] #patch# - bugfix, dependency update
+    *  [ ] #minor# - new feature, backwards compatible
+    *  [x] #major# - major feature, probably breaking API
+    *  [ ] #breaking# - any change that breaks the API`
+          })
 
-  Thought this might be #breaking# but on second thought it is a minor change
-  `
-          scope = utils.getScopeForPr(pr)
+          it('should throw an error', function () {
+            const fn = () => {
+              utils.getScopeForPr(pr)
+            }
+
+            expect(fn).to.throw('Too many version-bump scopes found for [PR #12345](my-pr-url)')
+          })
         })
 
-        it('should call .getValidatedScope() with proper arguments', function () {
-          expect(utils.getValidatedScope).to.have.been.calledWith({
-            scope: 'minor',
-            maxScope: 'major',
-            prNumber: '12345',
-            prUrl: 'my-pr-url'
+        describe('when one scope checked and other scopes mentioned', function () {
+          beforeEach(function () {
+            pr.description = `
+    ### Check the scope of this pr:
+    *  [ ] #patch# - bugfix, dependency update
+    *  [x] #minor# - new feature, backwards compatible
+    *  [ ] #major# - major feature, probably breaking API
+    *  [ ] #breaking# - any change that breaks the API
+
+    Thought this might be #breaking# but on second thought it is a minor change
+    `
+            scope = utils.getScopeForPr(pr)
+          })
+
+          it('should call .getValidatedScope() with proper arguments', function () {
+            expect(utils.getValidatedScope).to.have.been.calledWith({
+              scope: 'minor',
+              maxScope: 'major',
+              prNumber: '12345',
+              prUrl: 'my-pr-url'
+            })
           })
         })
       })
