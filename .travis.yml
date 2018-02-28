@@ -12,6 +12,7 @@ script:
 - .travis/maybe-test.sh
 - .travis/maybe-check-coverage.sh
 - .travis/maybe-bump-version.sh
+- .travis/maybe-cat-log.sh .pr-bumper.log
 after_success:
 - .travis/maybe-publish-coverage.sh
 addons:

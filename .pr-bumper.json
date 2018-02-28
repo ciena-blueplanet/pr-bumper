@@ -8,6 +8,10 @@
     },
     "dependencies": {
       "enabled": true
+    },
+    "logging": {
+      "enabled": true,
+      "file": ".pr-bumper.log"
     }
   }
 }

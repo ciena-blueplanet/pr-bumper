@@ -399,7 +399,8 @@ describe('Bumper', function () {
       bumper.vcs = {foo: 'bar'}
       bumper.ci = {push () {}, getLastCommitMsg () {}}
       info = {scope: 'minor', changelog: '', version: '1.2.0'}
-      sandbox.stub(bumper, '_maybePushChanges').returns(Promise.resolve('pushed'))
+      sandbox.stub(bumper, '_maybeLogChanges').returns(Promise.resolve('logged'))
+      sandbox.stub(bumper, '_maybePushChanges').returns(Promise.resolve(info))
       sandbox.stub(bumper.ci, 'getLastCommitMsg')
       sandbox.stub(bumper, '_getMergedPrInfo').returns(Promise.resolve(info))
       sandbox.stub(bumper, '_maybeBumpVersion').returns(Promise.resolve(info))
@@ -462,8 +463,12 @@ describe('Bumper', function () {
         expect(bumper._maybePushChanges).to.have.been.calledWith(info)
       })
 
+      it('should maybe log the changes', function () {
+        expect(bumper._maybeLogChanges).to.have.been.calledWith(info)
+      })
+
       it('should resolve with the result of the ci.push()', function () {
-        expect(result).to.equal('pushed')
+        expect(result).to.equal('logged')
       })
 
       it('should not reject', function () {
@@ -542,6 +547,10 @@ describe('Bumper', function () {
         expect(bumper._maybePushChanges).to.have.callCount(0)
       })
 
+      it('should not maybe log changes', function () {
+        expect(bumper._maybeLogChanges).to.have.callCount(0)
+      })
+
       it('should not resolve', function () {
         expect(result).to.equal(null)
       })
@@ -609,6 +618,10 @@ describe('Bumper', function () {
 
       it('should not maybe push commit', function () {
         expect(bumper._maybePushChanges).to.have.callCount(0)
+      })
+
+      it('should not maybe log changes', function () {
+        expect(bumper._maybeLogChanges).to.have.callCount(0)
       })
 
       it('should not reject', function () {
@@ -1863,6 +1876,88 @@ describe('Bumper', function () {
 
       it('should resolve with the info', function () {
         expect(result).to.equal(info)
+      })
+    })
+  })
+
+  describe('_maybeLogChanges()', function () {
+    let result, info
+    beforeEach(function () {
+      info = {
+        changelog: 'the-changelog',
+        modifiedFiles: [],
+        number: 123,
+        scope: 'none',
+        url: 'pr-url',
+        version: '1.2.3'
+      }
+      __.set(bumper.config, 'features.logging.file', 'the-log-file')
+    })
+
+    describe('when feature not enabled', function () {
+      beforeEach(function () {
+        result = null
+        bumper.config.isEnabled.withArgs('logging').returns(false)
+        return bumper._maybeLogChanges(info)
+          .then((r) => {
+            result = r
+          })
+      })
+
+      it('should log a message about why it is skipping', function () {
+        expect(logger.log).to.have.been.calledWith('Skipping logging because of config option.')
+      })
+
+      it('should not write a file', function () {
+        expect(writeFileStub).to.have.callCount(0)
+      })
+
+      it('should resolve with the info', function () {
+        expect(result).to.equal(info)
+      })
+    })
+
+    describe('when feature is enabled', function () {
+      let resolver
+      beforeEach(function () {
+        result = null
+        bumper.config.isEnabled.withArgs('logging').returns(true)
+        resolver = {}
+        resolver.promise = new Promise((resolve) => { resolver.resolve = resolve })
+        writeFileStub.returns(resolver.promise)
+        bumper._maybeLogChanges(info)
+          .then((r) => {
+            result = r
+          })
+      })
+
+      it('should not log a message about why it is skipping', function () {
+        expect(logger.log).to.have.callCount(0)
+      })
+
+      it('should write out the relevant info', function () {
+        expect(writeFileStub).to.have.been.calledWith('the-log-file', JSON.stringify({
+          changelog: 'the-changelog',
+          number: 123,
+          scope: 'none',
+          url: 'pr-url',
+          version: '1.2.3'
+        }, null, 2))
+      })
+
+      it('should not resolve yet', function () {
+        expect(result).to.equal(null)
+      })
+
+      describe('when writeFile() finishes', function () {
+        beforeEach(function () {
+          resolver.resolve()
+          return resolver.promise.then(() => {})
+        })
+
+        it('should resolve with the info', function () {
+          expect(result).to.deep.equal(info)
+        })
       })
     })
   })
