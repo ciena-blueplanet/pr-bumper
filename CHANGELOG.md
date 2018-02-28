@@ -1,3 +1,8 @@
+# 3.5.0 (2018-02-28)
+### Added
+- New version number in the bump commit message (fixes [#118](https://github.com/ciena-blueplanet/pr-bumper/issues/118))
+
+
 # 3.4.0 (2018-02-28)
 
 *   `Added` support for using asterisk in GFM list instead of hyphens if desired, since it is valid Github markdown (Fixes [#127](https://github.com/ciena-blueplanet/pr-bumper/issues/127))
