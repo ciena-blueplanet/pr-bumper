@@ -1,3 +1,8 @@
+# 3.4.0 (2018-02-28)
+
+*   `Added` support for using asterisk in GFM list instead of hyphens if desired, since it is valid Github markdown (Fixes [#127](https://github.com/ciena-blueplanet/pr-bumper/issues/127))
+
+
 # 3.3.1 (2018-02-28)
 
 * **Fixed** error message for when no GFM checkboxes are checked to say `No version-bump scope found` instead of `Too many version-bump scopes found`.
