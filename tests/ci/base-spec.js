@@ -45,7 +45,7 @@ describe('CI / Base', function () {
   })
 
   it('should save the vcs', function () {
-    expect(base.vcs).to.eql({id: 'vcs'})
+    expect(base.vcs).to.deep.equal({id: 'vcs'})
   })
 
   describe('.add()', function () {

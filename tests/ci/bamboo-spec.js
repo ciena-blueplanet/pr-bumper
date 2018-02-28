@@ -32,11 +32,11 @@ describe('CI / Bamboo', function () {
   })
 
   it('should save the config', function () {
-    expect(bamboo.config).to.eql({id: 'config'})
+    expect(bamboo.config).to.deep.equal({id: 'config'})
   })
 
   it('should save the vcs', function () {
-    expect(bamboo.vcs).to.eql({id: 'vcs'})
+    expect(bamboo.vcs).to.deep.equal({id: 'vcs'})
   })
 
   it('should extend CiBase', function () {

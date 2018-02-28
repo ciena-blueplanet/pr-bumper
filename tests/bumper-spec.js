@@ -808,7 +808,7 @@ describe('Bumper', function () {
             })
 
             it('should resolve with the info', function () {
-              expect(result).to.eql({changelog: 'my-changelog', modifiedFiles: [], scope})
+              expect(result).to.deep.equal({changelog: 'my-changelog', modifiedFiles: [], scope})
             })
           })
 
@@ -833,7 +833,7 @@ describe('Bumper', function () {
             })
 
             it('should resolve with the info', function () {
-              expect(result).to.eql({changelog: '', modifiedFiles: [], scope})
+              expect(result).to.deep.equal({changelog: '', modifiedFiles: [], scope})
             })
           })
         })
@@ -864,7 +864,7 @@ describe('Bumper', function () {
             })
 
             it('should resolve with the info', function () {
-              expect(result).to.eql({changelog: 'my-changelog', modifiedFiles: [], scope})
+              expect(result).to.deep.equal({changelog: 'my-changelog', modifiedFiles: [], scope})
             })
           })
 
@@ -889,7 +889,7 @@ describe('Bumper', function () {
             })
 
             it('should resolve with the info', function () {
-              expect(result).to.eql({changelog: '', modifiedFiles: [], scope})
+              expect(result).to.deep.equal({changelog: '', modifiedFiles: [], scope})
             })
           })
         })
@@ -929,7 +929,7 @@ describe('Bumper', function () {
         })
 
         it('should resolve with the info', function () {
-          expect(result).to.eql({changelog: '', modifiedFiles: [], scope: 'none'})
+          expect(result).to.deep.equal({changelog: '', modifiedFiles: [], scope: 'none'})
         })
       })
 
@@ -954,7 +954,7 @@ describe('Bumper', function () {
         })
 
         it('should resolve with the info', function () {
-          expect(result).to.eql({changelog: '', modifiedFiles: [], scope: 'none'})
+          expect(result).to.deep.equal({changelog: '', modifiedFiles: [], scope: 'none'})
         })
       })
     })
@@ -1014,7 +1014,7 @@ describe('Bumper', function () {
       })
 
       it('should resolve with the info', function () {
-        expect(result).to.eql({
+        expect(result).to.deep.equal({
           changelog: '',
           scope: 'the-scope'
         })
@@ -1046,7 +1046,7 @@ describe('Bumper', function () {
           })
 
           it('should return the pr and scope', function () {
-            expect(ret).to.eql({
+            expect(ret).to.deep.equal({
               pr: 'the-pr',
               scope: 'patch'
             })
@@ -1082,7 +1082,7 @@ describe('Bumper', function () {
       })
 
       it('should resolve with the info', function () {
-        expect(result).to.eql({
+        expect(result).to.deep.equal({
           changelog: '',
           scope: 'the-scope'
         })
@@ -1114,7 +1114,7 @@ describe('Bumper', function () {
           })
 
           it('should return the pr and scope', function () {
-            expect(ret).to.eql({
+            expect(ret).to.deep.equal({
               pr: 'the-pr',
               scope: 'patch'
             })
@@ -1149,7 +1149,7 @@ describe('Bumper', function () {
       })
 
       it('should resolve with the info', function () {
-        expect(result).to.eql({
+        expect(result).to.deep.equal({
           changelog: 'the-changelog',
           scope: 'the-scope'
         })
@@ -1181,7 +1181,7 @@ describe('Bumper', function () {
           })
 
           it('should return the pr and scope', function () {
-            expect(ret).to.eql({
+            expect(ret).to.deep.equal({
               pr: 'the-pr',
               scope: 'patch'
             })
@@ -1214,7 +1214,7 @@ describe('Bumper', function () {
           })
 
           it('should return the changelog and scope', function () {
-            expect(ret).to.eql({
+            expect(ret).to.deep.equal({
               changelog: 'the-changelog',
               scope: 'the-scope'
             })

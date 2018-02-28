@@ -287,11 +287,11 @@ describe('Cli', function () {
       })
 
       it('should pass along config', function () {
-        expect(ci.config).to.eql(config)
+        expect(ci.config).to.deep.equal(config)
       })
 
       it('should pass along vcs', function () {
-        expect(ci.vcs).to.eql(vcs)
+        expect(ci.vcs).to.deep.equal(vcs)
       })
 
       it('should create a TeamCity instance', function () {
@@ -306,11 +306,11 @@ describe('Cli', function () {
       })
 
       it('should pass along config', function () {
-        expect(ci.config).to.eql(config)
+        expect(ci.config).to.deep.equal(config)
       })
 
       it('should pass along vcs', function () {
-        expect(ci.vcs).to.eql(vcs)
+        expect(ci.vcs).to.deep.equal(vcs)
       })
 
       it('should create a Travis instance', function () {
@@ -325,11 +325,11 @@ describe('Cli', function () {
       })
 
       it('should pass along config', function () {
-        expect(ci.config).to.eql(config)
+        expect(ci.config).to.deep.equal(config)
       })
 
       it('should pass along vcs', function () {
-        expect(ci.vcs).to.eql(vcs)
+        expect(ci.vcs).to.deep.equal(vcs)
       })
 
       it('should create a Travis instance', function () {
@@ -375,7 +375,7 @@ describe('Cli', function () {
       })
 
       it('should pass along config', function () {
-        expect(vcs.config).to.eql(config)
+        expect(vcs.config).to.deep.equal(config)
       })
 
       it('should create a BitbucketServer instance', function () {
@@ -394,7 +394,7 @@ describe('Cli', function () {
       })
 
       it('should pass along config', function () {
-        expect(vcs.config).to.eql(config)
+        expect(vcs.config).to.deep.equal(config)
       })
 
       it('should create a Bitbucket instance', function () {
@@ -409,7 +409,7 @@ describe('Cli', function () {
       })
 
       it('should pass along config', function () {
-        expect(vcs.config).to.eql(config)
+        expect(vcs.config).to.deep.equal(config)
       })
 
       it('should create a GitHub instance', function () {
@@ -424,7 +424,7 @@ describe('Cli', function () {
       })
 
       it('should pass along config', function () {
-        expect(vcs.config).to.eql(config)
+        expect(vcs.config).to.deep.equal(config)
       })
 
       it('should create a GitHubEnterprise instance', function () {

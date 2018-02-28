@@ -110,6 +110,18 @@ function verifyFeatureDefaults (ctx, propsToSkip) {
         expect(config.features.maxScope.value).to.equal('major')
       })
     }
+
+    if (propsToSkip.indexOf('features.logging.enabled') === -1) {
+      it('should default logging feature to disabled', function () {
+        expect(config.features.logging.enabled).to.equal(false)
+      })
+    }
+
+    if (propsToSkip.indexOf('features.logging.file') === -1) {
+      it('should default logging file to "pr-bumper-log.json"', function () {
+        expect(config.features.logging.file).to.equal('pr-bumper-log.json')
+      })
+    }
   })
   /* eslint-enable complexity */
 }
@@ -135,7 +147,7 @@ function verifyGitHubTravisDefaults (ctx, propsToSkip) {
 
     if (propsToSkip.indexOf('ci.gitUser') === -1) {
       it('should use the proper git user', function () {
-        expect(config.ci.gitUser).to.eql({
+        expect(config.ci.gitUser).to.deep.equal({
           email: 'travis.ci.ciena@gmail.com',
           name: 'Travis CI'
         })
@@ -180,7 +192,7 @@ function verifyGitHubTravisDefaults (ctx, propsToSkip) {
 
     if (propsToSkip.indexOf('computed.vcs.auth') === -1) {
       it('should have the proper vcs auth', function () {
-        expect(config.computed.vcs.auth).to.eql({
+        expect(config.computed.vcs.auth).to.deep.equal({
           password: undefined,
           readToken: '12345',
           username: undefined,
@@ -204,7 +216,7 @@ function verifyBitbucketTeamcityOverrides (ctx) {
     })
 
     it('should have the proper git user', function () {
-      expect(config.ci.gitUser).to.eql({
+      expect(config.ci.gitUser).to.deep.equal({
         email: 'teamcity@domain.com',
         name: 'teamcity'
       })
@@ -235,7 +247,7 @@ function verifyBitbucketTeamcityOverrides (ctx) {
     })
 
     it('should have the proper vcs auth', function () {
-      expect(config.computed.vcs.auth).to.eql({
+      expect(config.computed.vcs.auth).to.deep.equal({
         password: 'teamcity12345',
         readToken: undefined,
         username: 'teamcity',
@@ -420,6 +432,10 @@ describe('utils', function () {
               changelog: {
                 enabled: true,
                 file: 'CHANGES.md'
+              },
+              logging: {
+                enabled: true,
+                file: '.pr-bumper.log'
               }
             }
           })
@@ -429,19 +445,31 @@ describe('utils', function () {
         })
 
         verifyGitHubTravisDefaults(ctx, ['ci.gitUser'])
-        verifyFeatureDefaults(ctx, ['features.changelog.enabled', 'features.changelog.file'])
+        verifyFeatureDefaults(ctx, [
+          'features.changelog.enabled',
+          'features.changelog.file',
+          'features.logging.enabled',
+          'features.logging.file'
+        ])
 
         it('should use the overwritten git user', function () {
-          expect(config.ci.gitUser).to.eql({
+          expect(config.ci.gitUser).to.deep.equal({
             email: 'some.other.user@domain.com',
             name: 'Some Other User'
           })
         })
 
         it('should use the overwritten changelog settings', function () {
-          expect(config.features.changelog).to.eql({
+          expect(config.features.changelog).to.deep.equal({
             enabled: true,
             file: 'CHANGES.md'
+          })
+        })
+
+        it('should use the overwritten logging settings', function () {
+          expect(config.features.logging).to.deep.equal({
+            enabled: true,
+            file: '.pr-bumper.log'
           })
         })
       })
@@ -518,7 +546,7 @@ describe('utils', function () {
         verifyFeatureDefaults(ctx, ['features.comments.enabled'])
 
         it('should have the proper gitUser', function () {
-          expect(config.ci.gitUser).to.eql({
+          expect(config.ci.gitUser).to.deep.equal({
             email: 'bot@domain.com',
             name: 'Bot User'
           })
@@ -580,7 +608,7 @@ describe('utils', function () {
         verifyFeatureDefaults(ctx, ['features.compliance.enabled'])
 
         it('should have the proper gitUser', function () {
-          expect(config.ci.gitUser).to.eql({
+          expect(config.ci.gitUser).to.deep.equal({
             email: 'bot@domain.com',
             name: 'Bot User'
           })
@@ -607,7 +635,7 @@ describe('utils', function () {
         })
 
         it('should use the overwritten compliance config', function () {
-          expect(config.features.compliance).to.eql(_config.features.compliance)
+          expect(config.features.compliance).to.deep.equal(_config.features.compliance)
         })
       })
 
@@ -635,7 +663,7 @@ describe('utils', function () {
         verifyFeatureDefaults(ctx, ['features.dependencies.enabled', 'features.dependencies.snapshotFile'])
 
         it('should have the proper gitUser', function () {
-          expect(config.ci.gitUser).to.eql({
+          expect(config.ci.gitUser).to.deep.equal({
             email: 'bot@domain.com',
             name: 'Bot User'
           })
@@ -662,7 +690,7 @@ describe('utils', function () {
         })
 
         it('should have the proper dependencies feature config', function () {
-          expect(config.features.dependencies).to.eql(_config.features.dependencies)
+          expect(config.features.dependencies).to.deep.equal(_config.features.dependencies)
         })
       })
 
@@ -690,7 +718,7 @@ describe('utils', function () {
         verifyFeatureDefaults(ctx, ['features.maxScope.enabled', 'features.maxScope.value'])
 
         it('should have the proper gitUser', function () {
-          expect(config.ci.gitUser).to.eql({
+          expect(config.ci.gitUser).to.deep.equal({
             email: 'bot@domain.com',
             name: 'Bot User'
           })
@@ -717,7 +745,7 @@ describe('utils', function () {
         })
 
         it('should have the proper maxScope config', function () {
-          expect(config.features.maxScope).to.eql(_config.features.maxScope)
+          expect(config.features.maxScope).to.deep.equal(_config.features.maxScope)
         })
       })
     })
@@ -1423,7 +1451,7 @@ describe('utils', function () {
       })
 
       it('should grab the changelog text', function () {
-        expect(changelog).to.eql('## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang')
+        expect(changelog).to.deep.equal('## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang')
       })
     })
 
@@ -1434,7 +1462,7 @@ describe('utils', function () {
       })
 
       it('should grab the changelog text', function () {
-        expect(changelog).to.eql('## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang')
+        expect(changelog).to.deep.equal('## Fixes\nFoo, Bar, Baz\n## Features\nFizz, Bang')
       })
     })
   })
@@ -1848,7 +1876,7 @@ describe('utils', function () {
         })
 
         it('should reject with the error thrown', function () {
-          expect(error).to.eql(new Error('Uh oh!'))
+          expect(error).to.deep.equal(new Error('Uh oh!'))
         })
 
         it('should not resolve', function () {
@@ -1880,7 +1908,7 @@ describe('utils', function () {
         })
 
         it('should reject with the error thrown', function () {
-          expect(error).to.eql(new Error('Uh oh!'))
+          expect(error).to.deep.equal(new Error('Uh oh!'))
         })
 
         it('should not resolve', function () {
