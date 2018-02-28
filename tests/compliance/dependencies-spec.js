@@ -124,8 +124,8 @@ describe('dependencies', function () {
         licenseSources = {
           package: {
             sources: [
-              { license: 'MIT' },
-              { license: 'Apache' }
+              {license: 'MIT'},
+              {license: 'Apache'}
             ]
           }
         }
@@ -146,9 +146,9 @@ describe('dependencies', function () {
           },
           license: {
             sources: [
-              { text: 'MIT' },
-              { text: 'Apache' },
-              { text: 'blargh' }
+              {text: 'MIT'},
+              {text: 'Apache'},
+              {text: 'blargh'}
             ]
           }
         }
@@ -185,9 +185,9 @@ describe('dependencies', function () {
             },
             license: {
               sources: [
-                { text: 'MIT' },
-                { text: 'Apache' },
-                { text: 'blargh' }
+                {text: 'MIT'},
+                {text: 'Apache'},
+                {text: 'blargh'}
               ]
             }
           }
