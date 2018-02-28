@@ -1,3 +1,8 @@
+# 3.3.1 (2018-02-28)
+
+* **Fixed** error message for when no GFM checkboxes are checked to say `No version-bump scope found` instead of `Too many version-bump scopes found`.
+
+
 # 3.3.0 (2018-02-28)
 
 * **Added** ability to specify multiple spaces after bullets in GFM markdown, as some markdown lint standards prefer to have a couple spaces between bullets and the list content rather than just a single space.
