@@ -163,6 +163,10 @@ Here are the defaults that are provided by `pr-bumper` and can be overwritten by
       "maxScope": {
         "enabled": false,
         "value": "major"
+      },
+      "logging": {
+        "enabled": false,
+        "file": "pr-bumper-log.json"
       }
     },
     "vcs": {
@@ -429,6 +433,36 @@ Set this value to `true` to enable the maxScope check.
 
 ##### `features.maxScope.value`
 The value to use for the maximum scope (default is `major`), must be one of [`major`, `minor`, `patch`, `none`]
+
+#### `features.logging`
+Log what `pr-bumper` does during a `bump` to a file, so the information can be used by another tool later on.
+
+The log file that will be created will look something like this:
+
+```json
+{
+  "changelog": "### Added\n- Some cool new feature",
+  "pr": {
+    "number": 123,
+    "url": "https://github.com/ciena-blueplanet/pr-bumper/pull/123"
+  },
+  "scope": "minor",
+  "version": "1.3.0",
+}
+```
+
+- `changelog` - The full text of the changelog that was added during this `bump`
+- `pr.number` - The pull request number that was merged for this `bump`
+- `pr.url` - The URL for the pull request that was merged for this `bump`
+- `scope` - the scope of the `bump` performed
+- `version` - the new version after the `bump`
+
+##### `features.logging.enabled`
+Set this value to `true` to enable the creation of the log file during a `bump`.
+
+##### `features.logging.file`
+The name of the file to create after a `bump`, the contents of the file will be `json` regardless of the name of
+the file given here.
 
 ### `vcs`
 Holds all the information `pr-bumper` needs to interact with your version control system.
