@@ -1271,7 +1271,8 @@ describe('Bumper', function () {
       info = {
         changelog: 'stuff changed',
         modifiedFiles: [],
-        scope: 'patch'
+        scope: 'patch',
+        version: '1.2.3'
       }
       __.set(bumper.config, 'computed.ci.buildNumber', '12345')
 
@@ -1358,7 +1359,7 @@ describe('Bumper', function () {
       })
 
       it('should commit with version bump message', function () {
-        const msg = `[${pkgJson.name}] Automated version bump`
+        const msg = `[${pkgJson.name}] Automated version bump to 1.2.3`
         const descr = 'From CI build 12345'
         expect(bumper.ci.commit).to.have.been.calledWith(msg, descr)
       })
