@@ -51,7 +51,7 @@ describe('CI / Travis', function () {
   })
 
   it('should save the vcs', function () {
-    expect(travis.vcs).to.eql({id: 'vcs'})
+    expect(travis.vcs).to.deep.equal({id: 'vcs'})
   })
 
   it('should extend CiBase', function () {

@@ -233,7 +233,7 @@ describe('dependencies', function () {
 
     it('should return file written message', function () {
       return dependencies.getNpmLicenseData('/some/path', '/some/output/path', config).then((value) => {
-        expect(value).to.eql('successfully wrote /some/output/path')
+        expect(value).to.deep.equal('successfully wrote /some/output/path')
       })
     })
 
@@ -262,7 +262,7 @@ describe('dependencies', function () {
       const expectedUrl2 = addlRepos[0].url.split('${REPO_NAME}').join(repos[0].split('"').join(''))
       const expected = `${expectedUrl1}\n${expectedUrl2}\n`
       return dependencies.getPackageData('/some/path', config).then((paths) => {
-        expect(paths).to.eql(expected)
+        expect(paths).to.deep.equal(expected)
       })
     })
   })

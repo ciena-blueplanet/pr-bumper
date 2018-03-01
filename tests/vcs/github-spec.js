@@ -65,7 +65,7 @@ describe('VCS / GitHub /', function () {
   })
 
   it('should save the config', function () {
-    expect(github.config).to.be.eql(config)
+    expect(github.config).to.be.deep.equal(config)
   })
 
   describe('.addRemoteForPush()', function () {
@@ -79,7 +79,7 @@ describe('VCS / GitHub /', function () {
 
     it('should makes the proper git remote command', function () {
       const url = 'https://my-gh-token@github.com/me/my-repo'
-      expect(execStub.firstCall.args).to.be.eql([`git remote add ci-origin ${url}`])
+      expect(execStub.firstCall.args).to.be.deep.equal([`git remote add ci-origin ${url}`])
     })
 
     it('should resolve with the proper remote name', function () {
@@ -143,7 +143,7 @@ describe('VCS / GitHub /', function () {
       })
 
       it('should resolve with the correct PR', function () {
-        expect(resolution).to.be.eql({
+        expect(resolution).to.be.deep.equal({
           description: 'This is a #fix#',
           headSha: 'sha-1',
           number: 5,
@@ -173,7 +173,7 @@ describe('VCS / GitHub /', function () {
       })
 
       it('should reject with the proper error', function () {
-        expect(rejection).to.be.eql(new Error(`400: ${JSON.stringify(err)}`))
+        expect(rejection).to.be.deep.equal(new Error(`400: ${JSON.stringify(err)}`))
       })
     })
 
@@ -259,7 +259,7 @@ describe('VCS / GitHub /', function () {
       })
 
       it('should reject with proper error', function () {
-        expect(rejection).to.eql(new Error(`400: ${JSON.stringify(err)}`))
+        expect(rejection).to.deep.equal(new Error(`400: ${JSON.stringify(err)}`))
       })
     })
 

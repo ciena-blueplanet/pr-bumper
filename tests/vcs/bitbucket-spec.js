@@ -58,7 +58,7 @@ describe('VCS / Bitbucket /', function () {
   })
 
   it('should save the config', function () {
-    expect(bitbucket.config).to.be.eql(config)
+    expect(bitbucket.config).to.be.deep.equal(config)
   })
 
   it('should construct a 1.0 base URL', function () {
@@ -139,7 +139,7 @@ describe('VCS / Bitbucket /', function () {
       })
 
       it('should resolve with the correct PR', function () {
-        expect(resolution).to.be.eql({
+        expect(resolution).to.be.deep.equal({
           description: 'This is a #fix#',
           headSha: 'sha-1',
           number: 5,
@@ -169,7 +169,7 @@ describe('VCS / Bitbucket /', function () {
       })
 
       it('should reject with the proper error', function () {
-        expect(rejection).to.be.eql(new Error(`https://api.bitbucket.org/2.0/repositories/owner/repo/pullrequests/5 400: ${JSON.stringify(err)}`))
+        expect(rejection).to.be.deep.equal(new Error(`https://api.bitbucket.org/2.0/repositories/owner/repo/pullrequests/5 400: ${JSON.stringify(err)}`))
       })
     })
 
@@ -253,7 +253,7 @@ describe('VCS / Bitbucket /', function () {
       })
 
       it('should reject with proper error', function () {
-        expect(rejection).to.eql(new Error('400: API 1.0 Error'))
+        expect(rejection).to.deep.equal(new Error('400: API 1.0 Error'))
       })
     })
 

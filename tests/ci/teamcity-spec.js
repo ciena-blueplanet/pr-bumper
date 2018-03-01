@@ -32,11 +32,11 @@ describe('CI / TeamCity', function () {
   })
 
   it('should save the config', function () {
-    expect(teamcity.config).to.eql({id: 'config'})
+    expect(teamcity.config).to.deep.equal({id: 'config'})
   })
 
   it('should save the vcs', function () {
-    expect(teamcity.vcs).to.eql({id: 'vcs'})
+    expect(teamcity.vcs).to.deep.equal({id: 'vcs'})
   })
 
   it('should extend CiBase', function () {
