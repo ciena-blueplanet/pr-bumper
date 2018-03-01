@@ -1,11 +1,4 @@
 #!/bin/bash
-source $(dirname $0)/is-bump-commit.sh
-
-if isBumpCommit
-then
-  echo "Skipping pr-bumper cat log step for version bump commit"
-  exit 0
-fi
 
 if [ "$TRAVIS_NODE_VERSION" != "${PUBLISH_NODE_VERSION:-8.1.2}" ]
 then
