@@ -1,3 +1,13 @@
+# 3.6.0 (2018-03-01)
+### Added
+- New `logging` feature, which outputs information related to the bump action and the PR that caused it during a `bump` command. (Fixes [#125](https://github.com/ciena-blueplanet/pr-bumper/issues/125))
+- New `maybe-cat-log.sh` script to `.travis` to help people debug their use of the new `logging` feature. 
+
+### Changed
+- Our own `.pr-bumper.json` to enable the new `logging` feature
+- Our own `.travis.yml` file to use the new `maybe-cat-log.sh` to log our generated log file contents during CI
+
+
 # 3.5.0 (2018-02-28)
 ### Added
 - New version number in the bump commit message (fixes [#118](https://github.com/ciena-blueplanet/pr-bumper/issues/118))
