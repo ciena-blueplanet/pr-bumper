@@ -1,3 +1,8 @@
+# 3.6.1 (2018-03-01)
+### Changed
+- `.travis/maybe-cat-log.sh` to not skip the bump commit, as that's when the log file would actually be created. 
+
+
 # 3.6.0 (2018-03-01)
 ### Added
 - New `logging` feature, which outputs information related to the bump action and the PR that caused it during a `bump` command. (Fixes [#125](https://github.com/ciena-blueplanet/pr-bumper/issues/125))
