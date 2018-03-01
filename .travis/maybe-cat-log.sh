@@ -19,4 +19,9 @@ then
     LOG_FILE=$1
 fi
 
-cat $LOG_FILE
+if [ -e $LOG_FILE ]
+then
+    cat $LOG_FILE
+else
+    echo "No $LOG_FILE to cat"
+fi
