@@ -1,3 +1,8 @@
+# 3.7.0 (2018-03-02)
+
+* Updated shell scripts to handle Travis config files that specify a non-exact Node version, for example using `8` instead of `8.1.2`. (resolves #135)
+
+
 # 3.6.1 (2018-03-01)
 ### Changed
 - `.travis/maybe-cat-log.sh` to not skip the bump commit, as that's when the log file would actually be created. 
