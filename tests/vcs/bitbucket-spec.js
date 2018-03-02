@@ -1,6 +1,7 @@
 'use strict'
 
 const chai = require('chai')
+const deepFreeze = require('freezly').default
 const rewire = require('rewire')
 const sinon = require('sinon')
 const sinonChai = require('sinon-chai')
@@ -10,8 +11,34 @@ chai.use(sinonChai)
 const logger = require('../../lib/logger')
 const Bitbucket = rewire('../../lib/vcs/bitbucket')
 
+const CONFIG = deepFreeze({
+  ci: {
+    gitUser: {
+      email: 'bamboo@my-domain.com',
+      name: 'bamboo'
+    },
+    provider: 'bamboo'
+  },
+  computed: {
+    vcs: {
+      auth: {
+        username: 'ci-user',
+        password: 'ci user password'
+      }
+    }
+  },
+  vcs: {
+    domain: 'api.bitbucket.org',
+    provider: 'bitbucket',
+    repository: {
+      name: 'repo',
+      owner: 'owner'
+    }
+  }
+})
+
 describe('VCS / Bitbucket /', function () {
-  let sandbox, bitbucket, config, fetchStub, revertFetchRewire
+  let sandbox, bitbucket, fetchStub, revertFetchRewire
 
   beforeEach(function () {
     sandbox = sinon.sandbox.create()
@@ -22,34 +49,7 @@ describe('VCS / Bitbucket /', function () {
     // stub out the top-level 'fetch'
     fetchStub = sandbox.stub()
     revertFetchRewire = Bitbucket.__set__('fetch', fetchStub)
-
-    config = {
-      ci: {
-        gitUser: {
-          email: 'bamboo@my-domain.com',
-          name: 'bamboo'
-        },
-        provider: 'bamboo'
-      },
-      computed: {
-        vcs: {
-          auth: {
-            username: 'ci-user',
-            password: 'ci user password'
-          }
-        }
-      },
-      vcs: {
-        domain: 'api.bitbucket.org',
-        provider: 'bitbucket',
-        repository: {
-          name: 'repo',
-          owner: 'owner'
-        }
-      }
-    }
-
-    bitbucket = new Bitbucket(config)
+    bitbucket = new Bitbucket(CONFIG)
   })
 
   afterEach(function () {
@@ -58,7 +58,7 @@ describe('VCS / Bitbucket /', function () {
   })
 
   it('should save the config', function () {
-    expect(bitbucket.config).to.be.deep.equal(config)
+    expect(bitbucket.config).to.be.deep.equal(CONFIG)
   })
 
   it('should construct a 1.0 base URL', function () {

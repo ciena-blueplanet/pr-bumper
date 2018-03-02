@@ -1,6 +1,7 @@
 'use strict'
 
 const chai = require('chai')
+const deepFreeze = require('freezly').default
 const sinon = require('sinon')
 const sinonChai = require('sinon-chai')
 const expect = chai.expect
@@ -12,6 +13,14 @@ const Bamboo = require('../../lib/ci/bamboo')
 const testUtils = require('./utils')
 const ensureCiBaseMethodIsUsed = testUtils.ensureCiBaseMethodIsUsed
 
+const CONFIG = deepFreeze({
+  id: 'config'
+})
+
+const VCS = deepFreeze({
+  id: 'vcs'
+})
+
 describe('CI / Bamboo', function () {
   let bamboo, sandbox
   let ctx = {}
@@ -21,7 +30,7 @@ describe('CI / Bamboo', function () {
 
     // get rid of all logging messages in the tests (and let us test for them if we want)
     sandbox.stub(logger, 'log')
-    bamboo = new Bamboo({id: 'config'}, {id: 'vcs'})
+    bamboo = new Bamboo(CONFIG, VCS)
 
     ctx.ci = bamboo
     ctx.sandbox = sandbox
@@ -32,11 +41,11 @@ describe('CI / Bamboo', function () {
   })
 
   it('should save the config', function () {
-    expect(bamboo.config).to.deep.equal({id: 'config'})
+    expect(bamboo.config).to.deep.equal(CONFIG)
   })
 
   it('should save the vcs', function () {
-    expect(bamboo.vcs).to.deep.equal({id: 'vcs'})
+    expect(bamboo.vcs).to.deep.equal(VCS)
   })
 
   it('should extend CiBase', function () {

@@ -1,6 +1,7 @@
 'use strict'
 
 const chai = require('chai')
+const deepFreeze = require('freezly').default
 const rewire = require('rewire')
 const sinon = require('sinon')
 const sinonChai = require('sinon-chai')
@@ -10,8 +11,36 @@ chai.use(sinonChai)
 const logger = require('../../lib/logger')
 const GitHub = rewire('../../lib/vcs/github')
 
+const CONFIG = deepFreeze({
+  ci: {
+    gitUser: {
+      email: 'travis-ci-ciena@gmail.com',
+      name: 'travis-ci'
+    },
+    provider: 'travis'
+  },
+  computed: {
+    ci: {
+      branch: 'my-branch'
+    },
+    vcs: {
+      auth: {
+        readToken: 'my-ro-gh-token',
+        writeToken: 'my-gh-token'
+      }
+    }
+  },
+  vcs: {
+    provider: 'github',
+    repository: {
+      name: 'my-repo',
+      owner: 'me'
+    }
+  }
+})
+
 describe('VCS / GitHub /', function () {
-  let config, sandbox, github, execStub, fetchStub, revertFetchRewire, revertExecRewire
+  let sandbox, github, execStub, fetchStub, revertFetchRewire, revertExecRewire
   beforeEach(function () {
     sandbox = sinon.sandbox.create()
 
@@ -25,36 +54,7 @@ describe('VCS / GitHub /', function () {
     // stub out the top-level 'exec'
     execStub = sandbox.stub()
     revertExecRewire = GitHub.__set__('exec', execStub)
-
-    config = {
-      ci: {
-        gitUser: {
-          email: 'travis-ci-ciena@gmail.com',
-          name: 'travis-ci'
-        },
-        provider: 'travis'
-      },
-      computed: {
-        ci: {
-          branch: 'my-branch'
-        },
-        vcs: {
-          auth: {
-            readToken: 'my-ro-gh-token',
-            writeToken: 'my-gh-token'
-          }
-        }
-      },
-      vcs: {
-        provider: 'github',
-        repository: {
-          name: 'my-repo',
-          owner: 'me'
-        }
-      }
-    }
-
-    github = new GitHub(config)
+    github = new GitHub(CONFIG)
   })
 
   afterEach(function () {
@@ -65,7 +65,7 @@ describe('VCS / GitHub /', function () {
   })
 
   it('should save the config', function () {
-    expect(github.config).to.be.deep.equal(config)
+    expect(github.config).to.be.deep.equal(CONFIG)
   })
 
   describe('.addRemoteForPush()', function () {

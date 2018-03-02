@@ -1,6 +1,7 @@
 'use strict'
 
 const chai = require('chai')
+const deepFreeze = require('freezly').default
 const rewire = require('rewire')
 const sinon = require('sinon')
 const sinonChai = require('sinon-chai')
@@ -10,8 +11,34 @@ chai.use(sinonChai)
 const logger = require('../../lib/logger')
 const BitbucketServer = rewire('../../lib/vcs/bitbucket-server')
 
+const CONFIG = deepFreeze({
+  ci: {
+    gitUser: {
+      email: 'teamcity@my-domain.com',
+      name: 'teamcity'
+    },
+    provider: 'teamcity'
+  },
+  computed: {
+    vcs: {
+      auth: {
+        username: 'ci-user',
+        password: 'ci user password'
+      }
+    }
+  },
+  vcs: {
+    domain: 'bitbucket.my-domain.com',
+    provider: 'bitbucket-server',
+    repository: {
+      name: 'my-repo',
+      owner: 'me'
+    }
+  }
+})
+
 describe('VCS / BitbucketServer /', function () {
-  let sandbox, bitbucket, config, fetchStub, revertFetchRewire
+  let sandbox, bitbucket, fetchStub, revertFetchRewire
 
   beforeEach(function () {
     sandbox = sinon.sandbox.create()
@@ -22,34 +49,7 @@ describe('VCS / BitbucketServer /', function () {
     // stub out the top-level 'fetch'
     fetchStub = sandbox.stub()
     revertFetchRewire = BitbucketServer.__set__('fetch', fetchStub)
-
-    config = {
-      ci: {
-        gitUser: {
-          email: 'teamcity@my-domain.com',
-          name: 'teamcity'
-        },
-        provider: 'teamcity'
-      },
-      computed: {
-        vcs: {
-          auth: {
-            username: 'ci-user',
-            password: 'ci user password'
-          }
-        }
-      },
-      vcs: {
-        domain: 'bitbucket.my-domain.com',
-        provider: 'bitbucket-server',
-        repository: {
-          name: 'my-repo',
-          owner: 'me'
-        }
-      }
-    }
-
-    bitbucket = new BitbucketServer(config)
+    bitbucket = new BitbucketServer(CONFIG)
   })
 
   afterEach(function () {
@@ -58,7 +58,7 @@ describe('VCS / BitbucketServer /', function () {
   })
 
   it('should save the config', function () {
-    expect(bitbucket.config).to.be.deep.equal(config)
+    expect(bitbucket.config).to.be.deep.equal(CONFIG)
   })
 
   it('should construct a base URL', function () {

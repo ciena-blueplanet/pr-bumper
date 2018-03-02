@@ -1,6 +1,7 @@
 'use strict'
 
 const chai = require('chai')
+const deepFreeze = require('freezly').default
 const rewire = require('rewire')
 const sinon = require('sinon')
 const sinonChai = require('sinon-chai')
@@ -13,9 +14,21 @@ const Travis = rewire('../../lib/ci/travis')
 const testUtils = require('./utils')
 const ensureCiBaseMethodIsUsed = testUtils.ensureCiBaseMethodIsUsed
 
+const CONFIG = deepFreeze({
+  computed: {
+    ci: {
+      branch: 'my-branch'
+    }
+  }
+})
+
+const VCS = deepFreeze({
+  id: 'vcs'
+})
+
 describe('CI / Travis', function () {
   const ctx = {}
-  let execStub, revertExecRewire, travis, sandbox, config
+  let execStub, revertExecRewire, travis, sandbox
 
   beforeEach(function () {
     sandbox = sinon.sandbox.create()
@@ -26,14 +39,7 @@ describe('CI / Travis', function () {
     // stub out the top-level 'exec'
     execStub = sandbox.stub()
     revertExecRewire = Travis.__set__('exec', execStub)
-    config = {
-      computed: {
-        ci: {
-          branch: 'my-branch'
-        }
-      }
-    }
-    travis = new Travis(config, {id: 'vcs'})
+    travis = new Travis(CONFIG, VCS)
 
     ctx.ci = travis
     ctx.sandbox = sandbox
@@ -47,11 +53,11 @@ describe('CI / Travis', function () {
   })
 
   it('should save the config', function () {
-    expect(travis.config).to.equal(config)
+    expect(travis.config).to.equal(CONFIG)
   })
 
   it('should save the vcs', function () {
-    expect(travis.vcs).to.deep.equal({id: 'vcs'})
+    expect(travis.vcs).to.deep.equal(VCS)
   })
 
   it('should extend CiBase', function () {
@@ -65,8 +71,9 @@ describe('CI / Travis', function () {
     let result
 
     beforeEach(function () {
-      travis.vcs = {addRemoteForPush () {}}
-      sandbox.stub(travis.vcs, 'addRemoteForPush').returns(Promise.resolve('ci-origin'))
+      travis.vcs = deepFreeze({
+        addRemoteForPush: sinon.stub().returns(Promise.resolve('ci-origin'))
+      })
       execStub.returns(Promise.resolve('pushed'))
 
       return travis.push().then((res) => {
