@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$TRAVIS_NODE_VERSION" != "${PUBLISH_NODE_VERSION:-8.1.2}" ]
+if [[ ! "${PUBLISH_NODE_VERSION:-8.1.2}" =~ ^$TRAVIS_NODE_VERSION ]]
 then
   echo "Skipping pr-bumper cat log step for TRAVIS_NODE_VERSION [${TRAVIS_NODE_VERSION}]"
   exit 0
