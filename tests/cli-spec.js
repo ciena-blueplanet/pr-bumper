@@ -1,6 +1,7 @@
 'use strict'
 
 const chai = require('chai')
+const deepFreeze = require('freezly').default
 const Promise = require('promise')
 const sinon = require('sinon')
 const sinonChai = require('sinon-chai')
@@ -37,11 +38,11 @@ describe('Cli', function () {
 
   describe('_getBumper', function () {
     it('should return an instance of bumper given params', function () {
-      const bumper = cli._getBumper({
+      const bumper = cli._getBumper(deepFreeze({
         ci: {id: 'ci'},
         vcs: {id: 'vcs'},
         config: {id: 'config'}
-      })
+      }))
 
       expect(bumper).to.be.an.instanceOf(Bumper)
     })
@@ -283,7 +284,7 @@ describe('Cli', function () {
     describe('with teamcity provider', function () {
       beforeEach(function () {
         config.ci.provider = 'teamcity'
-        ci = cli._getCi(config, vcs)
+        ci = cli._getCi(deepFreeze(config), deepFreeze(vcs))
       })
 
       it('should pass along config', function () {
@@ -302,7 +303,7 @@ describe('Cli', function () {
     describe('with travis provider', function () {
       beforeEach(function () {
         config.ci.provider = 'travis'
-        ci = cli._getCi(config, vcs)
+        ci = cli._getCi(deepFreeze(config), deepFreeze(vcs))
       })
 
       it('should pass along config', function () {
@@ -321,7 +322,7 @@ describe('Cli', function () {
     describe('with bamboo provider', function () {
       beforeEach(function () {
         config.ci.provider = 'bamboo'
-        ci = cli._getCi(config, vcs)
+        ci = cli._getCi(deepFreeze(config), deepFreeze(vcs))
       })
 
       it('should pass along config', function () {
@@ -344,7 +345,7 @@ describe('Cli', function () {
 
       it('should throw an error', function () {
         expect(() => {
-          cli._getCi(config, vcs)
+          cli._getCi(deepFreeze(config), deepFreeze(vcs))
         }).to.throw('Invalid ci provider: [unknown provider]')
       })
     })
@@ -371,7 +372,7 @@ describe('Cli', function () {
           username: 'foo',
           password: 'bar'
         }
-        vcs = cli._getVcs(config)
+        vcs = cli._getVcs(deepFreeze(config))
       })
 
       it('should pass along config', function () {
@@ -390,7 +391,7 @@ describe('Cli', function () {
           username: 'foo',
           password: 'bar'
         }
-        vcs = cli._getVcs(config)
+        vcs = cli._getVcs(deepFreeze(config))
       })
 
       it('should pass along config', function () {
@@ -405,7 +406,7 @@ describe('Cli', function () {
     describe('with github provider', function () {
       beforeEach(function () {
         config.vcs.provider = 'github'
-        vcs = cli._getVcs(config)
+        vcs = cli._getVcs(deepFreeze(config))
       })
 
       it('should pass along config', function () {
@@ -420,7 +421,7 @@ describe('Cli', function () {
     describe('with github enterprise provider', function () {
       beforeEach(function () {
         config.vcs.provider = 'github-enterprise'
-        vcs = cli._getVcs(config)
+        vcs = cli._getVcs(deepFreeze(config))
       })
 
       it('should pass along config', function () {
@@ -439,7 +440,7 @@ describe('Cli', function () {
 
       it('should throw an error', function () {
         expect(() => {
-          cli._getVcs(config)
+          cli._getVcs(deepFreeze(config))
         }).to.throw('Invalid vcs provider: [unknown provider]')
       })
     })

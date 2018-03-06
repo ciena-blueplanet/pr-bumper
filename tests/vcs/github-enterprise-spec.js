@@ -1,6 +1,7 @@
 'use strict'
 
 const chai = require('chai')
+const deepFreeze = require('freezly').default
 const rewire = require('rewire')
 const sinon = require('sinon')
 const sinonChai = require('sinon-chai')
@@ -10,8 +11,37 @@ chai.use(sinonChai)
 const logger = require('../../lib/logger')
 const GitHubEnterprise = rewire('../../lib/vcs/github-enterprise')
 
+const CONFIG = deepFreeze({
+  ci: {
+    gitUser: {
+      email: 'travis-ci-ciena@gmail.com',
+      name: 'travis-ci'
+    },
+    provider: 'travis'
+  },
+  computed: {
+    ci: {
+      branch: 'my-branch'
+    },
+    vcs: {
+      auth: {
+        readToken: 'my-ro-gh-token',
+        writeToken: 'my-gh-token'
+      }
+    }
+  },
+  vcs: {
+    domain: 'my-ghe.com',
+    provider: 'github-enterprise',
+    repository: {
+      name: 'my-repo',
+      owner: 'me'
+    }
+  }
+})
+
 describe('VCS / GitHub Enterprise /', function () {
-  let config, sandbox, github, execStub, fetchStub, revertFetchRewire, revertExecRewire
+  let sandbox, github, execStub, fetchStub, revertFetchRewire, revertExecRewire
   beforeEach(function () {
     sandbox = sinon.sandbox.create()
 
@@ -25,37 +55,7 @@ describe('VCS / GitHub Enterprise /', function () {
     // stub out the top-level 'exec'
     execStub = sandbox.stub()
     revertExecRewire = GitHubEnterprise.__set__('exec', execStub)
-
-    config = {
-      ci: {
-        gitUser: {
-          email: 'travis-ci-ciena@gmail.com',
-          name: 'travis-ci'
-        },
-        provider: 'travis'
-      },
-      computed: {
-        ci: {
-          branch: 'my-branch'
-        },
-        vcs: {
-          auth: {
-            readToken: 'my-ro-gh-token',
-            writeToken: 'my-gh-token'
-          }
-        }
-      },
-      vcs: {
-        domain: 'my-ghe.com',
-        provider: 'github-enterprise',
-        repository: {
-          name: 'my-repo',
-          owner: 'me'
-        }
-      }
-    }
-
-    github = new GitHubEnterprise(config)
+    github = new GitHubEnterprise(CONFIG)
   })
 
   afterEach(function () {
@@ -66,7 +66,7 @@ describe('VCS / GitHub Enterprise /', function () {
   })
 
   it('should save the config', function () {
-    expect(github.config).to.be.deep.equal(config)
+    expect(github.config).to.be.deep.equal(CONFIG)
   })
 
   describe('.addRemoteForPush()', function () {

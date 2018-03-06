@@ -1,6 +1,7 @@
 'use strict'
 
 const chai = require('chai')
+const deepFreeze = require('freezly').default
 const sinon = require('sinon')
 const sinonChai = require('sinon-chai')
 const expect = chai.expect
@@ -12,6 +13,14 @@ const TeamCity = require('../../lib/ci/teamcity')
 const testUtils = require('./utils')
 const ensureCiBaseMethodIsUsed = testUtils.ensureCiBaseMethodIsUsed
 
+const CONFIG = deepFreeze({
+  id: 'config'
+})
+
+const VCS = deepFreeze({
+  id: 'vcs'
+})
+
 describe('CI / TeamCity', function () {
   let teamcity, sandbox
   let ctx = {}
@@ -21,7 +30,7 @@ describe('CI / TeamCity', function () {
 
     // get rid of all logging messages in the tests (and let us test for them if we want)
     sandbox.stub(logger, 'log')
-    teamcity = new TeamCity({id: 'config'}, {id: 'vcs'})
+    teamcity = new TeamCity(CONFIG, VCS)
 
     ctx.ci = teamcity
     ctx.sandbox = sandbox
@@ -32,11 +41,11 @@ describe('CI / TeamCity', function () {
   })
 
   it('should save the config', function () {
-    expect(teamcity.config).to.deep.equal({id: 'config'})
+    expect(teamcity.config).to.deep.equal(CONFIG)
   })
 
   it('should save the vcs', function () {
-    expect(teamcity.vcs).to.deep.equal({id: 'vcs'})
+    expect(teamcity.vcs).to.deep.equal(VCS)
   })
 
   it('should extend CiBase', function () {

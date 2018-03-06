@@ -1,6 +1,7 @@
 'use strict'
 
 const chai = require('chai')
+const deepFreeze = require('freezly').default
 const rewire = require('rewire')
 const sinon = require('sinon')
 const sinonChai = require('sinon-chai')
@@ -10,8 +11,20 @@ chai.use(sinonChai)
 const logger = require('../../lib/logger')
 const CiBase = rewire('../../lib/ci/base')
 
+const CONFIG = deepFreeze({
+  computed: {
+    ci: {
+      branch: 'my-branch'
+    }
+  }
+})
+
+const VCS = deepFreeze({
+  id: 'vcs'
+})
+
 describe('CI / Base', function () {
-  let execStub, revertExecRewire, base, sandbox, config
+  let execStub, revertExecRewire, base, sandbox
   beforeEach(function () {
     sandbox = sinon.sandbox.create()
 
@@ -21,15 +34,7 @@ describe('CI / Base', function () {
     // stub out the top-level 'exec'
     execStub = sandbox.stub()
     revertExecRewire = CiBase.__set__('exec', execStub)
-
-    config = {
-      computed: {
-        ci: {
-          branch: 'my-branch'
-        }
-      }
-    }
-    base = new CiBase(config, {id: 'vcs'})
+    base = new CiBase(CONFIG, VCS)
   })
 
   afterEach(function () {
@@ -41,11 +46,11 @@ describe('CI / Base', function () {
   })
 
   it('should save the config', function () {
-    expect(base.config).to.equal(config)
+    expect(base.config).to.equal(CONFIG)
   })
 
   it('should save the vcs', function () {
-    expect(base.vcs).to.deep.equal({id: 'vcs'})
+    expect(base.vcs).to.deep.equal(VCS)
   })
 
   describe('.add()', function () {
@@ -108,9 +113,9 @@ describe('CI / Base', function () {
   describe('.push()', function () {
     let result
     beforeEach(function () {
-      base.vcs = {
+      base.vcs = deepFreeze({
         addRemoteForPush: sandbox.stub().returns(Promise.resolve('my-origin'))
-      }
+      })
       execStub.returns(Promise.resolve('pushed'))
       return base.push()
         .then((res) => {
@@ -138,14 +143,14 @@ describe('CI / Base', function () {
   describe('.setupGitEnv()', function () {
     let result
     beforeEach(function () {
-      base.config = {
+      base.config = deepFreeze({
         ci: {
           gitUser: {
             email: 'ci-user@domain.com',
             name: 'ci-user'
           }
         }
-      }
+      })
 
       execStub.returns(Promise.resolve('executed'))
       return base.setupGitEnv()

@@ -3,6 +3,7 @@
 /* eslint no-useless-escape: 0 */
 
 const chai = require('chai')
+const deepFreeze = require('freezly').default
 const Promise = require('promise')
 const rewire = require('rewire')
 const sinon = require('sinon')
@@ -13,41 +14,42 @@ chai.use(sinonChai)
 const logger = require('../../lib/logger')
 const dependencies = rewire('../../lib/compliance/dependencies')
 
+const CONFIG = deepFreeze({
+  features: {
+    compliance: {
+      enabled: true,
+      production: true,
+      output: {
+        directory: 'output-test-dir',
+        ignore: 'output-ignore-file',
+        repos: 'output-repos-file',
+        requirements: 'output-reqs-file'
+      },
+      additionalRepos: [
+        {
+          pattern: '\\s+"(ember\\-frost\\-\\S+)"',
+          url: 'https://github.com/ciena-frost/${REPO_NAME}.git'
+        },
+        {
+          pattern: '\\s+"(frost\\-\\S+)"',
+          url: 'https://bitbucket.ciena.com/scm/bp_frost/${REPO_NAME}.git'
+        }
+      ]
+    }
+  },
+  vcs: {
+    repository: {
+      name: 'some-test-repo'
+    }
+  }
+})
+
 describe('dependencies', function () {
   let sandbox
-  let config
+
   beforeEach(function () {
     sandbox = sinon.sandbox.create()
     sandbox.stub(logger, 'error')
-    config = {
-      features: {
-        compliance: {
-          enabled: true,
-          production: true,
-          output: {
-            directory: 'output-test-dir',
-            ignore: 'output-ignore-file',
-            repos: 'output-repos-file',
-            requirements: 'output-reqs-file'
-          },
-          additionalRepos: [
-            {
-              pattern: '\\s+"(ember\\-frost\\-\\S+)"',
-              url: 'https://github.com/ciena-frost/${REPO_NAME}.git'
-            },
-            {
-              pattern: '\\s+"(frost\\-\\S+)"',
-              url: 'https://bitbucket.ciena.com/scm/bp_frost/${REPO_NAME}.git'
-            }
-          ]
-        }
-      },
-      vcs: {
-        repository: {
-          name: 'some-test-repo'
-        }
-      }
-    }
   })
 
   afterEach(function () {
@@ -58,10 +60,10 @@ describe('dependencies', function () {
     let licenseObject, ret
     describe('when MIT present', function () {
       beforeEach(function () {
-        licenseObject = {
+        licenseObject = deepFreeze({
           text: 'MIT blah blah blah',
           filePath: '../some/MIT/path'
-        }
+        })
 
         ret = dependencies._parseLicense(licenseObject)
       })
@@ -73,10 +75,10 @@ describe('dependencies', function () {
 
     describe('when ISC present', function () {
       beforeEach(function () {
-        licenseObject = {
+        licenseObject = deepFreeze({
           text: 'ISC blah blah blah',
           filePath: '../some/ISC/path'
-        }
+        })
 
         ret = dependencies._parseLicense(licenseObject)
       })
@@ -88,10 +90,10 @@ describe('dependencies', function () {
 
     describe('when Apache present', function () {
       beforeEach(function () {
-        licenseObject = {
+        licenseObject = deepFreeze({
           text: 'Apache blah blah blah',
           filePath: '../some/Apache/path'
-        }
+        })
 
         ret = dependencies._parseLicense(licenseObject)
       })
@@ -103,10 +105,10 @@ describe('dependencies', function () {
 
     describe('when no known license present', function () {
       beforeEach(function () {
-        licenseObject = {
+        licenseObject = deepFreeze({
           text: 'Uber secret license blah blah blah',
           filePath: '../some/random/path'
-        }
+        })
 
         ret = dependencies._parseLicense(licenseObject)
       })
@@ -121,14 +123,14 @@ describe('dependencies', function () {
     let licenseSources, license
     describe('when using package sources', function () {
       beforeEach(function () {
-        licenseSources = {
+        licenseSources = deepFreeze({
           package: {
             sources: [
               {license: 'MIT'},
               {license: 'Apache'}
             ]
           }
-        }
+        })
 
         license = dependencies._getLicense(licenseSources)
       })
@@ -140,7 +142,7 @@ describe('dependencies', function () {
 
     describe('when using license sources', function () {
       beforeEach(function () {
-        licenseSources = {
+        licenseSources = deepFreeze({
           package: {
             sources: []
           },
@@ -151,7 +153,7 @@ describe('dependencies', function () {
               {text: 'blargh'}
             ]
           }
-        }
+        })
 
         license = dependencies._getLicense(licenseSources)
       })
@@ -200,13 +202,13 @@ describe('dependencies', function () {
     })
 
     it('should respect the production option', function () {
-      return dependencies.getNpmLicenseData('/some/path', '/some/output/path', config).then(() => {
+      return dependencies.getNpmLicenseData('/some/path', '/some/output/path', CONFIG).then(() => {
         expect(findLicenseStub).to.have.been.calledWith(sinon.match({production: true}))
       })
     })
 
     it('should log if there is none', function () {
-      return dependencies.getNpmLicenseData('/some/path', '/some/output/path', config).then(() => {
+      return dependencies.getNpmLicenseData('/some/path', '/some/output/path', CONFIG).then(() => {
         expect(logger.error).to.have.been.calledWith('ERROR: some-id has no licenseSources?')
       })
     })
@@ -220,7 +222,7 @@ describe('dependencies', function () {
         }
       ]
 
-      return dependencies.getNpmLicenseData('/some/path', '/some/output/path', config).then((value) => {
+      return dependencies.getNpmLicenseData('/some/path', '/some/output/path', CONFIG).then((value) => {
         expect(writeFileStub).to.have.been.calledWith(
           '/some/output/path',
           JSON.stringify({
@@ -232,14 +234,14 @@ describe('dependencies', function () {
     })
 
     it('should return file written message', function () {
-      return dependencies.getNpmLicenseData('/some/path', '/some/output/path', config).then((value) => {
+      return dependencies.getNpmLicenseData('/some/path', '/some/output/path', CONFIG).then((value) => {
         expect(value).to.deep.equal('successfully wrote /some/output/path')
       })
     })
 
     it('should log file write error', function () {
       writeFileStub.returns(Promise.reject('some error'))
-      return dependencies.getNpmLicenseData('/some/path', '/some/output/path', config).catch(() => {
+      return dependencies.getNpmLicenseData('/some/path', '/some/output/path', CONFIG).catch(() => {
         expect(logger.error).to.have.been.calledWith('(1) ERROR: writing /some/output/path', 'some error')
       })
     })
@@ -257,11 +259,11 @@ describe('dependencies', function () {
     })
 
     it('should return the correct repo paths', function () {
-      const addlRepos = config.features.compliance.additionalRepos
+      const addlRepos = CONFIG.features.compliance.additionalRepos
       const expectedUrl1 = addlRepos[1].url.split('${REPO_NAME}').join(repos[1].split('"').join(''))
       const expectedUrl2 = addlRepos[0].url.split('${REPO_NAME}').join(repos[0].split('"').join(''))
       const expected = `${expectedUrl1}\n${expectedUrl2}\n`
-      return dependencies.getPackageData('/some/path', config).then((paths) => {
+      return dependencies.getPackageData('/some/path', CONFIG).then((paths) => {
         expect(paths).to.deep.equal(expected)
       })
     })
