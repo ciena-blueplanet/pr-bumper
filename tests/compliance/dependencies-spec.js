@@ -25,6 +25,7 @@ const CONFIG = deepFreeze({
         repos: 'output-repos-file',
         requirements: 'output-reqs-file'
       },
+      /* eslint-disable */
       additionalRepos: [
         {
           pattern: '\\s+"(ember\\-frost\\-\\S+)"',
@@ -35,6 +36,7 @@ const CONFIG = deepFreeze({
           url: 'https://bitbucket.ciena.com/scm/bp_frost/${REPO_NAME}.git'
         }
       ]
+      /* eslint-enable */
     }
   },
   vcs: {
@@ -240,7 +242,7 @@ describe('dependencies', function () {
     })
 
     it('should log file write error', function () {
-      writeFileStub.returns(Promise.reject('some error'))
+      writeFileStub.returns(Promise.reject('some error')) // eslint-disable-line prefer-promise-reject-errors
       return dependencies.getNpmLicenseData('/some/path', '/some/output/path', CONFIG).catch(() => {
         expect(logger.error).to.have.been.calledWith('(1) ERROR: writing /some/output/path', 'some error')
       })
@@ -260,9 +262,11 @@ describe('dependencies', function () {
 
     it('should return the correct repo paths', function () {
       const addlRepos = CONFIG.features.compliance.additionalRepos
+      /* eslint-disable */
       const expectedUrl1 = addlRepos[1].url.split('${REPO_NAME}').join(repos[1].split('"').join(''))
       const expectedUrl2 = addlRepos[0].url.split('${REPO_NAME}').join(repos[0].split('"').join(''))
       const expected = `${expectedUrl1}\n${expectedUrl2}\n`
+      /* eslint-enable */
       return dependencies.getPackageData('/some/path', CONFIG).then((paths) => {
         expect(paths).to.deep.equal(expected)
       })
