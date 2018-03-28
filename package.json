@@ -1,6 +1,6 @@
 {
   "name": "pr-bumper",
-  "version": "3.7.0",
+  "version": "3.7.1",
   "description": "Bump the version of a package based on a GitHub Pull Request",
   "scripts": {
     "lint": "eslint *.js bin lib tests",
@@ -48,7 +48,7 @@
   "devDependencies": {
     "chai": "^3.4.1",
     "eslint": "^3.5.0",
-    "eslint-config-frost-standard": "^5.0.0",
+    "eslint-config-frost-standard": "^9.0.1",
     "freezly": "^1.0.0",
     "istanbul": "^0.4.2",
     "mocha": "^2.3.4",
