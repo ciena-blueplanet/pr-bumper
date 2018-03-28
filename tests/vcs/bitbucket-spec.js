@@ -169,7 +169,9 @@ describe('VCS / Bitbucket /', function () {
       })
 
       it('should reject with the proper error', function () {
-        expect(rejection).to.be.deep.equal(new Error(`https://api.bitbucket.org/2.0/repositories/owner/repo/pullrequests/5 400: ${JSON.stringify(err)}`))
+        expect(rejection).to.be.deep.equal(
+          new Error(`https://api.bitbucket.org/2.0/repositories/owner/repo/pullrequests/5 400: ${JSON.stringify(err)}`)
+        )
       })
     })
 
