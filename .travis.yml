@@ -1,9 +1,8 @@
 language: node_js
 sudo: false
 node_js:
-- '6.0.0'
-- '8.1.2'
-- 'stable'
+- $PUBLISH_NODE_VERSION
+
 install:
 - .travis/maybe-install.sh
 before_script:
@@ -29,8 +28,6 @@ env:
 
 matrix:
   fast_finish: true
-  allow_failures:
-    - node_js: 'stable'
 
 deploy:
   provider: npm
@@ -40,7 +37,7 @@ deploy:
     secure: iuTuGxrHPIoUjUMrWi+qcG9zVqMh/7dCk51Kbcl2lpJF9fkNQyqFGJhCUnPzJ91H67s7EfjyrscWoOpdaxX/9PQ5rrufmdM/rQxryxDIY4ZuOxXiGmZVFAygJflbgPvK37KOaUOT84Y8V0fcV/wqJcd2JIjLKmU2gX6nflLRcqCohh6cUGXyaXitEGCa9K5PBixtzMa6nIAf1+c+oGT9emc1ZTwcch5eOBBbur/fG7eeNE2OMqCDvCwy18ABb6MonZhLZypXBxrOGNqpx5AASxaovjJrMq+gC6W0fqFqdISYNzJh1pDGnpetcy4jV1DzwOJIEl58osO1Uu2GgsSj4IqHTLWuahB2B+iKdfaHA4XtcioXj1fAVKiNPE0bWeLz/sezfrU2uwoMpYQjUCd/Cd4Dc6tQPlhIRqK59TpZ04Yf+zJbgY1switWhmcD5XKxpfRfbY2VdNG6HKB9EECP7sxu4DhroDY+xMGyVMf2RXB9GkbNLeBWzJ2Q2NDWh05XCZm/N50NYY/ntG/PBUVQsDZYerZVFCCALRcyOIVwsIHxiLtZhO+r88Pog7A48CFY2DmMxfXKUFezJPlA1yqXNJDztYVGFUgI1hzY26UbrcmM+mA9ZlRxoxzTuvFYYpgpLrjjOmkUszzlbEsfTbu1t1SYFkiMxIoMXZ80iLAtQgg=
   on:
     all_branches: true
-    node: '8.1.2'
+    node: $PUBLISH_NODE_VERSION
     tags: true
 notifications:
   slack:
