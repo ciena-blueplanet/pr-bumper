@@ -1,3 +1,6 @@
+# 3.7.2 (2018-06-27)
+* **Updated** `pr-bumper.json` config to not run snapshot (https://github.com/ciena-blueplanet/pr-bumper#featuresdependencies)
+
 # 3.7.1 (2018-03-28)
 * Upgrade `eslint-config-frost-standard` devDependency to `^9.0.1`
 
