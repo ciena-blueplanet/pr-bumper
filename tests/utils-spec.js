@@ -1503,6 +1503,17 @@ describe('utils', function () {
       })
     })
 
+    describe('when readJsonFile() does not find the file', function () {
+      beforeEach(function () {
+        utils.readJsonFile.withArgs('path-to-coverage/coverage-file.json').returns(undefined)
+        pct = utils.getCurrentCoverage(config)
+      })
+
+      it('should return -1', function () {
+        expect(pct).to.equal(-1)
+      })
+    })
+
     describe('when coverage is present', function () {
       beforeEach(function () {
         utils.readJsonFile.withArgs('path-to-coverage/coverage-file.json').returns(coverageSummary)
