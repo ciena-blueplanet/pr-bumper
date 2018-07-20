@@ -1,3 +1,8 @@
+# 3.7.3 (2018-07-20)
+
+* **Fixed** Travis API key.
+
+
 # 3.7.2 (2018-06-27)
 * **Updated** `pr-bumper.json` config to not run snapshot (https://github.com/ciena-blueplanet/pr-bumper#featuresdependencies)
 
