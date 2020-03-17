@@ -16,7 +16,9 @@ program
     cli
       .run(cmd, program.skipComments)
       .then(result => {
-        console.log(result)
+        if (result) {
+          console.log(result)
+        }
       })
       .catch((error) => {
         const msg = (error.message) ? error.message : error
