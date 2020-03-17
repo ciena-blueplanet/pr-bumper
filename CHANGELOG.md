@@ -1,3 +1,7 @@
+# 4.0.1 (2020-03-17)
+* Log the result of the operation
+
+
 # 4.0.0 (2020-03-17)
 * Return scope from check function
 
