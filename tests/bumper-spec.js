@@ -143,9 +143,16 @@ describe('Bumper', function () {
     })
 
     describe('when it is a PR build', function () {
+      let scope
       beforeEach(function () {
         __.set(bumper.config, 'computed.ci.isPr', true)
-        return bumper.check()
+        return bumper.check().then(function (result) {
+          scope = result
+        })
+      })
+
+      afterEach(function () {
+        scope = undefined
       })
 
       it('should look for open pr info', function () {
@@ -154,6 +161,10 @@ describe('Bumper', function () {
 
       it('should notify user of the scope it found', function () {
         expect(logger.log).to.have.been.calledWith('Found a minor bump for the current PR')
+      })
+
+      it('should notify return the scope', function () {
+        expect(scope).to.eql('minor')
       })
     })
   })
