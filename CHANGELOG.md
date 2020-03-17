@@ -1,3 +1,7 @@
+# 4.0.0 (2020-03-17)
+* Return scope from check function
+
+
 # 3.7.3 (2018-07-20)
 
 * **Fixed** Travis API key.
