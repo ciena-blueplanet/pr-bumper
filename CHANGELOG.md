@@ -1,3 +1,6 @@
+# 4.1.0 (2020-03-17)
+* Adding prepend-changelog command
+
 # 4.0.1 (2020-03-17)
 * Log the result of the operation
 
