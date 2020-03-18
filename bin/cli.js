@@ -11,15 +11,11 @@ const cli = new Cli()
 program
   .version(pkgJson.version)
   .option('-s, --skip-comments', 'disable PR comments even if enabled via .pr-bumper.json')
+  .option('-mr, --mono-repo', 'provide a different behavior for mono-repo')
   .arguments('<cmd>')
   .action((cmd, program) => {
     cli
-      .run(cmd, program.skipComments)
-      .then(result => {
-        if (result) {
-          console.log(result)
-        }
-      })
+      .run(cmd, program.skipComments, program.morepo)
       .catch((error) => {
         const msg = (error.message) ? error.message : error
         console.log(`${pkgJson.name}: ERROR: ${msg}`)
@@ -34,7 +30,9 @@ program
     console.log('')
     console.log(
       '    --skip-comments - disable PR comments even if enabled via .pr-bumper.json\n' +
-      '                      Useful particularly when running check-coverage manually'
+      '                      Useful particularly when running check-coverage manually' +
+      '    --mono-repo - provide a different behavior for mono-repo\n' +
+      '                  Useful particularly when running check and bump'
     )
     console.log('')
     console.log('  Commands:')
