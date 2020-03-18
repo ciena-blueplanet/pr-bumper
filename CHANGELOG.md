@@ -1,3 +1,6 @@
+# 5.0.0 (2020-03-18)
+* Add a new option to support mono repositories. It's now possible to do `check --mono-repo` or `bump --mono-repo`.
+
 # 4.1.0 (2020-03-17)
 * Adding prepend-changelog command
 
