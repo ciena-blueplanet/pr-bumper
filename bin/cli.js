@@ -11,11 +11,12 @@ const cli = new Cli()
 program
   .version(pkgJson.version)
   .option('-s, --skip-comments', 'disable PR comments even if enabled via .pr-bumper.json')
-  .option('-mr, --mono-repo', 'provide a different behavior for mono-repo')
-  .arguments('<cmd>')
+  .option('-p, --packages-info <packages>',
+          'packages info in json format (useful for prepend-changelog on mono-repo')
+  .arguments('<cmd> ')
   .action((cmd, program) => {
     cli
-      .run(cmd, program.skipComments, program.morepo)
+      .run(cmd, program.skipComments, program.packagesInfo)
       .catch((error) => {
         const msg = (error.message) ? error.message : error
         console.log(`${pkgJson.name}: ERROR: ${msg}`)
@@ -30,9 +31,8 @@ program
     console.log('')
     console.log(
       '    --skip-comments - disable PR comments even if enabled via .pr-bumper.json\n' +
-      '                      Useful particularly when running check-coverage manually' +
-      '    --mono-repo - provide a different behavior for mono-repo\n' +
-      '                  Useful particularly when running check and bump'
+      '                      Useful particularly when running check-coverage manually\n' +
+      '    --packages-info - packages info in json format (useful for prepend-changelog)'
     )
     console.log('')
     console.log('  Commands:')
@@ -40,6 +40,7 @@ program
     console.log('    check - verify an open PR has a version-bump comment')
     console.log('    check-coverage - compare current code coverage against baseline from package.json')
     console.log('    bump - actually bump the version based on the merged PR')
+    console.log('    prependChangelog - Must provide the packages info json. (--packages-info <packages>)')
     console.log('')
   })
   .parse(process.argv)
