@@ -1,3 +1,8 @@
+# 5.0.2 (2020-03-19)
+* Changelog is not prepend properly. There is an issue with the way the data was mapped.
+* Console log result of pr-bumper command.
+
+
 # 5.0.1 (2020-03-18)
 * Fix handling of mono repos (previous version was not working)
 
