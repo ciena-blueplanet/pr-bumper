@@ -1,3 +1,6 @@
+# 5.0.1 (2020-03-18)
+* Fix handling of mono repos (previous version was not working)
+
 # 5.0.0 (2020-03-18)
 * Add a new option to support mono repositories. It's now possible to do `check --mono-repo` or `bump --mono-repo`.
 
