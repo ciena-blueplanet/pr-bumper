@@ -1,3 +1,6 @@
+# 5.0.3 (2020-03-19)
+* Support get-merged-pr-scope and try to fix prepend-changelog
+
 # 5.0.2 (2020-03-19)
 * Changelog is not prepend properly. There is an issue with the way the data was mapped.
 * Console log result of pr-bumper command.
