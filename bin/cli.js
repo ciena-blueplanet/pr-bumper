@@ -17,6 +17,11 @@ program
   .action((cmd, program) => {
     cli
       .run(cmd, program.skipComments, program.packagesInfo)
+      .then(result => {
+        if (result) {
+          console.log(result)
+        }
+      })
       .catch((error) => {
         const msg = (error.message) ? error.message : error
         console.log(`${pkgJson.name}: ERROR: ${msg}`)
