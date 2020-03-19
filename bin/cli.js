@@ -45,7 +45,7 @@ program
     console.log('    check - verify an open PR has a version-bump comment')
     console.log('    check-coverage - compare current code coverage against baseline from package.json')
     console.log('    bump - actually bump the version based on the merged PR')
-    console.log('    prependChangelog - Prepend changelog. Must provide the packages info json.')
+    console.log('    prepend-changelog - Prepend changelog. Must provide the packages info json.')
     console.log('                       (--packages-info <packages>)')
     console.log('    get-merged-pr-scope - get the merged pr scope')
     console.log('')
