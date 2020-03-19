@@ -1,6 +1,6 @@
 {
   "name": "pr-bumper",
-  "version": "5.0.4",
+  "version": "5.0.5",
   "description": "Bump the version of a package based on a GitHub Pull Request",
   "scripts": {
     "lint": "eslint *.js bin lib tests",
