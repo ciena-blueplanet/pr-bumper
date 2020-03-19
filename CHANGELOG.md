@@ -1,3 +1,6 @@
+# 5.0.4 (2020-03-19)
+* Tweak prepend-changelog to be able to debug the code on teamcity
+
 # 5.0.3 (2020-03-19)
 * Support get-merged-pr-scope and try to fix prepend-changelog
 
