@@ -12,7 +12,8 @@ program
   .version(pkgJson.version)
   .option('-s, --skip-comments', 'disable PR comments even if enabled via .pr-bumper.json')
   .option('-p, --packages-info <packages>',
-          'packages info in json format (useful for prepend-changelog on mono-repo')
+          'packages info in json format. Example: ' +
+          '')
   .arguments('<cmd> ')
   .action((cmd, program) => {
     cli
@@ -37,7 +38,9 @@ program
     console.log(
       '    --skip-comments - disable PR comments even if enabled via .pr-bumper.json\n' +
       '                      Useful particularly when running check-coverage manually\n' +
-      '    --packages-info - packages info in json format (useful for prepend-changelog)'
+      '    --packages-info - packages info in json format (useful only for prepend-changelog)\n' +
+      '                      Example: ' +
+      '[{"name":"repo-package","version":"0.0.0","private":false,location":"/packages/repo-package"}'
     )
     console.log('')
     console.log('  Commands:')
@@ -45,8 +48,8 @@ program
     console.log('    check - verify an open PR has a version-bump comment')
     console.log('    check-coverage - compare current code coverage against baseline from package.json')
     console.log('    bump - actually bump the version based on the merged PR')
-    console.log('    prepend-changelog - Prepend changelog. Must provide the packages info json.')
-    console.log('                       (--packages-info <packages>)')
+    console.log('    prependChangelog - Prepend changelogs of all packages. Useful for mono-repos.')
+    console.log('                       Must provide the packages info as json. (--packages-info <packages>)')
     console.log('    get-merged-pr-scope - get the merged pr scope')
     console.log('')
   })
