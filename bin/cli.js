@@ -11,9 +11,7 @@ const cli = new Cli()
 program
   .version(pkgJson.version)
   .option('-s, --skip-comments', 'disable PR comments even if enabled via .pr-bumper.json')
-  .option('-p, --packages-info <packages>',
-          'packages info in json format. Example: ' +
-          '')
+  .option('-p, --packages-info <packages>', 'packages info in json format.')
   .arguments('<cmd> ')
   .action((cmd, program) => {
     cli
@@ -51,6 +49,7 @@ program
     console.log('    prependChangelog - Prepend changelogs of all packages. Useful for mono-repos.')
     console.log('                       Must provide the packages info as json. (--packages-info <packages>)')
     console.log('    get-merged-pr-scope - get the merged pr scope')
+    console.log('    get-last-merge-commit-hash - get the last merge commit hash')
     console.log('')
   })
   .parse(process.argv)
