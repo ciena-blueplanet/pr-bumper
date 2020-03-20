@@ -1,3 +1,7 @@
+# 5.0.6 (2020-03-20)
+* Prepend changelog was using the wrong path.
+* Add comments, improve cli documentation and reduce coverage until I'm adding tests.
+
 # 5.0.5 (2020-03-19)
 * Debugging: try to determine what teamcity is passing to the prependChangelog function
 
