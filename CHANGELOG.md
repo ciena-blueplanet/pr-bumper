@@ -1,3 +1,6 @@
+# 5.0.5 (2020-03-19)
+* Debugging: try to determine what teamcity is passing to the prependChangelog function
+
 # 5.0.4 (2020-03-19)
 * Tweak prepend-changelog to be able to debug the code on teamcity
 
