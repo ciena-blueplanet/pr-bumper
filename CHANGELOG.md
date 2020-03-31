@@ -1,3 +1,6 @@
+# 5.1.1 (2020-03-31)
+* Add tests and move from async functions to promises
+
 # 5.1.0 (2020-03-20)
 * Add get-last-merge-commit-hash command.
 
