@@ -1,3 +1,6 @@
+# 5.1.0 (2020-03-20)
+* Add get-last-merge-commit-hash command.
+
 # 5.0.6 (2020-03-20)
 * Prepend changelog was using the wrong path.
 * Add comments, improve cli documentation and reduce coverage until I'm adding tests.
