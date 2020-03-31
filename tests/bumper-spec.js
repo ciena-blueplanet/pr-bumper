@@ -641,6 +641,120 @@ describe('Bumper', function () {
     })
   })
 
+  describe('.prependChangelog()', function () {
+    let result, info, error, packagesInfo
+
+    beforeEach(function () {
+      result = null
+      error = null
+      bumper.config = {foo: 'bar'}
+      bumper.vcs = {foo: 'bar'}
+      bumper.ci = {push () {}, getLastCommitMsg () {}}
+      info = {scope: 'minor', changelog: '', version: '1.2.0'}
+      packagesInfo = '[{"name":"test","version":"1.2.0","private":false,"location":"/bp2/src/packages/test"}]'
+      sandbox.stub(bumper, '_getMergedPrInfo').returns(Promise.resolve(info))
+      sandbox.stub(bumper, '_maybePrependChangelogForPackages').returns(Promise.resolve(info))
+      sandbox.stub(bumper, '_maybeCommitChanges').returns(Promise.resolve(info))
+      sandbox.stub(bumper, '_maybePushChanges').returns(Promise.resolve(info))
+      sandbox.stub(bumper, '_maybeLogChanges').returns(Promise.resolve('logged'))
+    })
+
+    afterEach(function () {
+      result = undefined
+      info = undefined
+      error = undefined
+      packagesInfo = undefined
+    })
+
+    describe('when a merge build', function () {
+      beforeEach(function (done) {
+        bumper.prependChangelog(packagesInfo)
+          .then((res) => {
+            result = res
+          })
+          .catch((err) => {
+            error = err
+          })
+          .finally(() => {
+            done()
+          })
+      })
+
+      it('should get the merged pr info', function () {
+        expect(bumper._getMergedPrInfo).to.have.callCount(1)
+      })
+
+      it('should maybe prepend the changelog', function () {
+        expect(bumper._maybePrependChangelogForPackages).to.have.been.calledWith(info)
+      })
+
+      it('should maybe commit the change', function () {
+        expect(bumper._maybeCommitChanges).to.have.been.calledWith(info)
+      })
+
+      it('should maybe push the changes', function () {
+        expect(bumper._maybePushChanges).to.have.been.calledWith(info)
+      })
+
+      it('should maybe log the changes', function () {
+        expect(bumper._maybeLogChanges).to.have.been.calledWith(info)
+      })
+
+      it('should resolve with the result of the ci.push()', function () {
+        expect(result).to.equal('logged')
+      })
+
+      it('should not reject', function () {
+        expect(error).to.equal(null)
+      })
+    })
+
+    describe('when not a merge build', function () {
+      beforeEach(function (done) {
+        __.set(bumper.config, 'computed.ci.isPr', true)
+        bumper._getMergedPrInfo.reset()
+        bumper.prependChangelog()
+          .then((res) => {
+            result = res
+          })
+          .catch((err) => {
+            error = err
+          })
+          .finally(() => {
+            done()
+          })
+      })
+
+      it('should log that non merge builds are skipped', function () {
+        expect(logger.log).to.have.been.calledWith('Not a merge build, skipping bump')
+      })
+
+      it('should not lookup merged PR info', function () {
+        expect(bumper._getMergedPrInfo).to.have.callCount(0)
+      })
+
+      it('should not maybe prepend changelog', function () {
+        expect(bumper._maybePrependChangelogForPackages).to.have.callCount(0)
+      })
+
+      it('should not maybe commit changes', function () {
+        expect(bumper._maybeCommitChanges).to.have.callCount(0)
+      })
+
+      it('should not maybe push commit', function () {
+        expect(bumper._maybePushChanges).to.have.callCount(0)
+      })
+
+      it('should not maybe log changes', function () {
+        expect(bumper._maybeLogChanges).to.have.callCount(0)
+      })
+
+      it('should not reject', function () {
+        expect(error).to.equal(null)
+      })
+    })
+  })
+
   describe('._getLastPr()', function () {
     let getPrResolver, resolution, rejection, promise
 
@@ -1482,6 +1596,52 @@ describe('Bumper', function () {
         expect(result).to.equal(info)
       })
     })
+
+    describe('when only the changelog were changed', function () {
+      beforeEach(function (done) {
+        info.scope = 'none'
+        info.modifiedFiles = [
+          'changelog.md'
+        ]
+        result = error = null
+        bumper._maybeCommitChanges(info, true)
+          .then((r) => {
+            result = r
+          })
+          .catch((e) => {
+            error = e
+          })
+          .finally(() => {
+            done()
+          })
+      })
+
+      it('should not log info about skipping', function () {
+        expect(logger.log).to.have.callCount(0)
+      })
+
+      it('should set up the git env', function () {
+        expect(bumper.ci.setupGitEnv).to.have.callCount(1)
+      })
+
+      it('should add the rightfiles', function () {
+        expect(bumper.ci.add).to.have.been.calledWith(['changelog.md'])
+      })
+
+      it('should commit with coverage message', function () {
+        const msg = `[${pkgJson.name}] Automated changelog prepend`
+        const descr = 'From CI build 12345'
+        expect(bumper.ci.commit).to.have.been.calledWith(msg, descr)
+      })
+
+      it('should not reject', function () {
+        expect(error).to.equal(null)
+      })
+
+      it('should resolve with the info', function () {
+        expect(result).to.equal(info)
+      })
+    })
   })
 
   describe('._maybeCreateTag()', function () {
@@ -2185,6 +2345,205 @@ describe('Bumper', function () {
 
       it('should not reject', function () {
         expect(error).to.equal(null)
+      })
+    })
+  })
+
+  describe('_getChangelogTextDate', function () {
+    it('should return a formatted date', function () {
+      const now = new Date()
+      const dateString = now.toISOString().split('T').slice(0, 1).join('')
+      expect(bumper._getChangelogTextDate(now)).to.eql(dateString)
+    })
+  })
+
+  describe('_getChangelogText', function () {
+    it('should return the changelog text', function () {
+      const version = '1.0.0'
+      const date = 'date'
+      const changelog = 'changelog'
+      const text = `# ${version} (${date})\n${changelog}\n\n`
+      expect(bumper._getChangelogText(version, date, changelog)).to.eql(text)
+    })
+  })
+
+  describe('getLastMergeCommitHash', function () {
+    let result
+    beforeEach(function (done) {
+      sandbox.stub(bumper, '_getLastMergeCommit').returns(Promise.resolve('1a2b3c Merge pull request #'))
+      bumper.getLastMergeCommitHash()
+        .then((res) => {
+          result = res
+        })
+        .finally(() => {
+          done()
+        })
+    })
+
+    afterEach(function () {
+      result = undefined
+    })
+
+    it('should return the last merge commit hash', function () {
+      expect(result).to.eql('1a2b3c')
+    })
+  })
+
+  describe('._getLastMergeCommit()', function () {
+    let result, mergeCommit
+
+    beforeEach(function () {
+      mergeCommit = 'edf85e0 Merge pull request #30 from job13er/remove-newline'
+      const gitLog =
+        '98a148c Added some more tests, just a few more to go\n' +
+        '1b1bd97 Added some real unit tests\n' +
+        `${mergeCommit}\n` +
+        'fa066f2 Removed newline from parsed PR number\n' +
+        'fc416cc Merge pull request #29 from job13er/make-bumping-more-robust\n' +
+        '67db358 Fix for #26 by reading PR # from git commit\n' +
+        '4a61a20 Automated version bump\n' +
+        '7db44e1 Merge pull request #24 from sandersky/master\n' +
+        'f571451 add pullapprove config\n' +
+        '4398a26 address PR concerns\n'
+
+      execStub.returns(Promise.resolve(gitLog))
+      bumper._getLastMergeCommit()
+        .then((res) => {
+          result = res
+        })
+        .catch((err) => {
+          throw err
+        })
+    })
+
+    afterEach(function () {
+      result = undefined
+      mergeCommit = undefined
+    })
+
+    describe('last merge commit is present', function () {
+      it('should call git log', function () {
+        expect(execStub).to.have.been.calledWith('git log -10 --oneline')
+      })
+
+      it('should return merge commit', function () {
+        expect(result).to.eql(mergeCommit)
+      })
+    })
+  })
+
+  describe('._maybePrependChangelogForPackages()', function () {
+    let result, info
+    beforeEach(function () {
+      info = {
+        changelog: 'the-changelog-content',
+        scope: 'patch',
+        modifiedFiles: [],
+        version: '1.2.3'
+      }
+      __.set(bumper.config, 'features.changelog.file', 'the-changelog-file')
+      prependStub.returns(Promise.resolve('return-value'))
+    })
+
+    describe('when feature is disabled', function () {
+      beforeEach(function () {
+        bumper.config.isEnabled.withArgs('changelog').returns(false)
+
+        return bumper._maybePrependChangelogForPackages(info)
+          .then((resp) => {
+            result = resp
+          })
+      })
+
+      it('should log a message explaining why it is skipping', function () {
+        const msg = 'Skipping prepending changelog because of config option.'
+        expect(logger.log).to.have.been.calledWith(msg)
+      })
+
+      it('should not prepend the changelog', function () {
+        expect(prependStub).to.have.callCount(0)
+      })
+
+      it('should not add the changelog file to the modifiedFiles list', function () {
+        expect(info.modifiedFiles).not.to.include('the-changelog-file')
+      })
+
+      it('should resolve with the info', function () {
+        expect(result).to.equal(info)
+      })
+    })
+
+    describe('when feature is enabled, and scope is "none"', function () {
+      beforeEach(function () {
+        info.scope = 'none'
+        delete info.version
+        bumper.config.isEnabled.withArgs('changelog').returns(true)
+
+        return bumper._maybePrependChangelogForPackages(info)
+          .then((resp) => {
+            result = resp
+          })
+      })
+
+      it('should log a message explaining why it is skipping', function () {
+        const msg = 'Skipping prepending changelog because of "none" scope.'
+        expect(logger.log).to.have.been.calledWith(msg)
+      })
+
+      it('should not prepend the changelog', function () {
+        expect(prependStub).to.have.callCount(0)
+      })
+
+      it('should not add the changelog file to the modifiedFiles list', function () {
+        expect(info.modifiedFiles).not.to.include('the-changelog-file')
+      })
+
+      it('should resolve with the info', function () {
+        expect(result).to.equal(info)
+      })
+    })
+
+    describe('when feature is enabled and scope is not "none"', function () {
+      beforeEach(function () {
+        info.scope = 'patch'
+        bumper.config.isEnabled.withArgs('changelog').returns(true)
+        bumper.config.changelogFile = 'the-changelog-file'
+
+        const packagesInfo = [
+          {version: '1.0.0', location: 'bp2/src/mcp-components-xp/packages/test1'},
+          {version: '1.2.0', location: 'bp2/src/mcp-components-xp/packages/test2'},
+          {version: '1.2.1', location: 'bp2/src/mcp-components-xp/packages/test3'}
+        ]
+        return bumper._maybePrependChangelogForPackages(info, packagesInfo)
+          .then((resp) => {
+            result = resp
+          })
+      })
+
+      it('should not log a message explaining why it is skipping', function () {
+        expect(logger.log).to.have.callCount(0)
+      })
+
+      it('should prepend the changelog', function () {
+        const now = new Date()
+        const dateString = now.toISOString().split('T').slice(0, 1).join('')
+        const dateChangelogText = `(${dateString})\n${info.changelog}\n\n`
+        expect(prependStub.firstCall).to.have.been.calledWith('packages/test1/the-changelog-file',
+          `# 1.0.0 ${dateChangelogText}`)
+        expect(prependStub.secondCall).to.have.been.calledWith('packages/test2/the-changelog-file',
+          `# 1.2.0 ${dateChangelogText}`)
+        expect(prependStub.thirdCall).to.have.been.calledWith('packages/test3/the-changelog-file',
+          `# 1.2.1 ${dateChangelogText}`)
+      })
+
+      it('should add the changelog file to the modifiedFiles list', function () {
+        expect(info.modifiedFiles).to.include('packages/test1/the-changelog-file')
+        expect(info.modifiedFiles).to.include('packages/test2/the-changelog-file')
+        expect(info.modifiedFiles).to.include('packages/test3/the-changelog-file')
+      })
+
+      it('should resolve with the info', function () {
+        expect(result).to.equal(info)
       })
     })
   })
