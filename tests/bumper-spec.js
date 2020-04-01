@@ -2529,11 +2529,11 @@ describe('Bumper', function () {
         const dateString = now.toISOString().split('T').slice(0, 1).join('')
         const dateChangelogText = `(${dateString})\n${info.changelog}\n\n`
         expect(prependStub.firstCall).to.have.been.calledWith('packages/test1/the-changelog-file',
-          `# 1.0.0 ${dateChangelogText}`)
+          `# 1.0.1 ${dateChangelogText}`)
         expect(prependStub.secondCall).to.have.been.calledWith('packages/test2/the-changelog-file',
-          `# 1.2.0 ${dateChangelogText}`)
-        expect(prependStub.thirdCall).to.have.been.calledWith('packages/test3/the-changelog-file',
           `# 1.2.1 ${dateChangelogText}`)
+        expect(prependStub.thirdCall).to.have.been.calledWith('packages/test3/the-changelog-file',
+          `# 1.2.2 ${dateChangelogText}`)
       })
 
       it('should add the changelog file to the modifiedFiles list', function () {
@@ -2545,6 +2545,20 @@ describe('Bumper', function () {
       it('should resolve with the info', function () {
         expect(result).to.equal(info)
       })
+    })
+  })
+
+  describe('._getNextVersion()', function () {
+    it('should increase version by patch', function () {
+      expect(bumper._getNextVersion('1.0.0', 'patch')).to.eql('1.0.1')
+    })
+
+    it('should increase version by minor', function () {
+      expect(bumper._getNextVersion('1.0.0', 'minor')).to.eql('1.1.0')
+    })
+
+    it('should increase version by major', function () {
+      expect(bumper._getNextVersion('1.0.0', 'major')).to.eql('2.0.0')
     })
   })
 })
