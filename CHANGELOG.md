@@ -1,3 +1,6 @@
+# 5.1.2 (2020-04-01)
+* _maybePrependChangelogForPackages increase version by scope
+
 # 5.1.1 (2020-03-31)
 * Add tests and move from async functions to promises
 
