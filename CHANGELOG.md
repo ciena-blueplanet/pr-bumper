@@ -1,3 +1,6 @@
+# 5.1.3 (2020-09-11)
+* _maybePrependChangelogForPackages increase version by scope
+
 # 5.1.2 (2020-04-01)
 * _maybePrependChangelogForPackages increase version by scope
 
