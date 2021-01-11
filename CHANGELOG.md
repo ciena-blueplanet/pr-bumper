@@ -1,3 +1,7 @@
+# 5.1.3 (2021-01-11)
+
+* Fix pr-bumper compatibility with bitbucket 7 new merging
+
 # 5.1.2 (2020-04-01)
 * _maybePrependChangelogForPackages increase version by scope
 
