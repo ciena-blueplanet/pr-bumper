@@ -1,3 +1,6 @@
+# 5.1.4 (2021-01-12)
+* Add tests for bitbucket v7 fix
+
 # 5.1.3 (2021-01-11)
 
 * Fix pr-bumper compatibility with bitbucket 7 new merging
