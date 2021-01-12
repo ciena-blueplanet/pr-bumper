@@ -2368,60 +2368,91 @@ describe('Bumper', function () {
   })
 
   describe('getLastMergeCommitHash', function () {
-    let result
-    beforeEach(function (done) {
+    it('should return the last merge commit hash', async function () {
       sandbox.stub(bumper, '_getLastMergeCommit').returns(Promise.resolve('1a2b3c Merge pull request #'))
-      bumper.getLastMergeCommitHash()
-        .then((res) => {
-          result = res
-        })
-        .finally(() => {
-          done()
-        })
+      const result = await bumper.getLastMergeCommitHash()
+
+      expect(result).to.eql('1a2b3c')
     })
 
-    afterEach(function () {
-      result = undefined
-    })
+    it('should return the last merge commit hash for new bitbucket format', async function () {
+      sandbox.stub(bumper, '_getLastMergeCommit').returns(Promise.resolve('1a2b3c Pull request #'))
+      const result = await bumper.getLastMergeCommitHash()
 
-    it('should return the last merge commit hash', function () {
       expect(result).to.eql('1a2b3c')
     })
   })
 
   describe('._getLastMergeCommit()', function () {
-    let result, mergeCommit
-
-    beforeEach(function () {
-      mergeCommit = 'edf85e0 Merge pull request #30 from job13er/remove-newline'
-      const gitLog =
-        '98a148c Added some more tests, just a few more to go\n' +
-        '1b1bd97 Added some real unit tests\n' +
-        `${mergeCommit}\n` +
-        'fa066f2 Removed newline from parsed PR number\n' +
-        'fc416cc Merge pull request #29 from job13er/make-bumping-more-robust\n' +
-        '67db358 Fix for #26 by reading PR # from git commit\n' +
-        '4a61a20 Automated version bump\n' +
-        '7db44e1 Merge pull request #24 from sandersky/master\n' +
-        'f571451 add pullapprove config\n' +
-        '4398a26 address PR concerns\n'
-
-      execStub.returns(Promise.resolve(gitLog))
-      bumper._getLastMergeCommit()
-        .then((res) => {
-          result = res
-        })
-        .catch((err) => {
-          throw err
-        })
-    })
-
-    afterEach(function () {
-      result = undefined
-      mergeCommit = undefined
-    })
-
     describe('last merge commit is present', function () {
+      let result, mergeCommit
+      beforeEach(async function () {
+        mergeCommit = 'edf85e0 Merge pull request #30 from job13er/remove-newline'
+        const gitLog =
+          '98a148c Added some more tests, just a few more to go\n' +
+          '1b1bd97 Added some real unit tests\n' +
+          `${mergeCommit}\n` +
+          'fa066f2 Removed newline from parsed PR number\n' +
+          'fc416cc Merge pull request #29 from job13er/make-bumping-more-robust\n' +
+          '67db358 Fix for #26 by reading PR # from git commit\n' +
+          '4a61a20 Automated version bump\n' +
+          '7db44e1 Merge pull request #24 from sandersky/master\n' +
+          'f571451 add pullapprove config\n' +
+          '4398a26 address PR concerns\n'
+
+        execStub.returns(Promise.resolve(gitLog))
+        await bumper._getLastMergeCommit()
+          .then((res) => {
+            result = res
+          })
+          .catch((err) => {
+            throw err
+          })
+      })
+
+      afterEach(function () {
+        result = undefined
+        mergeCommit = undefined
+      })
+      it('should call git log', function () {
+        expect(execStub).to.have.been.calledWith('git log -10 --oneline')
+      })
+
+      it('should return merge commit', function () {
+        expect(result).to.eql(mergeCommit)
+      })
+    })
+
+    describe('last merge commit is present (bitbucket v7)', function () {
+      let result, mergeCommit
+      beforeEach(async function () {
+        mergeCommit = 'edf85e0 Pull request #30: from job13er/remove-newline'
+        const gitLog =
+          '98a148c Added some more tests, just a few more to go\n' +
+          '1b1bd97 Added some real unit tests\n' +
+          `${mergeCommit}\n` +
+          'fa066f2 Removed newline from parsed PR number\n' +
+          'fc416cc Pull request #29: from job13er/make-bumping-more-robust\n' +
+          '67db358 Fix for #26 by reading PR # from git commit\n' +
+          '4a61a20 Automated version bump\n' +
+          '7db44e1 Pull request #24: from sandersky/master\n' +
+          'f571451 add pullapprove config\n' +
+          '4398a26 address PR concerns\n'
+        execStub.returns(Promise.resolve(gitLog))
+
+        await bumper._getLastMergeCommit()
+          .then((res) => {
+            result = res
+          })
+          .catch((err) => {
+            throw err
+          })
+      })
+
+      afterEach(function () {
+        result = undefined
+        mergeCommit = undefined
+      })
       it('should call git log', function () {
         expect(execStub).to.have.been.calledWith('git log -10 --oneline')
       })
