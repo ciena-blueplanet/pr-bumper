@@ -1,3 +1,6 @@
+# 5.1.5 (2021-05-10)
+* Add tests for bitbucket v7 fix
+
 # 5.1.4 (2021-01-12)
 * Add tests for bitbucket v7 fix
 
